@@ -22322,10 +22322,10 @@
   {
     "name": "Tachiyomi: Sussy Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.sussyscan",
-    "apk": "tachiyomi-pt.sussyscan-v1.4.55.apk",
+    "apk": "tachiyomi-pt.sussyscan-v1.4.56.apk",
     "lang": "pt-BR",
-    "code": 55,
-    "version": "1.4.55",
+    "code": 56,
+    "version": "1.4.56",
     "nsfw": 1,
     "sources": [
       {
