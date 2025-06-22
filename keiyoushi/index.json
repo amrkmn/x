@@ -9223,17 +9223,17 @@
   {
     "name": "Tachiyomi: Eros Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.erosscans",
-    "apk": "tachiyomi-en.erosscans-v1.4.33.apk",
+    "apk": "tachiyomi-en.erosscans-v1.4.34.apk",
     "lang": "en",
-    "code": 33,
-    "version": "1.4.33",
+    "code": 34,
+    "version": "1.4.34",
     "nsfw": 0,
     "sources": [
       {
         "name": "Eros Scans",
         "lang": "en",
         "id": "1124131000360667434",
-        "baseUrl": "https://sobicscans.xyz"
+        "baseUrl": "https://erosvoid.xyz"
       }
     ]
   },
@@ -10039,17 +10039,17 @@
   {
     "name": "Tachiyomi: Hive Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.infernalvoidscans",
-    "apk": "tachiyomi-en.infernalvoidscans-v1.4.48.apk",
+    "apk": "tachiyomi-en.infernalvoidscans-v1.4.49.apk",
     "lang": "en",
-    "code": 48,
-    "version": "1.4.48",
+    "code": 49,
+    "version": "1.4.49",
     "nsfw": 0,
     "sources": [
       {
         "name": "Hive Scans",
         "lang": "en",
         "id": "6311653253665366075",
-        "baseUrl": "https://hivecomic.com"
+        "baseUrl": "https://hivetoons.org"
       }
     ]
   },
@@ -15672,17 +15672,17 @@
   {
     "name": "Tachiyomi: Hades no Fansub",
     "pkg": "eu.kanade.tachiyomi.extension.es.hadesnofansub",
-    "apk": "tachiyomi-es.hadesnofansub-v1.4.45.apk",
+    "apk": "tachiyomi-es.hadesnofansub-v1.4.46.apk",
     "lang": "es",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 1,
     "sources": [
       {
         "name": "Hades no Fansub",
         "lang": "es",
         "id": "8311505150576608267",
-        "baseUrl": "https://mangareaderpro.com"
+        "baseUrl": "https://hadesnofansub.com"
       }
     ]
   },
@@ -16403,17 +16403,17 @@
   {
     "name": "Tachiyomi: NekoScans",
     "pkg": "eu.kanade.tachiyomi.extension.es.nekoscans",
-    "apk": "tachiyomi-es.nekoscans-v1.4.35.apk",
+    "apk": "tachiyomi-es.nekoscans-v1.4.36.apk",
     "lang": "es",
-    "code": 35,
-    "version": "1.4.35",
+    "code": 36,
+    "version": "1.4.36",
     "nsfw": 1,
     "sources": [
       {
         "name": "NekoScans",
         "lang": "es",
-        "id": "4461682841795852378",
-        "baseUrl": "https://nekoscanlation.blogspot.com"
+        "id": "8396340084333456288",
+        "baseUrl": "https://nekoscans.org"
       }
     ]
   },
@@ -16758,19 +16758,19 @@
     ]
   },
   {
-    "name": "Tachiyomi: TenkaiScan",
+    "name": "Tachiyomi: Falco Scan",
     "pkg": "eu.kanade.tachiyomi.extension.es.tenkaiscan",
-    "apk": "tachiyomi-es.tenkaiscan-v1.4.36.apk",
+    "apk": "tachiyomi-es.tenkaiscan-v1.4.37.apk",
     "lang": "es",
-    "code": 36,
-    "version": "1.4.36",
+    "code": 37,
+    "version": "1.4.37",
     "nsfw": 1,
     "sources": [
       {
-        "name": "TenkaiScan",
+        "name": "Falco Scan",
         "lang": "es",
         "id": "5992780069311625546",
-        "baseUrl": "https://tenkaiscan.net"
+        "baseUrl": "https://falcoscan.net"
       }
     ]
   },
@@ -16896,17 +16896,17 @@
   {
     "name": "Tachiyomi: Tres Daos Scan",
     "pkg": "eu.kanade.tachiyomi.extension.es.tresdaosscan",
-    "apk": "tachiyomi-es.tresdaosscan-v1.4.39.apk",
+    "apk": "tachiyomi-es.tresdaosscan-v1.4.40.apk",
     "lang": "es",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 40,
+    "version": "1.4.40",
     "nsfw": 0,
     "sources": [
       {
         "name": "Tres Daos Scan",
         "lang": "es",
         "id": "1161787897588139768",
-        "baseUrl": "https://3daos.mewingzone.com"
+        "baseUrl": "https://threedaos.drublood.com"
       }
     ]
   },
@@ -17854,17 +17854,17 @@
   {
     "name": "Tachiyomi: CosmicScans.id",
     "pkg": "eu.kanade.tachiyomi.extension.id.cosmicscansid",
-    "apk": "tachiyomi-id.cosmicscansid-v1.4.39.apk",
+    "apk": "tachiyomi-id.cosmicscansid-v1.4.40.apk",
     "lang": "id",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 40,
+    "version": "1.4.40",
     "nsfw": 1,
     "sources": [
       {
         "name": "CosmicScans.id",
         "lang": "id",
         "id": "6559481336553833282",
-        "baseUrl": "https://lc.cosmicscans.asia"
+        "baseUrl": "https://lc2.cosmicscans.asia"
       }
     ]
   },
@@ -18211,17 +18211,17 @@
   {
     "name": "Tachiyomi: KomikIndoID",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikindoid",
-    "apk": "tachiyomi-id.komikindoid-v1.4.15.apk",
+    "apk": "tachiyomi-id.komikindoid-v1.4.16.apk",
     "lang": "id",
-    "code": 15,
-    "version": "1.4.15",
+    "code": 16,
+    "version": "1.4.16",
     "nsfw": 0,
     "sources": [
       {
         "name": "KomikIndoID",
         "lang": "id",
         "id": "5384836574731339537",
-        "baseUrl": "https://komikindo.pw"
+        "baseUrl": "https://komikindo.rip"
       }
     ]
   },
@@ -18279,17 +18279,17 @@
   {
     "name": "Tachiyomi: Komik Station",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikstation",
-    "apk": "tachiyomi-id.komikstation-v1.4.35.apk",
+    "apk": "tachiyomi-id.komikstation-v1.4.36.apk",
     "lang": "id",
-    "code": 35,
-    "version": "1.4.35",
+    "code": 36,
+    "version": "1.4.36",
     "nsfw": 0,
     "sources": [
       {
         "name": "Komik Station",
         "lang": "id",
         "id": "6148605743576635261",
-        "baseUrl": "https://komikstation.co"
+        "baseUrl": "https://komikstation.org"
       }
     ]
   },
@@ -18619,17 +18619,17 @@
   {
     "name": "Tachiyomi: Manhwa Indo",
     "pkg": "eu.kanade.tachiyomi.extension.id.manhwaindo",
-    "apk": "tachiyomi-id.manhwaindo-v1.4.36.apk",
+    "apk": "tachiyomi-id.manhwaindo-v1.4.37.apk",
     "lang": "id",
-    "code": 36,
-    "version": "1.4.36",
+    "code": 37,
+    "version": "1.4.37",
     "nsfw": 1,
     "sources": [
       {
         "name": "Manhwa Indo",
         "lang": "id",
         "id": "862941840467210819",
-        "baseUrl": "https://manhwaindo.one"
+        "baseUrl": "https://manhwaindo.com"
       }
     ]
   },
@@ -18653,17 +18653,17 @@
   {
     "name": "Tachiyomi: Manhwa List",
     "pkg": "eu.kanade.tachiyomi.extension.id.manhwalistid",
-    "apk": "tachiyomi-id.manhwalistid-v1.4.34.apk",
+    "apk": "tachiyomi-id.manhwalistid-v1.4.35.apk",
     "lang": "id",
-    "code": 34,
-    "version": "1.4.34",
+    "code": 35,
+    "version": "1.4.35",
     "nsfw": 0,
     "sources": [
       {
         "name": "Manhwa List",
         "lang": "id",
         "id": "3111049819536223391",
-        "baseUrl": "https://manhwalist01.com"
+        "baseUrl": "https://manhwalist02.site"
       }
     ]
   },
@@ -22276,17 +22276,17 @@
   {
     "name": "Tachiyomi: Spectral Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.spectralscan",
-    "apk": "tachiyomi-pt.spectralscan-v1.4.43.apk",
+    "apk": "tachiyomi-pt.spectralscan-v1.4.44.apk",
     "lang": "pt-BR",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 0,
     "sources": [
       {
         "name": "Spectral Scan",
         "lang": "pt-BR",
         "id": "5304928452449566995",
-        "baseUrl": "https://spectralscan.xyz"
+        "baseUrl": "https://www.spectral.wtf"
       }
     ]
   },
@@ -22446,10 +22446,10 @@
   {
     "name": "Tachiyomi: Tia Manhwa",
     "pkg": "eu.kanade.tachiyomi.extension.pt.tiamanhwa",
-    "apk": "tachiyomi-pt.tiamanhwa-v1.4.42.apk",
+    "apk": "tachiyomi-pt.tiamanhwa-v1.4.43.apk",
     "lang": "pt-BR",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
@@ -24350,17 +24350,17 @@
   {
     "name": "Tachiyomi: Lavinia Fansub",
     "pkg": "eu.kanade.tachiyomi.extension.tr.laviniafansub",
-    "apk": "tachiyomi-tr.laviniafansub-v1.4.43.apk",
+    "apk": "tachiyomi-tr.laviniafansub-v1.4.44.apk",
     "lang": "tr",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
         "name": "Lavinia Fansub",
         "lang": "tr",
         "id": "3269982329415083765",
-        "baseUrl": "https://laviniafansub.com"
+        "baseUrl": "https://laviniafansub.site"
       }
     ]
   },
@@ -25761,17 +25761,17 @@
   {
     "name": "Tachiyomi: Team Lanh Lung",
     "pkg": "eu.kanade.tachiyomi.extension.vi.teamlanhlung",
-    "apk": "tachiyomi-vi.teamlanhlung-v1.4.24.apk",
+    "apk": "tachiyomi-vi.teamlanhlung-v1.4.25.apk",
     "lang": "vi",
-    "code": 24,
-    "version": "1.4.24",
+    "code": 25,
+    "version": "1.4.25",
     "nsfw": 1,
     "sources": [
       {
         "name": "Team Lạnh Lùng",
         "lang": "vi",
         "id": "1832370231745386795",
-        "baseUrl": "https://teamlanhlung10.shop"
+        "baseUrl": "https://teamlanhlung11.shop"
       }
     ]
   },
