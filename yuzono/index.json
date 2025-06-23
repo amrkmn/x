@@ -1301,17 +1301,17 @@
   {
     "name": "Aniyomi: Aniwave.se",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.aniwavese",
-    "apk": "aniyomi-en.aniwavese-v14.2.apk",
+    "apk": "aniyomi-en.aniwavese-v14.3.apk",
     "lang": "en",
-    "code": 2,
-    "version": "14.2",
+    "code": 3,
+    "version": "14.3",
     "nsfw": 0,
     "sources": [
       {
         "name": "Aniwave.se",
         "lang": "en",
         "id": "9214453798655370088",
-        "baseUrl": "https://aniwave.se"
+        "baseUrl": "https://www.aniwave.se"
       }
     ]
   },
