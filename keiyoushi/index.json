@@ -1444,10 +1444,10 @@
   {
     "name": "Tachiyomi: Coomer",
     "pkg": "eu.kanade.tachiyomi.extension.all.coomer",
-    "apk": "tachiyomi-all.coomer-v1.4.21.apk",
+    "apk": "tachiyomi-all.coomer-v1.4.22.apk",
     "lang": "all",
-    "code": 21,
-    "version": "1.4.21",
+    "code": 22,
+    "version": "1.4.22",
     "nsfw": 1,
     "sources": [
       {
@@ -3195,10 +3195,10 @@
   {
     "name": "Tachiyomi: Kemono",
     "pkg": "eu.kanade.tachiyomi.extension.all.kemono",
-    "apk": "tachiyomi-all.kemono-v1.4.21.apk",
+    "apk": "tachiyomi-all.kemono-v1.4.22.apk",
     "lang": "all",
-    "code": 21,
-    "version": "1.4.21",
+    "code": 22,
+    "version": "1.4.22",
     "nsfw": 1,
     "sources": [
       {
@@ -17854,10 +17854,10 @@
   {
     "name": "Tachiyomi: CosmicScans.id",
     "pkg": "eu.kanade.tachiyomi.extension.id.cosmicscansid",
-    "apk": "tachiyomi-id.cosmicscansid-v1.4.40.apk",
+    "apk": "tachiyomi-id.cosmicscansid-v1.4.41.apk",
     "lang": "id",
-    "code": 40,
-    "version": "1.4.40",
+    "code": 41,
+    "version": "1.4.41",
     "nsfw": 1,
     "sources": [
       {
@@ -20559,10 +20559,10 @@
   {
     "name": "Tachiyomi: AnimeXNovel",
     "pkg": "eu.kanade.tachiyomi.extension.pt.animexnovel",
-    "apk": "tachiyomi-pt.animexnovel-v1.4.11.apk",
+    "apk": "tachiyomi-pt.animexnovel-v1.4.12.apk",
     "lang": "pt-BR",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 0,
     "sources": [
       {
