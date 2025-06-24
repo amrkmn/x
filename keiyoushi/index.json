@@ -2843,10 +2843,10 @@
   {
     "name": "Tachiyomi: Hitomi",
     "pkg": "eu.kanade.tachiyomi.extension.all.hitomi",
-    "apk": "tachiyomi-all.hitomi-v1.4.39.apk",
+    "apk": "tachiyomi-all.hitomi-v1.4.40.apk",
     "lang": "all",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 40,
+    "version": "1.4.40",
     "nsfw": 1,
     "sources": [
       {
@@ -18109,17 +18109,17 @@
   {
     "name": "Tachiyomi: Komik Cast",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikcast",
-    "apk": "tachiyomi-id.komikcast-v1.4.65.apk",
+    "apk": "tachiyomi-id.komikcast-v1.4.66.apk",
     "lang": "id",
-    "code": 65,
-    "version": "1.4.65",
+    "code": 66,
+    "version": "1.4.66",
     "nsfw": 0,
     "sources": [
       {
         "name": "Komik Cast",
         "lang": "id",
         "id": "972717448578983812",
-        "baseUrl": "https://komikcast02.com"
+        "baseUrl": "https://komikcast.li"
       }
     ]
   },
@@ -26690,6 +26690,23 @@
         "lang": "zh",
         "id": "524579092615598717",
         "baseUrl": "https://manhua.zaimanhua.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Zazhimi",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.zazhimi",
+    "apk": "tachiyomi-zh.zazhimi-v1.4.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "杂志迷",
+        "lang": "zh",
+        "id": "6466445276541048432",
+        "baseUrl": "https://www.zazhimi.net"
       }
     ]
   },
