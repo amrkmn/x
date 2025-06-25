@@ -3027,29 +3027,29 @@
   {
     "name": "Tachiyomi: HOLONOMETRIA",
     "pkg": "eu.kanade.tachiyomi.extension.all.holonometria",
-    "apk": "tachiyomi-all.holonometria-v1.4.2.apk",
+    "apk": "tachiyomi-all.holonometria-v1.4.3.apk",
     "lang": "all",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 0,
     "sources": [
       {
         "name": "HOLONOMETRIA",
         "lang": "ja",
         "id": "8779183423368672304",
-        "baseUrl": "https://alt.hololive.tv"
+        "baseUrl": "https://holoearth.com"
       },
       {
         "name": "HOLONOMETRIA",
         "lang": "en",
         "id": "1334492919632049277",
-        "baseUrl": "https://alt.hololive.tv"
+        "baseUrl": "https://holoearth.com"
       },
       {
         "name": "HOLONOMETRIA",
         "lang": "id",
         "id": "5054301488874110968",
-        "baseUrl": "https://alt.hololive.tv"
+        "baseUrl": "https://holoearth.com"
       }
     ]
   },
@@ -19741,10 +19741,10 @@
   {
     "name": "Tachiyomi: MangaGun",
     "pkg": "eu.kanade.tachiyomi.extension.ja.mangagun",
-    "apk": "tachiyomi-ja.mangagun-v1.4.12.apk",
+    "apk": "tachiyomi-ja.mangagun-v1.4.13.apk",
     "lang": "ja",
-    "code": 12,
-    "version": "1.4.12",
+    "code": 13,
+    "version": "1.4.13",
     "nsfw": 1,
     "sources": [
       {
@@ -25982,10 +25982,10 @@
   {
     "name": "Tachiyomi: Baka Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.bakamh",
-    "apk": "tachiyomi-zh.bakamh-v1.4.42.apk",
+    "apk": "tachiyomi-zh.bakamh-v1.4.43.apk",
     "lang": "zh",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
