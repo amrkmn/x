@@ -20472,19 +20472,19 @@
         "name": "늑대닷컴 - 웹툰",
         "lang": "ko",
         "id": "5583626852311652499",
-        "baseUrl": "https://wfwf396.com"
+        "baseUrl": "https://wfwf397.com"
       },
       {
         "name": "늑대닷컴 - 만화책",
         "lang": "ko",
         "id": "7074060458114951398",
-        "baseUrl": "https://wfwf396.com"
+        "baseUrl": "https://wfwf397.com"
       },
       {
         "name": "늑대닷컴 - 포토툰",
         "lang": "ko",
         "id": "4225505094399546613",
-        "baseUrl": "https://wfwf396.com"
+        "baseUrl": "https://wfwf397.com"
       }
     ]
   },
@@ -20678,10 +20678,10 @@
   {
     "name": "Tachiyomi: Astratoons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.astratoons",
-    "apk": "tachiyomi-pt.astratoons-v1.4.1.apk",
+    "apk": "tachiyomi-pt.astratoons-v1.4.2.apk",
     "lang": "pt-BR",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 0,
     "sources": [
       {
@@ -22276,10 +22276,10 @@
   {
     "name": "Tachiyomi: Spectral Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.spectralscan",
-    "apk": "tachiyomi-pt.spectralscan-v1.4.44.apk",
+    "apk": "tachiyomi-pt.spectralscan-v1.4.45.apk",
     "lang": "pt-BR",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 0,
     "sources": [
       {
