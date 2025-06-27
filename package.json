@@ -4,11 +4,13 @@
     "author": "Amar Tukimin",
     "main": "src/index.ts",
     "description": "Mihon & Aniyomi Extensions",
-    "keywords": [],
+    "keywords": ["mihon", "aniyomi", "extensions", "manga", "anime"],
     "license": "ISC",
     "private": true,
+    "type": "module",
     "scripts": {
-        "build": "bun run src/index.ts"
+        "build": "bun run clean && bun run src/index.ts",
+        "clean": "bun run src/clean.ts"
     },
     "devDependencies": {
         "@types/bun": "latest",

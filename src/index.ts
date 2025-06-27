@@ -2,37 +2,19 @@ import fs from "fs/promises";
 import ejs from "ejs";
 import { join } from "path";
 import { PathLike } from "fs";
+import { config } from "./config.js";
 
-const OUTPUT_DIR = join(process.cwd(), "dist");
-const TEMPLATE_DIR = join(process.cwd(), "src/templates");
-const EXTENSIONS_DIR = join(process.cwd(), "extensions");
-const EXTENSIONS = ["keiyoushi", "yuzono"];
-const FILES_TO_COPY = ["index.json", "index.min.json", "repo.json", "apk", "icon"];
+const outputDirectory = join(process.cwd(), config.directories.output);
+const templateDirectory = join(process.cwd(), config.directories.templates);
+const extensionsDirectory = join(process.cwd(), config.directories.extensions);
+const extensionNames = config.extensions;
+const filesToCopy = config.filesToCopy;
 
-const owner = "amrkmn";
-const repo = "x";
-const branch = "main";
+const { owner: repositoryOwner, repo: repositoryName, branch: gitBranch } = config.github;
+const githubCommitsApiUrl = `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/commits/${gitBranch}`;
 
-const githubAPI = `https://api.github.com/repos/${owner}/${repo}/commits/${branch}`;
-
-const domains = ["https://x.noz.one", "https://x.ujol.dev", "https://amrkmn.github.io/x"];
-
-const extensions = {
-    mihon: [
-        {
-            source: "https://github.com/keiyoushi/extensions",
-            name: "Keiyoushi",
-            path: "/keiyoushi/index.min.json",
-        },
-    ],
-    aniyomi: [
-        {
-            source: "https://github.com/yuzono/anime-repo",
-            name: "Yuzono",
-            path: "/yuzono/index.min.json",
-        },
-    ],
-};
+const deploymentDomains = config.domains;
+const extensionSources = config.extensionSources;
 
 async function ensureDir(path: PathLike) {
     try {
@@ -62,20 +44,20 @@ async function copyRecursive(src: string, dest: string) {
 
 async function copyExtensions() {
     try {
-        await ensureDir(OUTPUT_DIR);
+        await ensureDir(outputDirectory);
 
-        for (const extension of EXTENSIONS) {
-            const extensionPath = join(EXTENSIONS_DIR, extension);
-            const destPath = join(OUTPUT_DIR, extension);
+        for (const extensionName of extensionNames) {
+            const sourceExtensionPath = join(extensionsDirectory, extensionName);
+            const destinationExtensionPath = join(outputDirectory, extensionName);
 
-            await ensureDir(destPath);
+            await ensureDir(destinationExtensionPath);
 
-            for (const item of FILES_TO_COPY) {
-                const srcItem = join(extensionPath, item);
-                const destItem = join(destPath, item);
+            for (const fileItem of filesToCopy) {
+                const sourceItemPath = join(sourceExtensionPath, fileItem);
+                const destinationItemPath = join(destinationExtensionPath, fileItem);
 
-                await copyRecursive(srcItem, destItem);
-                console.log(`Copied ${item} from ${extension} to dist/${extension}`);
+                await copyRecursive(sourceItemPath, destinationItemPath);
+                console.log(`Copied ${fileItem} from ${extensionName} to dist/${extensionName}`);
             }
         }
         console.log("Submodules copied successfully to dist!");
@@ -84,20 +66,26 @@ async function copyExtensions() {
 
 try {
     await copyExtensions();
-    const res = await fetch(githubAPI);
-    const commits = await res.json();
-    const latestCommitHash = `${commits.sha}`.substring(0, 7);
-    const commitLink = commits.html_url;
-    const source = `https://github.com/${owner}/${repo}`;
+    const apiResponse = await fetch(githubCommitsApiUrl);
+    const commitsData = await apiResponse.json();
+    const latestCommitHash = `${commitsData.sha}`.substring(0, 7);
+    const commitLink = commitsData.html_url;
+    const repositorySource = `https://github.com/${repositoryOwner}/${repositoryName}`;
 
-    const template = await fs.readFile(`${TEMPLATE_DIR}/index.ejs`, "utf-8");
-    const output = ejs.render(
-        template,
-        { extensions, source, commitLink, latestCommitHash, domains },
+    const templateContent = await fs.readFile(`${templateDirectory}/index.ejs`, "utf-8");
+    const renderedOutput = ejs.render(
+        templateContent,
+        {
+            extensions: extensionSources,
+            source: repositorySource,
+            commitLink,
+            latestCommitHash,
+            domains: deploymentDomains,
+        },
         { views: [join(__dirname, "templates")] }
     );
 
-    await fs.writeFile(`${OUTPUT_DIR}/index.html`, output);
+    await fs.writeFile(`${outputDirectory}/index.html`, renderedOutput);
     console.log(`Build index.html with commit hash: ${latestCommitHash} (${commitLink})`);
 } catch (error) {
     console.error(error);
