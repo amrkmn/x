@@ -1,0 +1,8 @@
+[submodule "extensions/keiyoushi"]
+	path = extensions/keiyoushi
+	url = https://github.com/keiyoushi/extensions
+	branch = repo
+[submodule "extensions/kohi-den"]
+	path = extensions/kohi-den
+	url = https://kohiden.xyz/Kohi-den/extensions
+	branch = main

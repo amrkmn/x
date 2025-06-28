@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Mihon & Aniyomi Extensions</title>
+        <%- include('style') %>
+    </head>
+    <body>
+        <%- include('container', extensions) %>
+
+        <footer>
+            Source Code: <a href="<%= source %>" target="_blank"><%= source %></a>
+            <div>Commit: <a href="<%= commitLink %>" target="_blank"><%= latestCommitHash %></a></div>
+        </footer>
+    </body>
+</html>
