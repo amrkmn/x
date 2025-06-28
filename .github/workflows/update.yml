@@ -1,4 +1,4 @@
-name: Update Submodules
+name: Update Subtrees
 
 on:
     schedule:
@@ -13,7 +13,6 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v3
               with:
-                  submodules: recursive
                   fetch-depth: 0
                   token: ${{ secrets.GH_PAT }}
 
@@ -22,17 +21,18 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Update submodules
+            - name: Update subtrees
               run: |
-                  git fetch origin
-                  git reset --hard origin/main
-                  git submodule update --remote --recursive
+                  git remote add keiyoushi https://github.com/keiyoushi/extensions.git
+                  git remote add kohi-den https://kohiden.xyz/Kohi-den/extensions.git
+                  git subtree pull --prefix=extensions/keiyoushi keiyoushi repo --squash
+                  git subtree pull --prefix=extensions/kohi-den kohi-den main --squash
 
             - name: Commit and push changes
               run: |
                   if [[ -n $(git status -s) ]]; then
                     git add .
-                    git commit -m "Update submodules to the latest commit"
+                    git commit -m "Update subtrees to the latest commit"
 
                     # Try to push, if it fails, fetch, rebase, and try again
                     MAX_RETRIES=5
