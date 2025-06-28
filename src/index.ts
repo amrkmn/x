@@ -2,19 +2,46 @@ import fs from "fs/promises";
 import ejs from "ejs";
 import { join } from "path";
 import { PathLike } from "fs";
-import { config } from "./config.js";
+import type { Config, ExtensionSources } from "./types";
+
+// Read and parse config.json
+const configPath = join(process.cwd(), "src", "config.json");
+const configFile = await fs.readFile(configPath, "utf-8");
+const config: Config = JSON.parse(configFile);
+
+// Helper functions to process config data
+function getExtensionNames(): string[] {
+    return Object.values(config.extensions).map((ext) => ext.dirname);
+}
+
+function getExtensionSources(): ExtensionSources {
+    const sources: ExtensionSources = {};
+
+    for (const ext of Object.values(config.extensions)) {
+        if (!sources[ext.category]) {
+            sources[ext.category] = [];
+        }
+        sources[ext.category].push({
+            source: ext.source,
+            name: ext.name,
+            path: ext.path,
+        });
+    }
+
+    return sources;
+}
 
 const outputDirectory = join(process.cwd(), config.directories.output);
 const templateDirectory = join(process.cwd(), config.directories.templates);
 const extensionsDirectory = join(process.cwd(), config.directories.extensions);
-const extensionNames = config.extensions;
+const extensionNames = getExtensionNames();
 const filesToCopy = config.filesToCopy;
 
 const { owner: repositoryOwner, repo: repositoryName, branch: gitBranch } = config.github;
 const githubCommitsApiUrl = `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/commits/${gitBranch}`;
 
 const deploymentDomains = config.domains;
-const extensionSources = config.extensionSources;
+const extensionSources = getExtensionSources();
 
 async function ensureDir(path: PathLike) {
     try {
