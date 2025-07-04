@@ -8,21 +8,11 @@ on:
 jobs:
     update:
         runs-on: ubuntu-latest
+        outputs:
+            updated: ${{ steps.commit.outputs.updated }}
         permissions:
             contents: write
             actions: write
-        strategy:
-            matrix:
-                extension:
-                    - name: keiyoushi
-                      repo: https://github.com/keiyoushi/extensions.git
-                      branch: repo
-                      prefix: extensions/keiyoushi
-                    - name: kohi-den
-                      repo: https://kohiden.xyz/Kohi-den/extensions.git
-                      branch: main
-                      prefix: extensions/kohi-den
-            fail-fast: false
 
         steps:
             - name: Checkout repository
@@ -36,20 +26,49 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Update subtrees
+            - name: Update all subtrees
               run: |
-                  # Add remote (ignore if it already exists)
-                  git remote add ${{ matrix.extension.name }} ${{ matrix.extension.repo }} 2>/dev/null || true
+                  # Track if any updates occurred
+                  UPDATES_MADE=false
 
-                  # Fetch latest changes from remote
-                  git fetch ${{ matrix.extension.name }} ${{ matrix.extension.branch }}
+                  # Process keiyoushi
+                  echo "=== Processing keiyoushi ==="
+                  git remote add keiyoushi https://github.com/keiyoushi/extensions.git 2>/dev/null || true
+                  git fetch keiyoushi repo
 
-                  # Update subtree with error handling
-                  echo "Updating ${{ matrix.extension.name }} subtree..."
-                  if ! git subtree pull --prefix=${{ matrix.extension.prefix }} ${{ matrix.extension.name }} ${{ matrix.extension.branch }} --squash; then
-                    echo "Failed to update ${{ matrix.extension.name }} subtree"
-                    exit 1
+                  echo "Current commit in keiyoushi subtree:"
+                  git log --oneline -1 extensions/keiyoushi/ || echo "No existing subtree"
+
+                  echo "Latest commit in keiyoushi remote:"
+                  git log --oneline -1 keiyoushi/repo
+
+                  if git subtree pull --prefix=extensions/keiyoushi keiyoushi repo --squash; then
+                    echo "keiyoushi subtree updated successfully"
+                    UPDATES_MADE=true
+                  else
+                    echo "No updates available for keiyoushi or update failed"
                   fi
+
+                  # Process kohi-den
+                  echo "=== Processing kohi-den ==="
+                  git remote add kohi-den https://kohiden.xyz/Kohi-den/extensions.git 2>/dev/null || true
+                  git fetch kohi-den main
+
+                  echo "Current commit in kohi-den subtree:"
+                  git log --oneline -1 extensions/kohi-den/ || echo "No existing subtree"
+
+                  echo "Latest commit in kohi-den remote:"
+                  git log --oneline -1 kohi-den/main
+
+                  if git subtree pull --prefix=extensions/kohi-den kohi-den main --squash; then
+                    echo "kohi-den subtree updated successfully"
+                    UPDATES_MADE=true
+                  else
+                    echo "No updates available for kohi-den or update failed"
+                  fi
+
+                  # Store the result for next step
+                  echo "UPDATES_MADE=$UPDATES_MADE" >> $GITHUB_ENV
 
             - name: Check git status
               run: |
@@ -57,47 +76,53 @@ jobs:
                   git status
                   echo "=== Git Status Porcelain ==="
                   git status --porcelain
+                  echo "=== Files that changed ==="
+                  git diff --name-only
                   echo "=== End Status ==="
 
             - name: Commit and push changes
+              id: commit
               run: |
                   # Check for any changes (including untracked files)
-                  if [[ -n $(git status --porcelain) ]]; then
-                    echo "Changes detected for ${{ matrix.extension.name }}, committing..."
+                  if [[ -n $(git status --porcelain) ]] || [[ "$UPDATES_MADE" == "true" ]]; then
+                    echo "Changes detected, committing..."
                     git add .
                     
                     # Check if there's anything to commit after staging
                     if git diff --cached --quiet; then
-                      echo "No changes to commit after staging for ${{ matrix.extension.name }}"
+                      echo "No changes to commit after staging"
+                      echo "updated=false" >> $GITHUB_OUTPUT
                       exit 0
                     fi
                     
-                    git commit -m "Update ${{ matrix.extension.name }} subtree to the latest commit [$(date +'%Y-%m-%d %H:%M:%S')]"
+                    git commit -m "Update subtrees to the latest commit [$(date +'%Y-%m-%d %H:%M:%S')]"
 
                     # Try to push, if it fails, fetch, rebase, and try again
                     MAX_RETRIES=5
                     RETRY_COUNT=0
                     while ! git push origin main && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-                      echo "Push failed for ${{ matrix.extension.name }}. Fetching and rebasing... (Attempt $((RETRY_COUNT+1)) of $MAX_RETRIES)"
+                      echo "Push failed. Fetching and rebasing... (Attempt $((RETRY_COUNT+1)) of $MAX_RETRIES)"
                       git fetch origin main
                       git rebase origin/main
                       RETRY_COUNT=$((RETRY_COUNT+1))
                     done
 
                     if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-                      echo "Failed to push ${{ matrix.extension.name }} updates after $MAX_RETRIES attempts."
+                      echo "Failed to push updates after $MAX_RETRIES attempts."
                       exit 1
                     fi
 
-                    echo "Successfully pushed ${{ matrix.extension.name }} changes"
+                    echo "Successfully pushed changes"
+                    echo "updated=true" >> $GITHUB_OUTPUT
                   else
-                    echo "No changes to commit for ${{ matrix.extension.name }}"
+                    echo "No changes to commit"
+                    echo "updated=false" >> $GITHUB_OUTPUT
                   fi
 
     trigger-workflows:
         needs: update
         runs-on: ubuntu-latest
-        if: always() && (needs.update.result == 'success' || needs.update.result == 'failure')
+        if: success() && needs.update.outputs.updated == 'true'
         permissions:
             actions: write
         steps:
