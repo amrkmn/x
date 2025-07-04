@@ -78,24 +78,29 @@ jobs:
                   git status --porcelain
                   echo "=== Files that changed ==="
                   git diff --name-only
+                  echo "=== Commits ahead of origin ==="
+                  git rev-list --count HEAD ^origin/main || echo "0"
+                  echo "=== Recent commits ==="
+                  git log --oneline -5
                   echo "=== End Status ==="
 
             - name: Commit and push changes
               id: commit
               run: |
-                  # Check for any changes (including untracked files)
-                  if [[ -n $(git status --porcelain) ]] || [[ "$UPDATES_MADE" == "true" ]]; then
-                    echo "Changes detected, committing..."
-                    git add .
+                  # Check if we're ahead of origin (meaning subtree commits were made)
+                  COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0")
+
+                  echo "Commits ahead of origin: $COMMITS_AHEAD"
+
+                  # Check for any uncommitted changes OR if we're ahead of origin
+                  if [[ -n $(git status --porcelain) ]] || [[ "$UPDATES_MADE" == "true" ]] || [[ "$COMMITS_AHEAD" -gt 0 ]]; then
+                    echo "Changes detected (uncommitted files, updates made, or commits ahead), pushing..."
                     
-                    # Check if there's anything to commit after staging
-                    if git diff --cached --quiet; then
-                      echo "No changes to commit after staging"
-                      echo "updated=false" >> $GITHUB_OUTPUT
-                      exit 0
+                    # Add any uncommitted files
+                    if [[ -n $(git status --porcelain) ]]; then
+                      git add .
+                      git commit -m "Add uncommitted changes [$(date +'%Y-%m-%d %H:%M:%S')]"
                     fi
-                    
-                    git commit -m "Update subtrees to the latest commit [$(date +'%Y-%m-%d %H:%M:%S')]"
 
                     # Try to push, if it fails, fetch, rebase, and try again
                     MAX_RETRIES=5
@@ -115,7 +120,7 @@ jobs:
                     echo "Successfully pushed changes"
                     echo "updated=true" >> $GITHUB_OUTPUT
                   else
-                    echo "No changes to commit"
+                    echo "No changes to commit and not ahead of origin"
                     echo "updated=false" >> $GITHUB_OUTPUT
                   fi
 
