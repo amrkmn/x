@@ -8,10 +8,25 @@ on:
 jobs:
     update:
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            actions: write
+        strategy:
+            matrix:
+                extension:
+                    - name: keiyoushi
+                      repo: https://github.com/keiyoushi/extensions.git
+                      branch: repo
+                      prefix: extensions/keiyoushi
+                    - name: kohi-den
+                      repo: https://kohiden.xyz/Kohi-den/extensions.git
+                      branch: main
+                      prefix: extensions/kohi-den
+            fail-fast: false
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GH_PAT }}
@@ -23,59 +38,99 @@ jobs:
 
             - name: Update subtrees
               run: |
-                  git remote add keiyoushi https://github.com/keiyoushi/extensions.git
-                  git remote add kohi-den https://kohiden.xyz/Kohi-den/extensions.git
-                  git subtree pull --prefix=extensions/keiyoushi keiyoushi repo --squash
-                  git subtree pull --prefix=extensions/kohi-den kohi-den main --squash
+                  # Add remote (ignore if it already exists)
+                  git remote add ${{ matrix.extension.name }} ${{ matrix.extension.repo }} 2>/dev/null || true
+
+                  # Fetch latest changes from remote
+                  git fetch ${{ matrix.extension.name }} ${{ matrix.extension.branch }}
+
+                  # Update subtree with error handling
+                  echo "Updating ${{ matrix.extension.name }} subtree..."
+                  if ! git subtree pull --prefix=${{ matrix.extension.prefix }} ${{ matrix.extension.name }} ${{ matrix.extension.branch }} --squash; then
+                    echo "Failed to update ${{ matrix.extension.name }} subtree"
+                    exit 1
+                  fi
+
+            - name: Check git status
+              run: |
+                  echo "=== Git Status ==="
+                  git status
+                  echo "=== Git Status Porcelain ==="
+                  git status --porcelain
+                  echo "=== End Status ==="
 
             - name: Commit and push changes
               run: |
-                  if [[ -n $(git status -s) ]]; then
+                  # Check for any changes (including untracked files)
+                  if [[ -n $(git status --porcelain) ]]; then
+                    echo "Changes detected for ${{ matrix.extension.name }}, committing..."
                     git add .
-                    git commit -m "Update subtrees to the latest commit"
+                    
+                    # Check if there's anything to commit after staging
+                    if git diff --cached --quiet; then
+                      echo "No changes to commit after staging for ${{ matrix.extension.name }}"
+                      exit 0
+                    fi
+                    
+                    git commit -m "Update ${{ matrix.extension.name }} subtree to the latest commit [$(date +'%Y-%m-%d %H:%M:%S')]"
 
                     # Try to push, if it fails, fetch, rebase, and try again
                     MAX_RETRIES=5
                     RETRY_COUNT=0
-                    while ! git push && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-                      git fetch origin
+                    while ! git push origin main && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                      echo "Push failed for ${{ matrix.extension.name }}. Fetching and rebasing... (Attempt $((RETRY_COUNT+1)) of $MAX_RETRIES)"
+                      git fetch origin main
                       git rebase origin/main
                       RETRY_COUNT=$((RETRY_COUNT+1))
-                      echo "Push failed. Retrying... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
                     done
 
                     if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-                      echo "Failed to push after $MAX_RETRIES attempts."
+                      echo "Failed to push ${{ matrix.extension.name }} updates after $MAX_RETRIES attempts."
                       exit 1
                     fi
 
-                    # Sync to mirror
-                    curl --fail -L \
-                      -X POST \
-                      -H "Accept: application/vnd.github+json" \
-                      -H "X-GitHub-Api-Version: 2022-11-28" \
-                      -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-                      https://api.github.com/repos/${{ github.repository }}/actions/workflows/sync.yml/dispatches \
-                      -d '{"ref":"main"}'
-
-                    # Deploy GitHub Pages
-                    curl --fail -L \
-                      -X POST \
-                      -H "Accept: application/vnd.github+json" \
-                      -H "X-GitHub-Api-Version: 2022-11-28" \
-                      -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-                      https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
-                      -d '{"ref":"main"}'
-                    
-                    # Deploy to repo branch
-                    curl --fail -L \
-                      -X POST \
-                      -H "Accept: application/vnd.github+json" \
-                      -H "X-GitHub-Api-Version: 2022-11-28" \
-                      -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-                      https://api.github.com/repos/${{ github.repository }}/actions/workflows/repo.yml/dispatches \
-                      -d '{"ref":"main"}'
-
+                    echo "Successfully pushed ${{ matrix.extension.name }} changes"
                   else
-                    echo "No changes to commit"
+                    echo "No changes to commit for ${{ matrix.extension.name }}"
                   fi
+
+    trigger-workflows:
+        needs: update
+        runs-on: ubuntu-latest
+        if: always() && (needs.update.result == 'success' || needs.update.result == 'failure')
+        permissions:
+            actions: write
+        steps:
+            - name: Trigger downstream workflows
+              run: |
+                  # Sync to mirror
+                  echo "Triggering sync workflow..."
+                  curl --fail -L \
+                    -X POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+                    https://api.github.com/repos/${{ github.repository }}/actions/workflows/sync.yml/dispatches \
+                    -d '{"ref":"main"}' || echo "Failed to trigger sync workflow"
+
+                  # Deploy GitHub Pages
+                  echo "Triggering deploy workflow..."
+                  curl --fail -L \
+                    -X POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+                    https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
+                    -d '{"ref":"main"}' || echo "Failed to trigger deploy workflow"
+
+                  # Deploy to repo branch
+                  echo "Triggering repo workflow..."
+                  curl --fail -L \
+                    -X POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+                    https://api.github.com/repos/${{ github.repository }}/actions/workflows/repo.yml/dispatches \
+                    -d '{"ref":"main"}' || echo "Failed to trigger repo workflow"
+
+                  echo "All downstream workflows triggered"
