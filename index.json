@@ -17605,17 +17605,17 @@
   {
     "name": "Tachiyomi: Raijin Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.raijinscans",
-    "apk": "tachiyomi-fr.raijinscans-v1.4.47.apk",
+    "apk": "tachiyomi-fr.raijinscans-v1.4.48.apk",
     "lang": "fr",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 0,
     "sources": [
       {
         "name": "Raijin Scans",
         "lang": "fr",
         "id": "8373267671495516033",
-        "baseUrl": "https://raijinscan.fr"
+        "baseUrl": "https://raijinscan.co"
       }
     ]
   },
@@ -18676,10 +18676,10 @@
   {
     "name": "Tachiyomi: Siren Komik",
     "pkg": "eu.kanade.tachiyomi.extension.id.mangkomik",
-    "apk": "tachiyomi-id.mangkomik-v1.4.37.apk",
+    "apk": "tachiyomi-id.mangkomik-v1.4.38.apk",
     "lang": "id",
-    "code": 37,
-    "version": "1.4.37",
+    "code": 38,
+    "version": "1.4.38",
     "nsfw": 0,
     "sources": [
       {
@@ -20563,19 +20563,19 @@
         "name": "늑대닷컴 - 웹툰",
         "lang": "ko",
         "id": "5583626852311652499",
-        "baseUrl": "https://wfwf399.com"
+        "baseUrl": "https://wfwf401.com"
       },
       {
         "name": "늑대닷컴 - 만화책",
         "lang": "ko",
         "id": "7074060458114951398",
-        "baseUrl": "https://wfwf399.com"
+        "baseUrl": "https://wfwf401.com"
       },
       {
         "name": "늑대닷컴 - 포토툰",
         "lang": "ko",
         "id": "4225505094399546613",
-        "baseUrl": "https://wfwf399.com"
+        "baseUrl": "https://wfwf401.com"
       }
     ]
   },
@@ -21766,6 +21766,23 @@
         "lang": "pt-BR",
         "id": "3636158728504296715",
         "baseUrl": "https://mangaonline.blog"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Manga Stop",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.mangastop",
+    "apk": "tachiyomi-pt.mangastop-v1.4.30.apk",
+    "lang": "pt-BR",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Manga Stop",
+        "lang": "pt-BR",
+        "id": "924359643993288771",
+        "baseUrl": "https://mangastop.net"
       }
     ]
   },
@@ -25682,17 +25699,17 @@
   {
     "name": "Tachiyomi: Goc Truyen Tranh",
     "pkg": "eu.kanade.tachiyomi.extension.vi.goctruyentranh",
-    "apk": "tachiyomi-vi.goctruyentranh-v1.4.3.apk",
+    "apk": "tachiyomi-vi.goctruyentranh-v1.4.4.apk",
     "lang": "vi",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 1,
     "sources": [
       {
         "name": "GocTruyenTranh",
         "lang": "vi",
         "id": "8162695314495646445",
-        "baseUrl": "https://goctruyentranh.net"
+        "baseUrl": "https://goctruyentranh.org"
       }
     ]
   },
@@ -25767,17 +25784,17 @@
   {
     "name": "Tachiyomi: NetTruyenCO (unoriginal)",
     "pkg": "eu.kanade.tachiyomi.extension.vi.nettruyenco",
-    "apk": "tachiyomi-vi.nettruyenco-v1.4.11.apk",
+    "apk": "tachiyomi-vi.nettruyenco-v1.4.12.apk",
     "lang": "vi",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 0,
     "sources": [
       {
         "name": "NetTruyenCO (unoriginal)",
         "lang": "vi",
         "id": "3563992092786616290",
-        "baseUrl": "https://nettruyener.com"
+        "baseUrl": "https://nettruyenrr.com"
       }
     ]
   },
@@ -25852,17 +25869,17 @@
   {
     "name": "Tachiyomi: SayHentai",
     "pkg": "eu.kanade.tachiyomi.extension.vi.sayhentai",
-    "apk": "tachiyomi-vi.sayhentai-v1.4.13.apk",
+    "apk": "tachiyomi-vi.sayhentai-v1.4.14.apk",
     "lang": "vi",
-    "code": 13,
-    "version": "1.4.13",
+    "code": 14,
+    "version": "1.4.14",
     "nsfw": 1,
     "sources": [
       {
         "name": "SayHentai",
         "lang": "vi",
         "id": "4370817879994829481",
-        "baseUrl": "https://sayhentaii.me"
+        "baseUrl": "https://sayhentaii.art"
       }
     ]
   },
@@ -25886,34 +25903,34 @@
   {
     "name": "Tachiyomi: Top Truyen",
     "pkg": "eu.kanade.tachiyomi.extension.vi.toptruyen",
-    "apk": "tachiyomi-vi.toptruyen-v1.4.20.apk",
+    "apk": "tachiyomi-vi.toptruyen-v1.4.21.apk",
     "lang": "vi",
-    "code": 20,
-    "version": "1.4.20",
+    "code": 21,
+    "version": "1.4.21",
     "nsfw": 1,
     "sources": [
       {
         "name": "Top Truyen",
         "lang": "vi",
         "id": "1166901607721102706",
-        "baseUrl": "https://www.toptruyentv7.pro"
+        "baseUrl": "https://www.toptruyentv8.com"
       }
     ]
   },
   {
     "name": "Tachiyomi: TruyenGG",
     "pkg": "eu.kanade.tachiyomi.extension.vi.truyengg",
-    "apk": "tachiyomi-vi.truyengg-v1.4.6.apk",
+    "apk": "tachiyomi-vi.truyengg-v1.4.7.apk",
     "lang": "vi",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 0,
     "sources": [
       {
         "name": "TruyenGG",
         "lang": "vi",
         "id": "1458993267006200127",
-        "baseUrl": "https://truyengg.net"
+        "baseUrl": "https://foxtruyen.com"
       }
     ]
   },
@@ -26260,10 +26277,10 @@
   {
     "name": "Tachiyomi: Dm5",
     "pkg": "eu.kanade.tachiyomi.extension.zh.dm5",
-    "apk": "tachiyomi-zh.dm5-v1.4.4.apk",
+    "apk": "tachiyomi-zh.dm5-v1.4.5.apk",
     "lang": "zh",
-    "code": 4,
-    "version": "1.4.4",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
@@ -26413,10 +26430,10 @@
   {
     "name": "Tachiyomi: Jinman Tiantang",
     "pkg": "eu.kanade.tachiyomi.extension.zh.jinmantiantang",
-    "apk": "tachiyomi-zh.jinmantiantang-v1.4.51.apk",
+    "apk": "tachiyomi-zh.jinmantiantang-v1.4.52.apk",
     "lang": "zh",
-    "code": 51,
-    "version": "1.4.51",
+    "code": 52,
+    "version": "1.4.52",
     "nsfw": 1,
     "sources": [
       {
@@ -26447,10 +26464,10 @@
   {
     "name": "Tachiyomi: Komiic",
     "pkg": "eu.kanade.tachiyomi.extension.zh.komiic",
-    "apk": "tachiyomi-zh.komiic-v1.4.2.apk",
+    "apk": "tachiyomi-zh.komiic-v1.4.3.apk",
     "lang": "zh",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
