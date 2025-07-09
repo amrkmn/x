@@ -49,22 +49,22 @@ jobs:
                     echo "no updates available for keiyoushi or update failed"
                   fi
 
-                  # Process kohi-den
-                  echo "processing kohi-den"
-                  git remote add kohi-den https://kohiden.xyz/Kohi-den/extensions.git 2>/dev/null || true
-                  git fetch kohi-den main
+                  # Process yuzono
+                  echo "processing yuzono"
+                  git remote add yuzono https://github.com/yuzono/anime-repo.git 2>/dev/null || true
+                  git fetch yuzono repo
 
-                  echo "current commit in kohi-den subtree:"
-                  git log --oneline -1 extensions/kohi-den/ || echo "no existing subtree"
+                  echo "current commit in yuzono subtree:"
+                  git log --oneline -1 extensions/yuzono/ || echo "no existing subtree"
 
-                  echo "latest commit in kohi-den remote:"
-                  git log --oneline -1 kohi-den/main
+                  echo "latest commit in yuzono remote:"
+                  git log --oneline -1 yuzono/repo
 
-                  if git subtree pull --prefix=extensions/kohi-den kohi-den main --squash; then
-                    echo "kohi-den subtree updated successfully"
+                  if git subtree pull --prefix=extensions/yuzono yuzono repo --squash; then
+                    echo "yuzono subtree updated successfully"
                     UPDATES_MADE=true
                   else
-                    echo "no updates available for kohi-den or update failed"
+                    echo "no updates available for yuzono or update failed"
                   fi
 
                   # Store the result for next step
