@@ -6708,10 +6708,10 @@
   {
     "name": "Tachiyomi: Webtoons.com",
     "pkg": "eu.kanade.tachiyomi.extension.all.webtoons",
-    "apk": "tachiyomi-all.webtoons-v1.4.49.apk",
+    "apk": "tachiyomi-all.webtoons-v1.4.50.apk",
     "lang": "all",
-    "code": 49,
-    "version": "1.4.49",
+    "code": 50,
+    "version": "1.4.50",
     "nsfw": 0,
     "sources": [
       {
@@ -10878,10 +10878,10 @@
   {
     "name": "Tachiyomi: Manga District",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangadistrict",
-    "apk": "tachiyomi-en.mangadistrict-v1.4.53.apk",
+    "apk": "tachiyomi-en.mangadistrict-v1.4.54.apk",
     "lang": "en",
-    "code": 53,
-    "version": "1.4.53",
+    "code": 54,
+    "version": "1.4.54",
     "nsfw": 1,
     "sources": [
       {
@@ -26203,6 +26203,23 @@
         "lang": "zh-Hans",
         "id": "3561131545129718586",
         "baseUrl": "https://manga.bilibili.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: BiliManga",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.bilimanga",
+    "apk": "tachiyomi-zh.bilimanga-v1.4.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Bilimanga.net",
+        "lang": "zh",
+        "id": "7289707411592168382",
+        "baseUrl": "https://www.bilimanga.net"
       }
     ]
   },
