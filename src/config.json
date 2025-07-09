@@ -29,11 +29,11 @@
             "path": "/keiyoushi/index.min.json",
             "category": "mihon"
         },
-        "kohi-den": {
-            "dirname": "kohi-den",
-            "source": "https://kohiden.xyz/Kohi-den/extensions",
-            "name": "Kohi-den",
-            "path": "/kohi-den/index.min.json",
+        "yuzono": {
+            "dirname": "yuzono",
+            "source": "https://github.com/yuzono/anime-repo",
+            "name": "Yuzono",
+            "path": "/yuzono/index.min.json",
             "category": "aniyomi"
         }
     }
