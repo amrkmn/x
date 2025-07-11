@@ -2843,10 +2843,10 @@
   {
     "name": "Tachiyomi: Hitomi",
     "pkg": "eu.kanade.tachiyomi.extension.all.hitomi",
-    "apk": "tachiyomi-all.hitomi-v1.4.40.apk",
+    "apk": "tachiyomi-all.hitomi-v1.4.41.apk",
     "lang": "all",
-    "code": 40,
-    "version": "1.4.40",
+    "code": 41,
+    "version": "1.4.41",
     "nsfw": 1,
     "sources": [
       {
@@ -9069,10 +9069,10 @@
   {
     "name": "Tachiyomi: Dynasty",
     "pkg": "eu.kanade.tachiyomi.extension.en.dynasty",
-    "apk": "tachiyomi-en.dynasty-v1.4.26.apk",
+    "apk": "tachiyomi-en.dynasty-v1.4.27.apk",
     "lang": "en",
-    "code": 26,
-    "version": "1.4.26",
+    "code": 27,
+    "version": "1.4.27",
     "nsfw": 1,
     "sources": [
       {
@@ -17639,17 +17639,17 @@
   {
     "name": "Tachiyomi: Rimu Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.rimuscans",
-    "apk": "tachiyomi-fr.rimuscans-v1.4.31.apk",
+    "apk": "tachiyomi-fr.rimuscans-v1.4.32.apk",
     "lang": "fr",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 0,
     "sources": [
       {
         "name": "Rimu Scans",
         "lang": "fr",
         "id": "203984087587807085",
-        "baseUrl": "https://rimuscans.fr"
+        "baseUrl": "https://rimuscans.com"
       }
     ]
   },
@@ -20563,19 +20563,19 @@
         "name": "늑대닷컴 - 웹툰",
         "lang": "ko",
         "id": "5583626852311652499",
-        "baseUrl": "https://wfwf401.com"
+        "baseUrl": "https://wfwf402.com"
       },
       {
         "name": "늑대닷컴 - 만화책",
         "lang": "ko",
         "id": "7074060458114951398",
-        "baseUrl": "https://wfwf401.com"
+        "baseUrl": "https://wfwf402.com"
       },
       {
         "name": "늑대닷컴 - 포토툰",
         "lang": "ko",
         "id": "4225505094399546613",
-        "baseUrl": "https://wfwf401.com"
+        "baseUrl": "https://wfwf402.com"
       }
     ]
   },
@@ -26209,10 +26209,10 @@
   {
     "name": "Tachiyomi: BiliManga",
     "pkg": "eu.kanade.tachiyomi.extension.zh.bilimanga",
-    "apk": "tachiyomi-zh.bilimanga-v1.4.1.apk",
+    "apk": "tachiyomi-zh.bilimanga-v1.4.2.apk",
     "lang": "zh",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 1,
     "sources": [
       {
