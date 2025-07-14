@@ -17229,6 +17229,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: En Ligne Manga",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.enlignemanga",
+    "apk": "tachiyomi-fr.enlignemanga-v1.4.7.apk",
+    "lang": "fr",
+    "code": 7,
+    "version": "1.4.7",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "En Ligne Manga",
+        "lang": "fr",
+        "id": "6595260590323443084",
+        "baseUrl": "https://www.enlignemanga.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Epsilon Scan",
     "pkg": "eu.kanade.tachiyomi.extension.fr.epsilonscan",
     "apk": "tachiyomi-fr.epsilonscan-v1.4.43.apk",
@@ -17276,6 +17293,23 @@
         "lang": "fr",
         "id": "7699632518084274667",
         "baseUrl": "https://fmteam.fr"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: FR Manga",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.frmanga",
+    "apk": "tachiyomi-fr.frmanga-v1.4.7.apk",
+    "lang": "fr",
+    "code": 7,
+    "version": "1.4.7",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "FR Manga",
+        "lang": "fr",
+        "id": "6246540622722483868",
+        "baseUrl": "https://www.frmanga.com"
       }
     ]
   },
@@ -17588,17 +17622,17 @@
   {
     "name": "Tachiyomi: Poseidon Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.poseidonscans",
-    "apk": "tachiyomi-fr.poseidonscans-v1.4.44.apk",
+    "apk": "tachiyomi-fr.poseidonscans-v1.4.45.apk",
     "lang": "fr",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 0,
     "sources": [
       {
         "name": "Poseidon Scans",
         "lang": "fr",
         "id": "8936307069044646761",
-        "baseUrl": "https://poseidonscans.fr"
+        "baseUrl": "https://poseidonscans.com"
       }
     ]
   },
@@ -19843,23 +19877,6 @@
         "lang": "ja",
         "id": "3811800324362294701",
         "baseUrl": "https://mangagun.net"
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Mangajikan",
-    "pkg": "eu.kanade.tachiyomi.extension.ja.mangajikan",
-    "apk": "tachiyomi-ja.mangajikan-v1.4.8.apk",
-    "lang": "ja",
-    "code": 8,
-    "version": "1.4.8",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "漫画時間",
-        "lang": "ja",
-        "id": "6373329190273168897",
-        "baseUrl": "https://www.mangajikan.com"
       }
     ]
   },
@@ -25954,17 +25971,17 @@
   {
     "name": "Tachiyomi: Truyen Hentai 18+",
     "pkg": "eu.kanade.tachiyomi.extension.vi.truyenhentai18",
-    "apk": "tachiyomi-vi.truyenhentai18-v1.4.3.apk",
+    "apk": "tachiyomi-vi.truyenhentai18-v1.4.4.apk",
     "lang": "vi",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 1,
     "sources": [
       {
         "name": "Truyện Hentai 18+",
         "lang": "vi",
         "id": "6484094278517548634",
-        "baseUrl": "https://truyenhentai18.pro"
+        "baseUrl": "https://truyenhentai18.app"
       }
     ]
   },
@@ -26292,23 +26309,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Damao Manhua",
-    "pkg": "eu.kanade.tachiyomi.extension.zh.damaomanhua",
-    "apk": "tachiyomi-zh.damaomanhua-v1.4.7.apk",
-    "lang": "zh",
-    "code": 7,
-    "version": "1.4.7",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "大猫漫画",
-        "lang": "zh",
-        "id": "7340233158264075097",
-        "baseUrl": "https://www.hanman.cyou/index.php"
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Dm5",
     "pkg": "eu.kanade.tachiyomi.extension.zh.dm5",
     "apk": "tachiyomi-zh.dm5-v1.4.5.apk",
@@ -26360,6 +26360,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Dumanwu",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.dumanwu",
+    "apk": "tachiyomi-zh.dumanwu-v1.4.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "读漫屋",
+        "lang": "zh",
+        "id": "7167507050606280098",
+        "baseUrl": "https://m.dumanwu1.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: 18Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.eighteenmanhua",
     "apk": "tachiyomi-zh.eighteenmanhua-v1.4.2.apk",
@@ -26373,23 +26390,6 @@
         "lang": "zh",
         "id": "5706270060628375954",
         "baseUrl": "https://18mh.org"
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Gufeng Manhua",
-    "pkg": "eu.kanade.tachiyomi.extension.zh.gufengmh",
-    "apk": "tachiyomi-zh.gufengmh-v1.4.19.apk",
-    "lang": "zh",
-    "code": 19,
-    "version": "1.4.19",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "古风漫画网",
-        "lang": "zh",
-        "id": "4341893737383682159",
-        "baseUrl": "https://www.gufengmh9.com"
       }
     ]
   },
@@ -26598,6 +26598,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Manhuawu",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.manhuawu",
+    "apk": "tachiyomi-zh.manhuawu-v1.4.7.apk",
+    "lang": "zh",
+    "code": 7,
+    "version": "1.4.7",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "漫画屋",
+        "lang": "zh",
+        "id": "3279300917142951720",
+        "baseUrl": "https://www.mhua5.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Manwa",
     "pkg": "eu.kanade.tachiyomi.extension.zh.manwa",
     "apk": "tachiyomi-zh.manwa-v1.4.12.apk",
@@ -26628,6 +26645,23 @@
         "lang": "zh",
         "id": "7895725080195720063",
         "baseUrl": "https://b.amh1234.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Miaoqu Manhua",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.miaoqu",
+    "apk": "tachiyomi-zh.miaoqu-v1.4.7.apk",
+    "lang": "zh",
+    "code": 7,
+    "version": "1.4.7",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "喵趣漫画",
+        "lang": "zh",
+        "id": "116946528518438525",
+        "baseUrl": "https://www.miaoqumh.org"
       }
     ]
   },
@@ -26719,27 +26753,27 @@
   {
     "name": "Tachiyomi: Rumanhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.rumanhua",
-    "apk": "tachiyomi-zh.rumanhua-v1.4.2.apk",
+    "apk": "tachiyomi-zh.rumanhua-v1.4.3.apk",
     "lang": "zh",
-    "code": 2,
-    "version": "1.4.2",
-    "nsfw": 1,
+    "code": 3,
+    "version": "1.4.3",
+    "nsfw": 0,
     "sources": [
       {
         "name": "如漫画",
         "lang": "zh",
         "id": "392262758488714109",
-        "baseUrl": "http://www.rumanhua1.com"
+        "baseUrl": "https://m.rumanhua1.com"
       }
     ]
   },
   {
     "name": "Tachiyomi: 6Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.sixmh",
-    "apk": "tachiyomi-zh.sixmh-v1.4.13.apk",
+    "apk": "tachiyomi-zh.sixmh-v1.4.14.apk",
     "lang": "zh",
-    "code": 13,
-    "version": "1.4.13",
+    "code": 14,
+    "version": "1.4.14",
     "nsfw": 1,
     "sources": [
       {
