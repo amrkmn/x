@@ -9535,10 +9535,10 @@
   {
     "name": "Tachiyomi: Goda",
     "pkg": "eu.kanade.tachiyomi.extension.en.goda",
-    "apk": "tachiyomi-en.goda-v1.4.2.apk",
+    "apk": "tachiyomi-en.goda-v1.4.3.apk",
     "lang": "en",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 0,
     "sources": [
       {
@@ -26175,17 +26175,17 @@
   {
     "name": "Tachiyomi: GoDa",
     "pkg": "eu.kanade.tachiyomi.extension.zh.baozimhorg",
-    "apk": "tachiyomi-zh.baozimhorg-v1.4.33.apk",
+    "apk": "tachiyomi-zh.baozimhorg-v1.4.34.apk",
     "lang": "zh",
-    "code": 33,
-    "version": "1.4.33",
+    "code": 34,
+    "version": "1.4.34",
     "nsfw": 0,
     "sources": [
       {
         "name": "GoDa漫画",
         "lang": "zh",
         "id": "774030471139699415",
-        "baseUrl": "https://baozimh.org#, https://godamh.com#, https://m.baozimh.one"
+        "baseUrl": "https://baozimh.org#, https://godamh.com#, https://m.baozimh.one#, https://bzmh.org#, https://g-mh.org#, https://m.g-mh.org"
       }
     ]
   },
@@ -26379,10 +26379,10 @@
   {
     "name": "Tachiyomi: 18Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.eighteenmanhua",
-    "apk": "tachiyomi-zh.eighteenmanhua-v1.4.2.apk",
+    "apk": "tachiyomi-zh.eighteenmanhua-v1.4.3.apk",
     "lang": "zh",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
@@ -26566,10 +26566,10 @@
   {
     "name": "Tachiyomi: ManHuaGui",
     "pkg": "eu.kanade.tachiyomi.extension.zh.manhuagui",
-    "apk": "tachiyomi-zh.manhuagui-v1.4.24.apk",
+    "apk": "tachiyomi-zh.manhuagui-v1.4.25.apk",
     "lang": "zh",
-    "code": 24,
-    "version": "1.4.24",
+    "code": 25,
+    "version": "1.4.25",
     "nsfw": 1,
     "sources": [
       {
