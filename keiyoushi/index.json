@@ -15338,17 +15338,17 @@
   {
     "name": "Tachiyomi: Cartel de Manhwas",
     "pkg": "eu.kanade.tachiyomi.extension.es.carteldemanhwas",
-    "apk": "tachiyomi-es.carteldemanhwas-v1.4.36.apk",
+    "apk": "tachiyomi-es.carteldemanhwas-v1.4.37.apk",
     "lang": "es",
-    "code": 36,
-    "version": "1.4.36",
+    "code": 37,
+    "version": "1.4.37",
     "nsfw": 1,
     "sources": [
       {
         "name": "Cartel de Manhwas",
         "lang": "es",
         "id": "3519938166500360109",
-        "baseUrl": "https://carteldemanhwas.com"
+        "baseUrl": "https://carteldemanhwas.net"
       }
     ]
   },
@@ -16067,6 +16067,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Lector MOnline",
+    "pkg": "eu.kanade.tachiyomi.extension.es.lectormonline",
+    "apk": "tachiyomi-es.lectormonline-v1.4.1.apk",
+    "lang": "es",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Lector MOnline",
+        "lang": "es",
+        "id": "7470188862319655999",
+        "baseUrl": "https://www.lectormangas.online"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: TuMangaOnline",
     "pkg": "eu.kanade.tachiyomi.extension.es.lectortmo",
     "apk": "tachiyomi-es.lectortmo-v1.4.8.apk",
@@ -16318,6 +16335,23 @@
         "lang": "es",
         "id": "829053423099062956",
         "baseUrl": "https://mangasnosekai.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: MangasX",
+    "pkg": "eu.kanade.tachiyomi.extension.es.mangasx",
+    "apk": "tachiyomi-es.mangasx-v1.4.1.apk",
+    "lang": "es",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "MangasX",
+        "lang": "es",
+        "id": "5224780487732825020",
+        "baseUrl": "https://mangasx.online"
       }
     ]
   },
