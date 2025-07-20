@@ -15440,10 +15440,10 @@
   {
     "name": "Tachiyomi: ChoChoX",
     "pkg": "eu.kanade.tachiyomi.extension.es.chochox",
-    "apk": "tachiyomi-es.chochox-v1.4.1.apk",
+    "apk": "tachiyomi-es.chochox-v1.4.2.apk",
     "lang": "es",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 1,
     "sources": [
       {
@@ -16205,17 +16205,17 @@
   {
     "name": "Tachiyomi: Manga Crab",
     "pkg": "eu.kanade.tachiyomi.extension.es.mangacrab",
-    "apk": "tachiyomi-es.mangacrab-v1.4.54.apk",
+    "apk": "tachiyomi-es.mangacrab-v1.4.55.apk",
     "lang": "es",
-    "code": 54,
-    "version": "1.4.54",
+    "code": 55,
+    "version": "1.4.55",
     "nsfw": 0,
     "sources": [
       {
         "name": "Manga Crab",
         "lang": "es",
         "id": "6167683270485370369",
-        "baseUrl": "https://mangacrab.org"
+        "baseUrl": "https://mangacrab.topmanhuas.org"
       }
     ]
   },
@@ -17055,10 +17055,10 @@
   {
     "name": "Tachiyomi: VCPVMP",
     "pkg": "eu.kanade.tachiyomi.extension.es.vcpvmp",
-    "apk": "tachiyomi-es.vcpvmp-v1.4.10.apk",
+    "apk": "tachiyomi-es.vcpvmp-v1.4.11.apk",
     "lang": "es",
-    "code": 10,
-    "version": "1.4.10",
+    "code": 11,
+    "version": "1.4.11",
     "nsfw": 1,
     "sources": [
       {
@@ -21670,17 +21670,17 @@
   {
     "name": "Tachiyomi: Little Tyrant",
     "pkg": "eu.kanade.tachiyomi.extension.pt.littletyrant",
-    "apk": "tachiyomi-pt.littletyrant-v1.4.42.apk",
+    "apk": "tachiyomi-pt.littletyrant-v1.4.43.apk",
     "lang": "pt-BR",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
         "name": "Little Tyrant",
         "lang": "pt-BR",
         "id": "4886334142812146511",
-        "baseUrl": "https://www.tiraninha.baby"
+        "baseUrl": "https://tiraninha.baby"
       }
     ]
   },
@@ -25971,10 +25971,10 @@
   {
     "name": "Tachiyomi: Truyen Hentai 18+",
     "pkg": "eu.kanade.tachiyomi.extension.vi.truyenhentai18",
-    "apk": "tachiyomi-vi.truyenhentai18-v1.4.5.apk",
+    "apk": "tachiyomi-vi.truyenhentai18-v1.4.6.apk",
     "lang": "vi",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 1,
     "sources": [
       {
