@@ -13751,17 +13751,17 @@
   {
     "name": "Tachiyomi: Read Tokyo Ghoul Re & Tokyo Ghoul Manga Online",
     "pkg": "eu.kanade.tachiyomi.extension.en.readtokyoghoulretokyoghoulmangaonline",
-    "apk": "tachiyomi-en.readtokyoghoulretokyoghoulmangaonline-v1.4.6.apk",
+    "apk": "tachiyomi-en.readtokyoghoulretokyoghoulmangaonline-v1.4.7.apk",
     "lang": "en",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 0,
     "sources": [
       {
         "name": "Read Tokyo Ghoul Re & Tokyo Ghoul Manga Online",
         "lang": "en",
         "id": "6468833665354206027",
-        "baseUrl": "https://ww10.tokyoghoulre.com"
+        "baseUrl": "https://ww11.tokyoghoulre.com"
       }
     ]
   },
@@ -25699,34 +25699,34 @@
   {
     "name": "Tachiyomi: DocTruyen3Q",
     "pkg": "eu.kanade.tachiyomi.extension.vi.doctruyen3q",
-    "apk": "tachiyomi-vi.doctruyen3q-v1.4.16.apk",
+    "apk": "tachiyomi-vi.doctruyen3q-v1.4.17.apk",
     "lang": "vi",
-    "code": 16,
-    "version": "1.4.16",
+    "code": 17,
+    "version": "1.4.17",
     "nsfw": 1,
     "sources": [
       {
         "name": "DocTruyen3Q",
         "lang": "vi",
         "id": "6168143505244976507",
-        "baseUrl": "https://doctruyen3qui10.pro"
+        "baseUrl": "https://doctruyen3qui12.pro"
       }
     ]
   },
   {
     "name": "Tachiyomi: DocTruyen5s",
     "pkg": "eu.kanade.tachiyomi.extension.vi.doctruyen5s",
-    "apk": "tachiyomi-vi.doctruyen5s-v1.4.6.apk",
+    "apk": "tachiyomi-vi.doctruyen5s-v1.4.7.apk",
     "lang": "vi",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 0,
     "sources": [
       {
         "name": "DocTruyen5s",
         "lang": "vi",
         "id": "7595811359698226104",
-        "baseUrl": "https://dongmoe.com"
+        "baseUrl": "https://manga.io.vn"
       }
     ]
   },
@@ -25784,17 +25784,17 @@
   {
     "name": "Tachiyomi: CBHentai",
     "pkg": "eu.kanade.tachiyomi.extension.vi.hentaicube",
-    "apk": "tachiyomi-vi.hentaicube-v1.4.61.apk",
+    "apk": "tachiyomi-vi.hentaicube-v1.4.62.apk",
     "lang": "vi",
-    "code": 61,
-    "version": "1.4.61",
+    "code": 62,
+    "version": "1.4.62",
     "nsfw": 1,
     "sources": [
       {
         "name": "CBHentai",
         "lang": "vi",
         "id": "823638192569572166",
-        "baseUrl": "https://hentaicb.sbs"
+        "baseUrl": "https://hentaicb.help"
       }
     ]
   },
@@ -25818,17 +25818,17 @@
   {
     "name": "Tachiyomi: LXManga",
     "pkg": "eu.kanade.tachiyomi.extension.vi.lxhentai",
-    "apk": "tachiyomi-vi.lxhentai-v1.4.21.apk",
+    "apk": "tachiyomi-vi.lxhentai-v1.4.22.apk",
     "lang": "vi",
-    "code": 21,
-    "version": "1.4.21",
+    "code": 22,
+    "version": "1.4.22",
     "nsfw": 1,
     "sources": [
       {
         "name": "LXManga",
         "lang": "vi",
         "id": "6495630445796108150",
-        "baseUrl": "https://lxmanga.blog"
+        "baseUrl": "https://lxmanga.my"
       }
     ]
   },
@@ -25869,17 +25869,17 @@
   {
     "name": "Tachiyomi: NetTruyenCO (unoriginal)",
     "pkg": "eu.kanade.tachiyomi.extension.vi.nettruyenco",
-    "apk": "tachiyomi-vi.nettruyenco-v1.4.13.apk",
+    "apk": "tachiyomi-vi.nettruyenco-v1.4.14.apk",
     "lang": "vi",
-    "code": 13,
-    "version": "1.4.13",
+    "code": 14,
+    "version": "1.4.14",
     "nsfw": 0,
     "sources": [
       {
         "name": "NetTruyenCO (unoriginal)",
         "lang": "vi",
         "id": "3563992092786616290",
-        "baseUrl": "https://nettruyenrr.com"
+        "baseUrl": "https://nettruyenar.com"
       }
     ]
   },
