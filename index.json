@@ -20667,10 +20667,10 @@
   {
     "name": "Tachiyomi: Bakai",
     "pkg": "eu.kanade.tachiyomi.extension.pt.bakai",
-    "apk": "tachiyomi-pt.bakai-v1.4.12.apk",
+    "apk": "tachiyomi-pt.bakai-v1.4.13.apk",
     "lang": "pt-BR",
-    "code": 12,
-    "version": "1.4.12",
+    "code": 13,
+    "version": "1.4.13",
     "nsfw": 1,
     "sources": [
       {
@@ -22622,17 +22622,17 @@
   {
     "name": "Tachiyomi: Yugen Mangás",
     "pkg": "eu.kanade.tachiyomi.extension.pt.yugenmangas",
-    "apk": "tachiyomi-pt.yugenmangas-v1.4.47.apk",
+    "apk": "tachiyomi-pt.yugenmangas-v1.4.48.apk",
     "lang": "pt-BR",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 0,
     "sources": [
       {
         "name": "Yugen Mangás",
         "lang": "pt-BR",
         "id": "6397779552798039942",
-        "baseUrl": "https://yugenmangasbr.deliciousdelight.online"
+        "baseUrl": "https://yugenmangasbr.yocat.xyz"
       }
     ]
   },
@@ -23353,10 +23353,10 @@
   {
     "name": "Tachiyomi: MangaKimi",
     "pkg": "eu.kanade.tachiyomi.extension.th.mangakimi",
-    "apk": "tachiyomi-th.mangakimi-v1.4.31.apk",
+    "apk": "tachiyomi-th.mangakimi-v1.4.32.apk",
     "lang": "th",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 1,
     "sources": [
       {
