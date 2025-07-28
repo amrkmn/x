@@ -5173,10 +5173,10 @@
   {
     "name": "Tachiyomi: Mitaku",
     "pkg": "eu.kanade.tachiyomi.extension.all.mitaku",
-    "apk": "tachiyomi-all.mitaku-v1.4.2.apk",
+    "apk": "tachiyomi-all.mitaku-v1.4.3.apk",
     "lang": "all",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
@@ -14879,10 +14879,10 @@
   {
     "name": "Tachiyomi: YakshaScans",
     "pkg": "eu.kanade.tachiyomi.extension.en.yakshascans",
-    "apk": "tachiyomi-en.yakshascans-v1.4.43.apk",
+    "apk": "tachiyomi-en.yakshascans-v1.4.44.apk",
     "lang": "en",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
@@ -18200,17 +18200,17 @@
   {
     "name": "Tachiyomi: Komikindo",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikindo",
-    "apk": "tachiyomi-id.komikindo-v1.4.31.apk",
+    "apk": "tachiyomi-id.komikindo-v1.4.32.apk",
     "lang": "id",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 1,
     "sources": [
       {
         "name": "Komikindo",
         "lang": "id",
         "id": "1210328269637877420",
-        "baseUrl": "https://komikindo.icu"
+        "baseUrl": "https://komikindo4.link"
       }
     ]
   },
@@ -20616,10 +20616,10 @@
   {
     "name": "Tachiyomi: Astratoons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.astratoons",
-    "apk": "tachiyomi-pt.astratoons-v1.4.2.apk",
+    "apk": "tachiyomi-pt.astratoons-v1.4.3.apk",
     "lang": "pt-BR",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 0,
     "sources": [
       {
@@ -20667,10 +20667,10 @@
   {
     "name": "Tachiyomi: Bakai",
     "pkg": "eu.kanade.tachiyomi.extension.pt.bakai",
-    "apk": "tachiyomi-pt.bakai-v1.4.11.apk",
+    "apk": "tachiyomi-pt.bakai-v1.4.12.apk",
     "lang": "pt-BR",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 1,
     "sources": [
       {
@@ -21228,10 +21228,10 @@
   {
     "name": "Tachiyomi: Hunters Scans",
     "pkg": "eu.kanade.tachiyomi.extension.pt.huntersscans",
-    "apk": "tachiyomi-pt.huntersscans-v1.4.49.apk",
+    "apk": "tachiyomi-pt.huntersscans-v1.4.50.apk",
     "lang": "pt-BR",
-    "code": 49,
-    "version": "1.4.49",
+    "code": 50,
+    "version": "1.4.50",
     "nsfw": 1,
     "sources": [
       {
@@ -21364,10 +21364,10 @@
   {
     "name": "Tachiyomi: Leitor de Mangá",
     "pkg": "eu.kanade.tachiyomi.extension.pt.leitordemanga",
-    "apk": "tachiyomi-pt.leitordemanga-v1.4.42.apk",
+    "apk": "tachiyomi-pt.leitordemanga-v1.4.43.apk",
     "lang": "pt-BR",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 0,
     "sources": [
       {
@@ -22197,17 +22197,17 @@
   {
     "name": "Tachiyomi: Saikai Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.saikaiscan",
-    "apk": "tachiyomi-pt.saikaiscan-v1.4.11.apk",
+    "apk": "tachiyomi-pt.saikaiscan-v1.4.12.apk",
     "lang": "pt-BR",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 0,
     "sources": [
       {
         "name": "Saikai Scan",
         "lang": "pt-BR",
         "id": "273341846992513187",
-        "baseUrl": "https://saikaiscans.net"
+        "baseUrl": "https://housesaikai.net"
       }
     ]
   },
@@ -24135,17 +24135,17 @@
   {
     "name": "Tachiyomi: Jiangzaitoon",
     "pkg": "eu.kanade.tachiyomi.extension.tr.jiangzaitoon",
-    "apk": "tachiyomi-tr.jiangzaitoon-v1.4.53.apk",
+    "apk": "tachiyomi-tr.jiangzaitoon-v1.4.54.apk",
     "lang": "tr",
-    "code": 53,
-    "version": "1.4.53",
+    "code": 54,
+    "version": "1.4.54",
     "nsfw": 1,
     "sources": [
       {
         "name": "Jiangzaitoon",
         "lang": "tr",
         "id": "2533138448805911283",
-        "baseUrl": "https://jiangzaitoon.wtf"
+        "baseUrl": "https://jiangzaitoon.lgbt"
       }
     ]
   },
