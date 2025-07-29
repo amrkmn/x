@@ -15576,17 +15576,17 @@
   {
     "name": "Tachiyomi: EternalMangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.eternalmangas",
-    "apk": "tachiyomi-es.eternalmangas-v1.4.10.apk",
+    "apk": "tachiyomi-es.eternalmangas-v1.4.11.apk",
     "lang": "es",
-    "code": 10,
-    "version": "1.4.10",
+    "code": 11,
+    "version": "1.4.11",
     "nsfw": 1,
     "sources": [
       {
         "name": "EternalMangas",
         "lang": "es",
         "id": "1533901034425595323",
-        "baseUrl": "https://eternalmangas.com"
+        "baseUrl": "https://eternalmangas.org"
       }
     ]
   },
@@ -15848,10 +15848,10 @@
   {
     "name": "Tachiyomi: Jeaz Scans",
     "pkg": "eu.kanade.tachiyomi.extension.es.jeazscans",
-    "apk": "tachiyomi-es.jeazscans-v1.4.47.apk",
+    "apk": "tachiyomi-es.jeazscans-v1.4.60.apk",
     "lang": "es",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 60,
+    "version": "1.4.60",
     "nsfw": 0,
     "sources": [
       {
