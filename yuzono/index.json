@@ -1267,10 +1267,10 @@
   {
     "name": "Aniyomi: AniWatchtv",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.aniwatch",
-    "apk": "aniyomi-en.aniwatch-v14.11.apk",
+    "apk": "aniyomi-en.aniwatch-v14.12.apk",
     "lang": "en",
-    "code": 11,
-    "version": "14.11",
+    "code": 12,
+    "version": "14.12",
     "nsfw": 0,
     "sources": [
       {
@@ -1329,6 +1329,23 @@
         "lang": "en",
         "id": "2378107952091013853",
         "baseUrl": "https://bestdubbedanime.com"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: BLZone",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.blzone",
+    "apk": "aniyomi-en.blzone-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "BLZone",
+        "lang": "en",
+        "id": "1437838328434413410",
+        "baseUrl": "https://blzone.net"
       }
     ]
   },
@@ -1964,10 +1981,10 @@
   {
     "name": "Aniyomi: HiAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.zoro",
-    "apk": "aniyomi-en.zoro-v14.63.apk",
+    "apk": "aniyomi-en.zoro-v14.64.apk",
     "lang": "en",
-    "code": 63,
-    "version": "14.63",
+    "code": 64,
+    "version": "14.64",
     "nsfw": 0,
     "sources": [
       {
