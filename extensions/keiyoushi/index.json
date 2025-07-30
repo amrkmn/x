@@ -12272,10 +12272,10 @@
   {
     "name": "Tachiyomi: Manhwas Men",
     "pkg": "eu.kanade.tachiyomi.extension.en.manhwasmen",
-    "apk": "tachiyomi-en.manhwasmen-v1.4.42.apk",
+    "apk": "tachiyomi-en.manhwasmen-v1.4.43.apk",
     "lang": "en",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
