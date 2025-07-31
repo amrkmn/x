@@ -5548,10 +5548,10 @@
   {
     "name": "Tachiyomi: NHentai",
     "pkg": "eu.kanade.tachiyomi.extension.all.nhentai",
-    "apk": "tachiyomi-all.nhentai-v1.4.51.apk",
+    "apk": "tachiyomi-all.nhentai-v1.4.52.apk",
     "lang": "all",
-    "code": 51,
-    "version": "1.4.51",
+    "code": 52,
+    "version": "1.4.52",
     "nsfw": 1,
     "sources": [
       {
@@ -15151,17 +15151,17 @@
   {
     "name": "Tachiyomi: Biblio Panda",
     "pkg": "eu.kanade.tachiyomi.extension.es.bibliopanda",
-    "apk": "tachiyomi-es.bibliopanda-v1.4.42.apk",
+    "apk": "tachiyomi-es.bibliopanda-v1.4.43.apk",
     "lang": "es",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 0,
     "sources": [
       {
         "name": "Biblio Panda",
         "lang": "es",
         "id": "8219271831795034464",
-        "baseUrl": "https://bibliopanda.com"
+        "baseUrl": "https://bibliopanda.visblog.online"
       }
     ]
   },
