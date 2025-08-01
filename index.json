@@ -19237,17 +19237,17 @@
   {
     "name": "Tachiyomi: Mangaworld",
     "pkg": "eu.kanade.tachiyomi.extension.it.mangaworld",
-    "apk": "tachiyomi-it.mangaworld-v1.4.11.apk",
+    "apk": "tachiyomi-it.mangaworld-v1.4.12.apk",
     "lang": "it",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 0,
     "sources": [
       {
         "name": "Mangaworld",
         "lang": "it",
         "id": "7114846210461894145",
-        "baseUrl": "https://www.mangaworld.nz"
+        "baseUrl": "https://www.mangaworld.cx"
       }
     ]
   },
@@ -25376,10 +25376,10 @@
   {
     "name": "Tachiyomi: Goc Truyen Tranh",
     "pkg": "eu.kanade.tachiyomi.extension.vi.goctruyentranh",
-    "apk": "tachiyomi-vi.goctruyentranh-v1.4.4.apk",
+    "apk": "tachiyomi-vi.goctruyentranh-v1.4.5.apk",
     "lang": "vi",
-    "code": 4,
-    "version": "1.4.4",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
