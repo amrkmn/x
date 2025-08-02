@@ -3195,17 +3195,17 @@
   {
     "name": "Tachiyomi: Kemono",
     "pkg": "eu.kanade.tachiyomi.extension.all.kemono",
-    "apk": "tachiyomi-all.kemono-v1.4.22.apk",
+    "apk": "tachiyomi-all.kemono-v1.4.23.apk",
     "lang": "all",
-    "code": 22,
-    "version": "1.4.22",
+    "code": 23,
+    "version": "1.4.23",
     "nsfw": 1,
     "sources": [
       {
         "name": "Kemono",
         "lang": "all",
         "id": "2011050813940802605",
-        "baseUrl": "https://kemono.su"
+        "baseUrl": "https://kemono.cr"
       }
     ]
   },
