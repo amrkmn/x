@@ -3229,17 +3229,17 @@
   {
     "name": "Aniyomi: Kuramanime",
     "pkg": "eu.kanade.tachiyomi.animeextension.id.kuramanime",
-    "apk": "aniyomi-id.kuramanime-v14.13.apk",
+    "apk": "aniyomi-id.kuramanime-v14.14.apk",
     "lang": "id",
-    "code": 13,
-    "version": "14.13",
+    "code": 14,
+    "version": "14.14",
     "nsfw": 0,
     "sources": [
       {
         "name": "Kuramanime",
         "lang": "id",
         "id": "4677878836897500878",
-        "baseUrl": "https://kuramanime.boo"
+        "baseUrl": "https://v8.kuramanime.tel"
       }
     ]
   },
