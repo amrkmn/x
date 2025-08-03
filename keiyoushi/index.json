@@ -16817,17 +16817,17 @@
   {
     "name": "Tachiyomi: Tojimangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.tojimangas",
-    "apk": "tachiyomi-es.tojimangas-v1.4.2.apk",
+    "apk": "tachiyomi-es.tojimangas-v1.4.3.apk",
     "lang": "es",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
         "name": "Tojimangas",
         "lang": "es",
         "id": "6976108800986842339",
-        "baseUrl": "https://tojimangas.com"
+        "baseUrl": "https://tojimangas.xyz"
       }
     ]
   },
@@ -18336,17 +18336,17 @@
   {
     "name": "Tachiyomi: Komiku.com",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikucom",
-    "apk": "tachiyomi-id.komikucom-v1.4.31.apk",
+    "apk": "tachiyomi-id.komikucom-v1.4.32.apk",
     "lang": "id",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 0,
     "sources": [
       {
         "name": "Komiku.com",
         "lang": "id",
         "id": "8489420317813224728",
-        "baseUrl": "https://komiku.one"
+        "baseUrl": "https://01.komiku.asia"
       }
     ]
   },
@@ -18557,17 +18557,17 @@
   {
     "name": "Tachiyomi: Siren Komik",
     "pkg": "eu.kanade.tachiyomi.extension.id.mangkomik",
-    "apk": "tachiyomi-id.mangkomik-v1.4.38.apk",
+    "apk": "tachiyomi-id.mangkomik-v1.4.39.apk",
     "lang": "id",
-    "code": 38,
-    "version": "1.4.38",
-    "nsfw": 0,
+    "code": 39,
+    "version": "1.4.39",
+    "nsfw": 1,
     "sources": [
       {
         "name": "Siren Komik",
         "lang": "id",
         "id": "8457447675410081142",
-        "baseUrl": "https://sirenkomik.my.id"
+        "baseUrl": "https://sirenkomik.xyz"
       }
     ]
   },
@@ -24645,17 +24645,17 @@
   {
     "name": "Tachiyomi: Moon Daisy Scans",
     "pkg": "eu.kanade.tachiyomi.extension.tr.moondaisyscans",
-    "apk": "tachiyomi-tr.moondaisyscans-v1.4.31.apk",
+    "apk": "tachiyomi-tr.moondaisyscans-v1.4.32.apk",
     "lang": "tr",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 1,
     "sources": [
       {
         "name": "Moon Daisy Scans",
         "lang": "tr",
         "id": "2732049206654972364",
-        "baseUrl": "https://moondaisyscans.my"
+        "baseUrl": "https://moondaisyscans.art"
       }
     ]
   },
@@ -24809,23 +24809,6 @@
         "lang": "tr",
         "id": "5020277403848576351",
         "baseUrl": "https://www.raindropteamfan.com"
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Romantik Manga",
-    "pkg": "eu.kanade.tachiyomi.extension.tr.romantikmanga",
-    "apk": "tachiyomi-tr.romantikmanga-v1.4.42.apk",
-    "lang": "tr",
-    "code": 42,
-    "version": "1.4.42",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "Romantik Manga",
-        "lang": "tr",
-        "id": "3454211258559123151",
-        "baseUrl": "https://romantikmanga.com"
       }
     ]
   },
@@ -25138,17 +25121,17 @@
   {
     "name": "Tachiyomi: Webtoon Hatti",
     "pkg": "eu.kanade.tachiyomi.extension.tr.webtoonhatti",
-    "apk": "tachiyomi-tr.webtoonhatti-v1.4.48.apk",
+    "apk": "tachiyomi-tr.webtoonhatti-v1.4.49.apk",
     "lang": "tr",
-    "code": 48,
-    "version": "1.4.48",
+    "code": 49,
+    "version": "1.4.49",
     "nsfw": 0,
     "sources": [
       {
         "name": "Webtoon Hatti",
         "lang": "tr",
         "id": "8902732421830627437",
-        "baseUrl": "https://webtoonhatti.me"
+        "baseUrl": "https://webtoonhatti.club"
       }
     ]
   },
@@ -25189,17 +25172,17 @@
   {
     "name": "Tachiyomi: Yaoi Flix",
     "pkg": "eu.kanade.tachiyomi.extension.tr.yaoiflix",
-    "apk": "tachiyomi-tr.yaoiflix-v1.4.43.apk",
+    "apk": "tachiyomi-tr.yaoiflix-v1.4.44.apk",
     "lang": "tr",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
         "name": "Yaoi Flix",
         "lang": "tr",
         "id": "9083257818102461515",
-        "baseUrl": "https://yaoiflix.kim"
+        "baseUrl": "https://yaoiflix.my"
       }
     ]
   },
