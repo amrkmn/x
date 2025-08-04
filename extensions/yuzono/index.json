@@ -1267,10 +1267,10 @@
   {
     "name": "Aniyomi: AniWatchtv",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.aniwatch",
-    "apk": "aniyomi-en.aniwatch-v14.12.apk",
+    "apk": "aniyomi-en.aniwatch-v14.13.apk",
     "lang": "en",
-    "code": 12,
-    "version": "14.12",
+    "code": 13,
+    "version": "14.13",
     "nsfw": 0,
     "sources": [
       {
@@ -1488,10 +1488,10 @@
   {
     "name": "Aniyomi: Kaido",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.kaido",
-    "apk": "aniyomi-en.kaido-v14.21.apk",
+    "apk": "aniyomi-en.kaido-v14.22.apk",
     "lang": "en",
-    "code": 21,
-    "version": "14.21",
+    "code": 22,
+    "version": "14.22",
     "nsfw": 0,
     "sources": [
       {
@@ -1675,10 +1675,10 @@
   {
     "name": "Aniyomi: 9AnimeTV",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.nineanimetv",
-    "apk": "aniyomi-en.nineanimetv-v14.11.apk",
+    "apk": "aniyomi-en.nineanimetv-v14.12.apk",
     "lang": "en",
-    "code": 11,
-    "version": "14.11",
+    "code": 12,
+    "version": "14.12",
     "nsfw": 0,
     "sources": [
       {
@@ -1981,10 +1981,10 @@
   {
     "name": "Aniyomi: HiAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.zoro",
-    "apk": "aniyomi-en.zoro-v14.64.apk",
+    "apk": "aniyomi-en.zoro-v14.65.apk",
     "lang": "en",
-    "code": 64,
-    "version": "14.64",
+    "code": 65,
+    "version": "14.65",
     "nsfw": 0,
     "sources": [
       {
