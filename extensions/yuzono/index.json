@@ -1267,10 +1267,10 @@
   {
     "name": "Aniyomi: AniWatchtv",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.aniwatch",
-    "apk": "aniyomi-en.aniwatch-v14.13.apk",
+    "apk": "aniyomi-en.aniwatch-v14.14.apk",
     "lang": "en",
-    "code": 13,
-    "version": "14.13",
+    "code": 14,
+    "version": "14.14",
     "nsfw": 0,
     "sources": [
       {
@@ -1981,10 +1981,10 @@
   {
     "name": "Aniyomi: HiAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.zoro",
-    "apk": "aniyomi-en.zoro-v14.65.apk",
+    "apk": "aniyomi-en.zoro-v14.66.apk",
     "lang": "en",
-    "code": 65,
-    "version": "14.65",
+    "code": 66,
+    "version": "14.66",
     "nsfw": 0,
     "sources": [
       {
