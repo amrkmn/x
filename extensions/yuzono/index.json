@@ -1879,10 +1879,10 @@
   {
     "name": "Aniyomi: WcoAnimeDub",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcoanimedub",
-    "apk": "aniyomi-en.wcoanimedub-v14.3.apk",
+    "apk": "aniyomi-en.wcoanimedub-v14.4.apk",
     "lang": "en",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "sources": [
       {
@@ -1896,10 +1896,10 @@
   {
     "name": "Aniyomi: WcoAnimeSub",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcoanimesub",
-    "apk": "aniyomi-en.wcoanimesub-v14.3.apk",
+    "apk": "aniyomi-en.wcoanimesub-v14.4.apk",
     "lang": "en",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "sources": [
       {
@@ -1913,10 +1913,10 @@
   {
     "name": "Aniyomi: WcoForever",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcoforever",
-    "apk": "aniyomi-en.wcoforever-v14.3.apk",
+    "apk": "aniyomi-en.wcoforever-v14.4.apk",
     "lang": "en",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "sources": [
       {
@@ -1930,10 +1930,10 @@
   {
     "name": "Aniyomi: Wcofun",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcofun",
-    "apk": "aniyomi-en.wcofun-v14.17.apk",
+    "apk": "aniyomi-en.wcofun-v14.18.apk",
     "lang": "en",
-    "code": 17,
-    "version": "14.17",
+    "code": 18,
+    "version": "14.18",
     "nsfw": 0,
     "sources": [
       {
@@ -1947,10 +1947,10 @@
   {
     "name": "Aniyomi: WCOStream",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcostream",
-    "apk": "aniyomi-en.wcostream-v14.8.apk",
+    "apk": "aniyomi-en.wcostream-v14.9.apk",
     "lang": "en",
-    "code": 8,
-    "version": "14.8",
+    "code": 9,
+    "version": "14.9",
     "nsfw": 0,
     "sources": [
       {
@@ -1964,10 +1964,10 @@
   {
     "name": "Aniyomi: WcoTv",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.wcotv",
-    "apk": "aniyomi-en.wcotv-v14.3.apk",
+    "apk": "aniyomi-en.wcotv-v14.4.apk",
     "lang": "en",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "sources": [
       {
