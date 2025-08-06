@@ -5548,10 +5548,10 @@
   {
     "name": "Tachiyomi: NHentai",
     "pkg": "eu.kanade.tachiyomi.extension.all.nhentai",
-    "apk": "tachiyomi-all.nhentai-v1.4.53.apk",
+    "apk": "tachiyomi-all.nhentai-v1.4.54.apk",
     "lang": "all",
-    "code": 53,
-    "version": "1.4.53",
+    "code": 54,
+    "version": "1.4.54",
     "nsfw": 1,
     "sources": [
       {
@@ -13766,6 +13766,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: RokariComics",
+    "pkg": "eu.kanade.tachiyomi.extension.en.rokaricomics",
+    "apk": "tachiyomi-en.rokaricomics-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "RokariComics",
+        "lang": "en",
+        "id": "830150807344972132",
+        "baseUrl": "https://rokaricomics.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Rolia Scan",
     "pkg": "eu.kanade.tachiyomi.extension.en.roliascan",
     "apk": "tachiyomi-en.roliascan-v1.4.2.apk",
@@ -17010,10 +17027,10 @@
   {
     "name": "Tachiyomi: AnimeSama",
     "pkg": "eu.kanade.tachiyomi.extension.fr.animesama",
-    "apk": "tachiyomi-fr.animesama-v1.4.5.apk",
+    "apk": "tachiyomi-fr.animesama-v1.4.6.apk",
     "lang": "fr",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 0,
     "sources": [
       {
@@ -18676,10 +18693,10 @@
   {
     "name": "Tachiyomi: MG Komik",
     "pkg": "eu.kanade.tachiyomi.extension.id.mgkomik",
-    "apk": "tachiyomi-id.mgkomik-v1.4.58.apk",
+    "apk": "tachiyomi-id.mgkomik-v1.4.59.apk",
     "lang": "id",
-    "code": 58,
-    "version": "1.4.58",
+    "code": 59,
+    "version": "1.4.59",
     "nsfw": 0,
     "sources": [
       {
@@ -20582,10 +20599,10 @@
   {
     "name": "Tachiyomi: Argos Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.argosscan",
-    "apk": "tachiyomi-pt.argosscan-v1.4.26.apk",
+    "apk": "tachiyomi-pt.argosscan-v1.4.27.apk",
     "lang": "pt-BR",
-    "code": 26,
-    "version": "1.4.26",
+    "code": 27,
+    "version": "1.4.27",
     "nsfw": 0,
     "sources": [
       {
@@ -25750,17 +25767,17 @@
   {
     "name": "Tachiyomi: VlogTruyen",
     "pkg": "eu.kanade.tachiyomi.extension.vi.vlogtruyen",
-    "apk": "tachiyomi-vi.vlogtruyen-v1.4.12.apk",
+    "apk": "tachiyomi-vi.vlogtruyen-v1.4.13.apk",
     "lang": "vi",
-    "code": 12,
-    "version": "1.4.12",
+    "code": 13,
+    "version": "1.4.13",
     "nsfw": 1,
     "sources": [
       {
         "name": "VlogTruyen",
         "lang": "vi",
         "id": "6425642624422299254",
-        "baseUrl": "https://vlogtruyen50.com"
+        "baseUrl": "https://vlogtruyen52.com"
       }
     ]
   },
@@ -26124,10 +26141,10 @@
   {
     "name": "Tachiyomi: Jinman Tiantang",
     "pkg": "eu.kanade.tachiyomi.extension.zh.jinmantiantang",
-    "apk": "tachiyomi-zh.jinmantiantang-v1.4.52.apk",
+    "apk": "tachiyomi-zh.jinmantiantang-v1.4.53.apk",
     "lang": "zh",
-    "code": 52,
-    "version": "1.4.52",
+    "code": 53,
+    "version": "1.4.53",
     "nsfw": 1,
     "sources": [
       {
