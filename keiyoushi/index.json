@@ -10434,23 +10434,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Lunar Scans",
-    "pkg": "eu.kanade.tachiyomi.extension.en.lunarscans",
-    "apk": "tachiyomi-en.lunarscans-v1.4.34.apk",
-    "lang": "en",
-    "code": 34,
-    "version": "1.4.34",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Lunar Scans",
-        "lang": "en",
-        "id": "3295715182522050094",
-        "baseUrl": "https://lunarscan.org"
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: MadaraDex",
     "pkg": "eu.kanade.tachiyomi.extension.en.madaradex",
     "apk": "tachiyomi-en.madaradex-v1.4.44.apk",
@@ -13768,10 +13751,10 @@
   {
     "name": "Tachiyomi: RokariComics",
     "pkg": "eu.kanade.tachiyomi.extension.en.rokaricomics",
-    "apk": "tachiyomi-en.rokaricomics-v1.4.30.apk",
+    "apk": "tachiyomi-en.rokaricomics-v1.4.31.apk",
     "lang": "en",
-    "code": 30,
-    "version": "1.4.30",
+    "code": 31,
+    "version": "1.4.31",
     "nsfw": 0,
     "sources": [
       {
@@ -14826,6 +14809,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: WitchScans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.witchscans",
+    "apk": "tachiyomi-en.witchscans-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "WitchScans",
+        "lang": "en",
+        "id": "8536147748985688790",
+        "baseUrl": "https://witchscans.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: WoopRead",
     "pkg": "eu.kanade.tachiyomi.extension.en.woopread",
     "apk": "tachiyomi-en.woopread-v1.4.43.apk",
@@ -15270,17 +15270,17 @@
   {
     "name": "Tachiyomi: Catharsis World",
     "pkg": "eu.kanade.tachiyomi.extension.es.catharsisworld",
-    "apk": "tachiyomi-es.catharsisworld-v1.4.47.apk",
+    "apk": "tachiyomi-es.catharsisworld-v1.4.48.apk",
     "lang": "es",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 1,
     "sources": [
       {
         "name": "Catharsis World",
         "lang": "es",
         "id": "2856082375563763469",
-        "baseUrl": "https://catharsisworld.dig-it.info"
+        "baseUrl": "https://catharsisworld.akan01.com"
       }
     ]
   },
@@ -17503,17 +17503,17 @@
   {
     "name": "Tachiyomi: Perf Scan",
     "pkg": "eu.kanade.tachiyomi.extension.fr.perfscan",
-    "apk": "tachiyomi-fr.perfscan-v1.4.30.apk",
+    "apk": "tachiyomi-fr.perfscan-v1.4.31.apk",
     "lang": "fr",
-    "code": 30,
-    "version": "1.4.30",
+    "code": 31,
+    "version": "1.4.31",
     "nsfw": 1,
     "sources": [
       {
         "name": "Perf Scan",
         "lang": "fr",
         "id": "4533007917829146766",
-        "baseUrl": "https://perf-scan.net"
+        "baseUrl": "https://perf-scan.xyz"
       }
     ]
   },
@@ -19084,10 +19084,10 @@
   {
     "name": "Tachiyomi: West Manga",
     "pkg": "eu.kanade.tachiyomi.extension.id.westmanga",
-    "apk": "tachiyomi-id.westmanga-v1.4.36.apk",
+    "apk": "tachiyomi-id.westmanga-v1.4.37.apk",
     "lang": "id",
-    "code": 36,
-    "version": "1.4.36",
+    "code": 37,
+    "version": "1.4.37",
     "nsfw": 1,
     "sources": [
       {
