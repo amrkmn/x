@@ -5116,23 +5116,23 @@
   {
     "name": "Tachiyomi: Miau Scan",
     "pkg": "eu.kanade.tachiyomi.extension.all.miauscan",
-    "apk": "tachiyomi-all.miauscan-v1.4.35.apk",
+    "apk": "tachiyomi-all.miauscan-v1.4.36.apk",
     "lang": "all",
-    "code": 35,
-    "version": "1.4.35",
+    "code": 36,
+    "version": "1.4.36",
     "nsfw": 1,
     "sources": [
       {
         "name": "Miau Scan",
         "lang": "es",
         "id": "2886862669347225416",
-        "baseUrl": "https://zonamiau.com"
+        "baseUrl": "https://leemiau.com"
       },
       {
         "name": "Miau Scan",
         "lang": "pt-BR",
         "id": "6705370418823255358",
-        "baseUrl": "https://zonamiau.com"
+        "baseUrl": "https://leemiau.com"
       }
     ]
   },
@@ -15882,17 +15882,17 @@
   {
     "name": "Tachiyomi: Knight No Scanlation",
     "pkg": "eu.kanade.tachiyomi.extension.es.knightnoscanlation",
-    "apk": "tachiyomi-es.knightnoscanlation-v1.4.47.apk",
+    "apk": "tachiyomi-es.knightnoscanlation-v1.4.48.apk",
     "lang": "es",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 1,
     "sources": [
       {
         "name": "Knight No Scanlation",
         "lang": "es",
         "id": "6482794816533233181",
-        "baseUrl": "https://kns.cookni.net"
+        "baseUrl": "https://kns.rzword.xyz"
       }
     ]
   },
@@ -16273,17 +16273,17 @@
   {
     "name": "Tachiyomi: SamuraiScan",
     "pkg": "eu.kanade.tachiyomi.extension.es.manhuaonline",
-    "apk": "tachiyomi-es.manhuaonline-v1.4.55.apk",
+    "apk": "tachiyomi-es.manhuaonline-v1.4.56.apk",
     "lang": "es",
-    "code": 55,
-    "version": "1.4.55",
+    "code": 56,
+    "version": "1.4.56",
     "nsfw": 0,
     "sources": [
       {
         "name": "SamuraiScan",
         "lang": "es",
         "id": "5713083996691468192",
-        "baseUrl": "https://samurai.wordoco.com"
+        "baseUrl": "https://samurai.rzword.xyz"
       }
     ]
   },
@@ -17894,17 +17894,17 @@
   {
     "name": "Tachiyomi: CosmicScans.id",
     "pkg": "eu.kanade.tachiyomi.extension.id.cosmicscansid",
-    "apk": "tachiyomi-id.cosmicscansid-v1.4.42.apk",
+    "apk": "tachiyomi-id.cosmicscansid-v1.4.43.apk",
     "lang": "id",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
         "name": "CosmicScans.id",
         "lang": "id",
         "id": "6559481336553833282",
-        "baseUrl": "https://lc3.cosmicscans.asia"
+        "baseUrl": "https://novascans.id"
       }
     ]
   },
@@ -18098,17 +18098,17 @@
   {
     "name": "Tachiyomi: KlikManga",
     "pkg": "eu.kanade.tachiyomi.extension.id.klikmanga",
-    "apk": "tachiyomi-id.klikmanga-v1.4.45.apk",
+    "apk": "tachiyomi-id.klikmanga-v1.4.46.apk",
     "lang": "id",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 1,
     "sources": [
       {
         "name": "KlikManga",
         "lang": "id",
         "id": "5213948951740602020",
-        "baseUrl": "https://klikmanga.com"
+        "baseUrl": "https://klikmanga.org"
       }
     ]
   },
