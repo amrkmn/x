@@ -490,10 +490,10 @@
   {
     "name": "Aniyomi: Subsplease",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.subsplease",
-    "apk": "aniyomi-all.subsplease-v14.3.apk",
+    "apk": "aniyomi-all.subsplease-v14.4.apk",
     "lang": "all",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "sources": [
       {
@@ -1788,23 +1788,6 @@
         "lang": "en",
         "id": "8615824918772726940",
         "baseUrl": "https://sflix.to"
-      }
-    ]
-  },
-  {
-    "name": "Aniyomi: Subsplease (Torrent)",
-    "pkg": "eu.kanade.tachiyomi.animeextension.en.subsplease",
-    "apk": "aniyomi-en.subsplease-v14.1.apk",
-    "lang": "en",
-    "code": 1,
-    "version": "14.1",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "Subsplease (Torrent)",
-        "lang": "en",
-        "id": "7607095627337529559",
-        "baseUrl": "https://subsplease.org"
       }
     ]
   },
