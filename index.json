@@ -176,26 +176,6 @@
     ]
   },
   {
-    "name": "Aniyomi: Hikari",
-    "pkg": "eu.kanade.tachiyomi.animeextension.all.hikari",
-    "apk": "aniyomi-all.hikari-v14.22.apk",
-    "lang": "all",
-    "code": 22,
-    "version": "14.22",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "Hikari",
-        "lang": "all",
-        "id": "3226704344525040225",
-        "baseUrl": "https://hikari.gg",
-        "versionId": 2
-      }
-    ]
-  },
-  {
     "name": "Aniyomi: Jable",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.jable",
     "apk": "aniyomi-all.jable-v14.2.apk",
@@ -352,10 +332,10 @@
   {
     "name": "Aniyomi: Subsplease",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.subsplease",
-    "apk": "aniyomi-all.subsplease-v14.3.apk",
+    "apk": "aniyomi-all.subsplease-v14.4.apk",
     "lang": "all",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -1104,26 +1084,6 @@
     ]
   },
   {
-    "name": "Aniyomi: AnimeOwl",
-    "pkg": "eu.kanade.tachiyomi.animeextension.en.animeowl",
-    "apk": "aniyomi-en.animeowl-v14.24.apk",
-    "lang": "en",
-    "code": 24,
-    "version": "14.24",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "AnimeOwl",
-        "lang": "en",
-        "id": "6489797158672074908",
-        "baseUrl": "https://animeowl.me",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Aniyomi: AnimePahe",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.animepahe",
     "apk": "aniyomi-en.animepahe-v14.31.apk",
@@ -1486,10 +1446,10 @@
   {
     "name": "Aniyomi: KickAssAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.kickassanime",
-    "apk": "aniyomi-en.kickassanime-v14.49.apk",
+    "apk": "aniyomi-en.kickassanime-v14.50.apk",
     "lang": "en",
-    "code": 49,
-    "version": "14.49",
+    "code": 50,
+    "version": "14.50",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -3934,10 +3894,10 @@
   {
     "name": "Aniyomi: Q1N",
     "pkg": "eu.kanade.tachiyomi.animeextension.pt.animesgratis",
-    "apk": "aniyomi-pt.animesgratis-v14.24.apk",
+    "apk": "aniyomi-pt.animesgratis-v14.26.apk",
     "lang": "pt-BR",
-    "code": 24,
-    "version": "14.24",
+    "code": 26,
+    "version": "14.26",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
