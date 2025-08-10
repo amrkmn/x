@@ -4539,6 +4539,26 @@
     ]
   },
   {
+    "name": "Aniyomi: Cycity",
+    "pkg": "eu.kanade.tachiyomi.animeextension.zh.cycity",
+    "apk": "aniyomi-zh.cycity-v14.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "name": "次元城动漫",
+        "lang": "zh",
+        "id": "4928029692398241219",
+        "baseUrl": "https://www.cycani.org/search.html?wd=",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: Hanime1",
     "pkg": "eu.kanade.tachiyomi.animeextension.zh.hanime1",
     "apk": "aniyomi-zh.hanime1-v14.5.apk",
@@ -4601,10 +4621,10 @@
   {
     "name": "Aniyomi: Xfani",
     "pkg": "eu.kanade.tachiyomi.animeextension.zh.xfani",
-    "apk": "aniyomi-zh.xfani-v14.6.apk",
+    "apk": "aniyomi-zh.xfani-v14.7.apk",
     "lang": "zh",
-    "code": 6,
-    "version": "14.6",
+    "code": 7,
+    "version": "14.7",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
