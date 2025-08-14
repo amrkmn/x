@@ -1031,10 +1031,10 @@
   {
     "name": "Tachiyomi: Comick",
     "pkg": "eu.kanade.tachiyomi.extension.all.comickfun",
-    "apk": "tachiyomi-all.comickfun-v1.4.58.apk",
+    "apk": "tachiyomi-all.comickfun-v1.4.59.apk",
     "lang": "all",
-    "code": 58,
-    "version": "1.4.58",
+    "code": 59,
+    "version": "1.4.59",
     "nsfw": 1,
     "sources": [
       {
@@ -22280,6 +22280,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Sakura Mangás",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.sakuramangas",
+    "apk": "tachiyomi-pt.sakuramangas-v1.4.1.apk",
+    "lang": "pt-BR",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Sakura Mangás",
+        "lang": "pt-BR",
+        "id": "5312747352055987615",
+        "baseUrl": "https://sakuramangas.org"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Shindai Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.shindaiscan",
     "apk": "tachiyomi-pt.shindaiscan-v1.4.42.apk",
@@ -24061,6 +24078,23 @@
         "lang": "tr",
         "id": "1807480150517467938",
         "baseUrl": "https://d0malfansub.com.tr"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Elder Manga",
+    "pkg": "eu.kanade.tachiyomi.extension.tr.eldermanga",
+    "apk": "tachiyomi-tr.eldermanga-v1.4.1.apk",
+    "lang": "tr",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Elder Manga",
+        "lang": "tr",
+        "id": "6116237872032387919",
+        "baseUrl": "https://eldermanga.com"
       }
     ]
   },
@@ -26600,10 +26634,10 @@
   {
     "name": "Tachiyomi: Zaimanhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.zaimanhua",
-    "apk": "tachiyomi-zh.zaimanhua-v1.4.9.apk",
+    "apk": "tachiyomi-zh.zaimanhua-v1.4.10.apk",
     "lang": "zh",
-    "code": 9,
-    "version": "1.4.9",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 0,
     "sources": [
       {
