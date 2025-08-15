@@ -1444,17 +1444,17 @@
   {
     "name": "Tachiyomi: Coomer",
     "pkg": "eu.kanade.tachiyomi.extension.all.coomer",
-    "apk": "tachiyomi-all.coomer-v1.4.22.apk",
+    "apk": "tachiyomi-all.coomer-v1.4.23.apk",
     "lang": "all",
-    "code": 22,
-    "version": "1.4.22",
+    "code": 23,
+    "version": "1.4.23",
     "nsfw": 1,
     "sources": [
       {
         "name": "Coomer",
         "lang": "all",
         "id": "8715899195746116471",
-        "baseUrl": "https://coomer.su"
+        "baseUrl": "https://coomer.st"
       }
     ]
   },
@@ -3195,10 +3195,10 @@
   {
     "name": "Tachiyomi: Kemono",
     "pkg": "eu.kanade.tachiyomi.extension.all.kemono",
-    "apk": "tachiyomi-all.kemono-v1.4.23.apk",
+    "apk": "tachiyomi-all.kemono-v1.4.24.apk",
     "lang": "all",
-    "code": 23,
-    "version": "1.4.23",
+    "code": 24,
+    "version": "1.4.24",
     "nsfw": 1,
     "sources": [
       {
@@ -15746,16 +15746,16 @@
   {
     "name": "Tachiyomi: Harem de Kira",
     "pkg": "eu.kanade.tachiyomi.extension.es.haremdekira",
-    "apk": "tachiyomi-es.haremdekira-v1.4.42.apk",
+    "apk": "tachiyomi-es.haremdekira-v1.4.43.apk",
     "lang": "es",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 1,
     "sources": [
       {
         "name": "Harem de Kira",
         "lang": "es",
-        "id": "2403199754180170151",
+        "id": "1480472727871484054",
         "baseUrl": "https://haremscann.es"
       }
     ]
@@ -26464,10 +26464,10 @@
   {
     "name": "Tachiyomi: COLAMANGA",
     "pkg": "eu.kanade.tachiyomi.extension.zh.onemanhua",
-    "apk": "tachiyomi-zh.onemanhua-v1.4.24.apk",
+    "apk": "tachiyomi-zh.onemanhua-v1.4.25.apk",
     "lang": "zh",
-    "code": 24,
-    "version": "1.4.24",
+    "code": 25,
+    "version": "1.4.25",
     "nsfw": 1,
     "sources": [
       {
