@@ -1031,10 +1031,10 @@
   {
     "name": "Tachiyomi: Comick",
     "pkg": "eu.kanade.tachiyomi.extension.all.comickfun",
-    "apk": "tachiyomi-all.comickfun-v1.4.60.apk",
+    "apk": "tachiyomi-all.comickfun-v1.4.61.apk",
     "lang": "all",
-    "code": 60,
-    "version": "1.4.60",
+    "code": 61,
+    "version": "1.4.61",
     "nsfw": 1,
     "sources": [
       {
@@ -6411,10 +6411,10 @@
   {
     "name": "Tachiyomi: Snow Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.snowmtl",
-    "apk": "tachiyomi-all.snowmtl-v1.4.14.apk",
+    "apk": "tachiyomi-all.snowmtl-v1.4.15.apk",
     "lang": "all",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 1,
     "sources": [
       {
@@ -6433,6 +6433,12 @@
         "name": "Snow Machine Translations",
         "lang": "es",
         "id": "3745825547128290234",
+        "baseUrl": "https://snowmtl.ru"
+      },
+      {
+        "name": "Snow Machine Translations",
+        "lang": "fr",
+        "id": "5142262850933524944",
         "baseUrl": "https://snowmtl.ru"
       },
       {
