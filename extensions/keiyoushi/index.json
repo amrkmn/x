@@ -17388,6 +17388,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Invincible ComicsVF",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.invinciblecomics",
+    "apk": "tachiyomi-fr.invinciblecomics-v1.4.1.apk",
+    "lang": "fr",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Invincible ComicsVF",
+        "lang": "fr",
+        "id": "7916537254843156226",
+        "baseUrl": "https://invinciblecomicsvf.fr"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Japscan",
     "pkg": "eu.kanade.tachiyomi.extension.fr.japscan",
     "apk": "tachiyomi-fr.japscan-v1.4.49.apk",
@@ -26583,6 +26600,23 @@
         "lang": "zh",
         "id": "4585134706567717130",
         "baseUrl": "https://terra-historicus.hypergryph.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Toptoon.net",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.toptoon",
+    "apk": "tachiyomi-zh.toptoon-v1.4.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "TOPTOON頂通",
+        "lang": "zh",
+        "id": "1680248666203661128",
+        "baseUrl": "https://www.toptoon.net"
       }
     ]
   },
