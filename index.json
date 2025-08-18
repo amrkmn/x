@@ -249,10 +249,10 @@
   {
     "name": "Aniyomi: Jav Guru",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.javguru",
-    "apk": "aniyomi-all.javguru-v14.33.apk",
+    "apk": "aniyomi-all.javguru-v14.34.apk",
     "lang": "all",
-    "code": 33,
-    "version": "14.33",
+    "code": 34,
+    "version": "14.34",
     "nsfw": 1,
     "sources": [
       {
@@ -312,17 +312,17 @@
   {
     "name": "Aniyomi: MissAV",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.missav",
-    "apk": "aniyomi-all.missav-v14.20.apk",
+    "apk": "aniyomi-all.missav-v14.21.apk",
     "lang": "all",
-    "code": 20,
-    "version": "14.20",
+    "code": 21,
+    "version": "14.21",
     "nsfw": 1,
     "sources": [
       {
         "name": "MissAV",
         "lang": "all",
         "id": "168969881246615628",
-        "baseUrl": "https://missav.ai"
+        "baseUrl": "https://missav.live"
       }
     ]
   },
@@ -438,35 +438,35 @@
   {
     "name": "Aniyomi: StreamingCommunity",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.streamingcommunity",
-    "apk": "aniyomi-all.streamingcommunity-v14.13.apk",
+    "apk": "aniyomi-all.streamingcommunity-v14.14.apk",
     "lang": "all",
-    "code": 13,
-    "version": "14.13",
+    "code": 14,
+    "version": "14.14",
     "nsfw": 0,
     "sources": [
       {
         "name": "StreamingUnity (Movie)",
         "lang": "en",
         "id": "665657603807796138",
-        "baseUrl": "https://streamingunity.cam/en"
+        "baseUrl": "https://streamingunity.co/en"
       },
       {
         "name": "StreamingUnity (Movie)",
         "lang": "it",
         "id": "502708102217708509",
-        "baseUrl": "https://streamingunity.cam/it"
+        "baseUrl": "https://streamingunity.co/it"
       },
       {
         "name": "StreamingUnity (Tv)",
         "lang": "en",
         "id": "349088835984594821",
-        "baseUrl": "https://streamingunity.cam/en"
+        "baseUrl": "https://streamingunity.co/en"
       },
       {
         "name": "StreamingUnity (Tv)",
         "lang": "it",
         "id": "7246470104959245892",
-        "baseUrl": "https://streamingunity.cam/it"
+        "baseUrl": "https://streamingunity.co/it"
       }
     ]
   },
