@@ -1031,10 +1031,10 @@
   {
     "name": "Tachiyomi: Comick",
     "pkg": "eu.kanade.tachiyomi.extension.all.comickfun",
-    "apk": "tachiyomi-all.comickfun-v1.4.61.apk",
+    "apk": "tachiyomi-all.comickfun-v1.4.62.apk",
     "lang": "all",
-    "code": 61,
-    "version": "1.4.61",
+    "code": 62,
+    "version": "1.4.62",
     "nsfw": 1,
     "sources": [
       {
@@ -17407,17 +17407,17 @@
   {
     "name": "Tachiyomi: Japscan",
     "pkg": "eu.kanade.tachiyomi.extension.fr.japscan",
-    "apk": "tachiyomi-fr.japscan-v1.4.49.apk",
+    "apk": "tachiyomi-fr.japscan-v1.4.50.apk",
     "lang": "fr",
-    "code": 49,
-    "version": "1.4.49",
+    "code": 50,
+    "version": "1.4.50",
     "nsfw": 0,
     "sources": [
       {
         "name": "Japscan",
         "lang": "fr",
         "id": "11",
-        "baseUrl": "https://www.japscan.lol"
+        "baseUrl": "https://www.japscan.si"
       }
     ]
   },
@@ -26011,10 +26011,10 @@
   {
     "name": "Tachiyomi: BiliManga",
     "pkg": "eu.kanade.tachiyomi.extension.zh.bilimanga",
-    "apk": "tachiyomi-zh.bilimanga-v1.4.3.apk",
+    "apk": "tachiyomi-zh.bilimanga-v1.4.4.apk",
     "lang": "zh",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 1,
     "sources": [
       {
