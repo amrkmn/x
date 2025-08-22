@@ -6411,10 +6411,10 @@
   {
     "name": "Tachiyomi: Snow Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.snowmtl",
-    "apk": "tachiyomi-all.snowmtl-v1.4.16.apk",
+    "apk": "tachiyomi-all.snowmtl-v1.4.17.apk",
     "lang": "all",
-    "code": 16,
-    "version": "1.4.16",
+    "code": 17,
+    "version": "1.4.17",
     "nsfw": 1,
     "sources": [
       {
@@ -6464,10 +6464,10 @@
   {
     "name": "Tachiyomi: Solar Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.solarmtl",
-    "apk": "tachiyomi-all.solarmtl-v1.4.6.apk",
+    "apk": "tachiyomi-all.solarmtl-v1.4.7.apk",
     "lang": "all",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 1,
     "sources": [
       {
@@ -6484,6 +6484,12 @@
       },
       {
         "name": "Solar Machine Translations",
+        "lang": "es",
+        "id": "5729145435687120584",
+        "baseUrl": "https://solarmtl.com"
+      },
+      {
+        "name": "Solar Machine Translations",
         "lang": "fr",
         "id": "8848430663030554671",
         "baseUrl": "https://solarmtl.com"
@@ -6492,6 +6498,12 @@
         "name": "Solar Machine Translations",
         "lang": "id",
         "id": "3732984954088754198",
+        "baseUrl": "https://solarmtl.com"
+      },
+      {
+        "name": "Solar Machine Translations",
+        "lang": "it",
+        "id": "181621256584381733",
         "baseUrl": "https://solarmtl.com"
       },
       {
@@ -14330,10 +14342,10 @@
   {
     "name": "Tachiyomi: The Blank Scanlation",
     "pkg": "eu.kanade.tachiyomi.extension.en.theblank",
-    "apk": "tachiyomi-en.theblank-v1.4.45.apk",
+    "apk": "tachiyomi-en.theblank-v1.4.46.apk",
     "lang": "en",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 1,
     "sources": [
       {
@@ -15592,23 +15604,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: DragonTranslation.net",
-    "pkg": "eu.kanade.tachiyomi.extension.es.dragontranslationnet",
-    "apk": "tachiyomi-es.dragontranslationnet-v1.4.40.apk",
-    "lang": "es",
-    "code": 40,
-    "version": "1.4.40",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "DragonTranslation.net",
-        "lang": "es",
-        "id": "7541593615312027809",
-        "baseUrl": "https://dragontranslation.net"
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: De Todo Un Poco Scan",
     "pkg": "eu.kanade.tachiyomi.extension.es.dtupscan",
     "apk": "tachiyomi-es.dtupscan-v1.4.30.apk",
@@ -16370,23 +16365,6 @@
         "lang": "es",
         "id": "3548601371328353875",
         "baseUrl": "https://manhwa-latino.com"
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Manhwas.net",
-    "pkg": "eu.kanade.tachiyomi.extension.es.manhwasnet",
-    "apk": "tachiyomi-es.manhwasnet-v1.4.12.apk",
-    "lang": "es",
-    "code": 12,
-    "version": "1.4.12",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Manhwas.net",
-        "lang": "es",
-        "id": "1326771034671033762",
-        "baseUrl": "https://manhwas.net"
       }
     ]
   },
@@ -17980,17 +17958,17 @@
   {
     "name": "Tachiyomi: CosmicScans.id",
     "pkg": "eu.kanade.tachiyomi.extension.id.cosmicscansid",
-    "apk": "tachiyomi-id.cosmicscansid-v1.4.43.apk",
+    "apk": "tachiyomi-id.cosmicscansid-v1.4.44.apk",
     "lang": "id",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
         "name": "CosmicScans.id",
         "lang": "id",
         "id": "6559481336553833282",
-        "baseUrl": "https://novascans.id"
+        "baseUrl": "https://lc3.cosmicscans.asia"
       }
     ]
   },
@@ -18337,17 +18315,17 @@
   {
     "name": "Tachiyomi: KomikIndoID",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikindoid",
-    "apk": "tachiyomi-id.komikindoid-v1.4.16.apk",
+    "apk": "tachiyomi-id.komikindoid-v1.4.17.apk",
     "lang": "id",
-    "code": 16,
-    "version": "1.4.16",
+    "code": 17,
+    "version": "1.4.17",
     "nsfw": 0,
     "sources": [
       {
         "name": "KomikIndoID",
         "lang": "id",
         "id": "5384836574731339537",
-        "baseUrl": "https://komikindo.rip"
+        "baseUrl": "https://komikindo.ch"
       }
     ]
   },
