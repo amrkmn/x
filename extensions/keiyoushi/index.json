@@ -6411,10 +6411,10 @@
   {
     "name": "Tachiyomi: Snow Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.snowmtl",
-    "apk": "tachiyomi-all.snowmtl-v1.4.17.apk",
+    "apk": "tachiyomi-all.snowmtl-v1.4.18.apk",
     "lang": "all",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 18,
+    "version": "1.4.18",
     "nsfw": 1,
     "sources": [
       {
@@ -6464,10 +6464,10 @@
   {
     "name": "Tachiyomi: Solar Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.solarmtl",
-    "apk": "tachiyomi-all.solarmtl-v1.4.7.apk",
+    "apk": "tachiyomi-all.solarmtl-v1.4.8.apk",
     "lang": "all",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 1,
     "sources": [
       {
@@ -21817,6 +21817,23 @@
     ]
   },
   {
+    "name": "Tachiyomi: Monsure",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.monsure",
+    "apk": "tachiyomi-pt.monsure-v1.4.42.apk",
+    "lang": "pt-BR",
+    "code": 42,
+    "version": "1.4.42",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Monsure",
+        "lang": "pt-BR",
+        "id": "675113259227698778",
+        "baseUrl": "https://monsuresu.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Monte Tai",
     "pkg": "eu.kanade.tachiyomi.extension.pt.montetai",
     "apk": "tachiyomi-pt.montetai-v1.4.42.apk",
@@ -21830,6 +21847,23 @@
         "lang": "pt-BR",
         "id": "7427054289018024291",
         "baseUrl": "https://montetaiscanlator.xyz"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: MR Yaoi",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.mryaoi",
+    "apk": "tachiyomi-pt.mryaoi-v1.4.42.apk",
+    "lang": "pt-BR",
+    "code": 42,
+    "version": "1.4.42",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "MR Yaoi",
+        "lang": "pt-BR",
+        "id": "262701588630865104",
+        "baseUrl": "https://mrtenzus.com"
       }
     ]
   },
