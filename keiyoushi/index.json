@@ -18604,10 +18604,10 @@
   {
     "name": "Tachiyomi: Ikiru",
     "pkg": "eu.kanade.tachiyomi.extension.id.mangatale",
-    "apk": "tachiyomi-id.mangatale-v1.4.39.apk",
+    "apk": "tachiyomi-id.mangatale-v1.4.40.apk",
     "lang": "id",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 40,
+    "version": "1.4.40",
     "nsfw": 1,
     "sources": [
       {
@@ -26494,17 +26494,17 @@
   {
     "name": "Tachiyomi: Roumanwu",
     "pkg": "eu.kanade.tachiyomi.extension.zh.roumanwu",
-    "apk": "tachiyomi-zh.roumanwu-v1.4.16.apk",
+    "apk": "tachiyomi-zh.roumanwu-v1.4.17.apk",
     "lang": "zh",
-    "code": 16,
-    "version": "1.4.16",
+    "code": 17,
+    "version": "1.4.17",
     "nsfw": 1,
     "sources": [
       {
         "name": "肉漫屋",
         "lang": "zh",
         "id": "3647420805839021718",
-        "baseUrl": "https://roum20.xyz"
+        "baseUrl": "https://roum22.xyz"
       }
     ]
   },
@@ -26573,6 +26573,23 @@
         "lang": "zh",
         "id": "4585134706567717130",
         "baseUrl": "https://terra-historicus.hypergryph.com"
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Tongli",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.tongli",
+    "apk": "tachiyomi-zh.tongli-v1.4.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "東立",
+        "lang": "zh",
+        "id": "5530823947742715441",
+        "baseUrl": "https://ebook.tongli.com.tw"
       }
     ]
   },
