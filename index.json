@@ -2433,10 +2433,10 @@
   {
     "name": "Aniyomi: HentaiLA",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.hentaila",
-    "apk": "aniyomi-es.hentaila-v14.39.apk",
+    "apk": "aniyomi-es.hentaila-v14.40.apk",
     "lang": "es",
-    "code": 39,
-    "version": "14.39",
+    "code": 40,
+    "version": "14.40",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2445,7 +2445,7 @@
         "name": "Hentaila",
         "lang": "es",
         "id": "6447194598203666818",
-        "baseUrl": "https://www5.hentaila.com",
+        "baseUrl": "https://hentaila.com",
         "versionId": 1
       }
     ]
@@ -2927,6 +2927,26 @@
         "lang": "es",
         "id": "6262145028910416459",
         "baseUrl": "https://wwv.veranimes.net",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: VerPelisTop",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.verpelistop",
+    "apk": "aniyomi-es.verpelistop-v14.4.apk",
+    "lang": "es",
+    "code": 4,
+    "version": "14.4",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "name": "VerPelisTop",
+        "lang": "es",
+        "id": "8167780943978050375",
+        "baseUrl": "https://www1.verpelis.top",
         "versionId": 1
       }
     ]
