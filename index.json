@@ -7294,10 +7294,10 @@
   {
     "name": "Tachiyomi: Snow Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.snowmtl",
-    "apk": "tachiyomi-all.snowmtl-v1.4.18.apk",
+    "apk": "tachiyomi-all.snowmtl-v1.4.19.apk",
     "lang": "all",
-    "code": 18,
-    "version": "1.4.18",
+    "code": 19,
+    "version": "1.4.19",
     "nsfw": 1,
     "sources": [
       {
@@ -7354,10 +7354,10 @@
   {
     "name": "Tachiyomi: Solar Machine Translations",
     "pkg": "eu.kanade.tachiyomi.extension.all.solarmtl",
-    "apk": "tachiyomi-all.solarmtl-v1.4.8.apk",
+    "apk": "tachiyomi-all.solarmtl-v1.4.9.apk",
     "lang": "all",
-    "code": 8,
-    "version": "1.4.8",
+    "code": 9,
+    "version": "1.4.9",
     "nsfw": 1,
     "sources": [
       {
@@ -19301,10 +19301,10 @@
   {
     "name": "Tachiyomi: Scan-Manga",
     "pkg": "eu.kanade.tachiyomi.extension.fr.scanmanga",
-    "apk": "tachiyomi-fr.scanmanga-v1.4.9.apk",
+    "apk": "tachiyomi-fr.scanmanga-v1.4.10.apk",
     "lang": "fr",
-    "code": 9,
-    "version": "1.4.9",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 1,
     "sources": [
       {
@@ -19949,10 +19949,10 @@
   {
     "name": "Tachiyomi: KomikIndoID",
     "pkg": "eu.kanade.tachiyomi.extension.id.komikindoid",
-    "apk": "tachiyomi-id.komikindoid-v1.4.17.apk",
+    "apk": "tachiyomi-id.komikindoid-v1.4.18.apk",
     "lang": "id",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 18,
+    "version": "1.4.18",
     "nsfw": 0,
     "sources": [
       {
@@ -27677,10 +27677,10 @@
   {
     "name": "Tachiyomi: MiMiHentai",
     "pkg": "eu.kanade.tachiyomi.extension.vi.mimihentai",
-    "apk": "tachiyomi-vi.mimihentai-v1.4.2.apk",
+    "apk": "tachiyomi-vi.mimihentai-v1.4.3.apk",
     "lang": "vi",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
@@ -28109,10 +28109,10 @@
   {
     "name": "Tachiyomi: BiliManga",
     "pkg": "eu.kanade.tachiyomi.extension.zh.bilimanga",
-    "apk": "tachiyomi-zh.bilimanga-v1.4.4.apk",
+    "apk": "tachiyomi-zh.bilimanga-v1.4.5.apk",
     "lang": "zh",
-    "code": 4,
-    "version": "1.4.4",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
@@ -28199,10 +28199,10 @@
   {
     "name": "Tachiyomi: Dm5",
     "pkg": "eu.kanade.tachiyomi.extension.zh.dm5",
-    "apk": "tachiyomi-zh.dm5-v1.4.5.apk",
+    "apk": "tachiyomi-zh.dm5-v1.4.6.apk",
     "lang": "zh",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 1,
     "sources": [
       {
@@ -28649,10 +28649,10 @@
   {
     "name": "Tachiyomi: 6Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.sixmh",
-    "apk": "tachiyomi-zh.sixmh-v1.4.14.apk",
+    "apk": "tachiyomi-zh.sixmh-v1.4.15.apk",
     "lang": "zh",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 1,
     "sources": [
       {
@@ -28793,10 +28793,10 @@
   {
     "name": "Tachiyomi: Zaimanhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.zaimanhua",
-    "apk": "tachiyomi-zh.zaimanhua-v1.4.10.apk",
+    "apk": "tachiyomi-zh.zaimanhua-v1.4.11.apk",
     "lang": "zh",
-    "code": 10,
-    "version": "1.4.10",
+    "code": 11,
+    "version": "1.4.11",
     "nsfw": 0,
     "sources": [
       {
