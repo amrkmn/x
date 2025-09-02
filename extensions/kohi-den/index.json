@@ -176,26 +176,6 @@
     ]
   },
   {
-    "name": "Aniyomi: Hikari",
-    "pkg": "eu.kanade.tachiyomi.animeextension.all.hikari",
-    "apk": "aniyomi-all.hikari-v14.22.apk",
-    "lang": "all",
-    "code": 22,
-    "version": "14.22",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "Hikari",
-        "lang": "all",
-        "id": "3226704344525040225",
-        "baseUrl": "https://hikari.gg",
-        "versionId": 2
-      }
-    ]
-  },
-  {
     "name": "Aniyomi: Jable",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.jable",
     "apk": "aniyomi-all.jable-v14.2.apk",
@@ -352,10 +332,10 @@
   {
     "name": "Aniyomi: Subsplease",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.subsplease",
-    "apk": "aniyomi-all.subsplease-v14.3.apk",
+    "apk": "aniyomi-all.subsplease-v14.4.apk",
     "lang": "all",
-    "code": 3,
-    "version": "14.3",
+    "code": 4,
+    "version": "14.4",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -1104,26 +1084,6 @@
     ]
   },
   {
-    "name": "Aniyomi: AnimeOwl",
-    "pkg": "eu.kanade.tachiyomi.animeextension.en.animeowl",
-    "apk": "aniyomi-en.animeowl-v14.24.apk",
-    "lang": "en",
-    "code": 24,
-    "version": "14.24",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "AnimeOwl",
-        "lang": "en",
-        "id": "6489797158672074908",
-        "baseUrl": "https://animeowl.me",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Aniyomi: AnimePahe",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.animepahe",
     "apk": "aniyomi-en.animepahe-v14.31.apk",
@@ -1486,10 +1446,10 @@
   {
     "name": "Aniyomi: KickAssAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.kickassanime",
-    "apk": "aniyomi-en.kickassanime-v14.49.apk",
+    "apk": "aniyomi-en.kickassanime-v14.50.apk",
     "lang": "en",
-    "code": 49,
-    "version": "14.49",
+    "code": 50,
+    "version": "14.50",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2146,10 +2106,10 @@
   {
     "name": "Aniyomi: az-animex",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.azanimex",
-    "apk": "aniyomi-es.azanimex-v14.2.apk",
+    "apk": "aniyomi-es.azanimex-v14.3.apk",
     "lang": "es",
-    "code": 2,
-    "version": "14.2",
+    "code": 3,
+    "version": "14.3",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2246,19 +2206,19 @@
   {
     "name": "Aniyomi: Cuevana",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.cuevana",
-    "apk": "aniyomi-es.cuevana-v14.51.apk",
+    "apk": "aniyomi-es.cuevana-v14.52.apk",
     "lang": "es",
-    "code": 51,
-    "version": "14.51",
+    "code": 52,
+    "version": "14.52",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
     "sources": [
       {
-        "name": "Cuevana3Ch",
+        "name": "Cuevana3Is",
         "lang": "es",
         "id": "8064568253800947423",
-        "baseUrl": "https://ww1.cuevana3.ch",
+        "baseUrl": "https://www.cuevana.is",
         "versionId": 1
       },
       {
@@ -2473,10 +2433,10 @@
   {
     "name": "Aniyomi: HentaiLA",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.hentaila",
-    "apk": "aniyomi-es.hentaila-v14.39.apk",
+    "apk": "aniyomi-es.hentaila-v14.40.apk",
     "lang": "es",
-    "code": 39,
-    "version": "14.39",
+    "code": 40,
+    "version": "14.40",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2485,7 +2445,7 @@
         "name": "Hentaila",
         "lang": "es",
         "id": "6447194598203666818",
-        "baseUrl": "https://www5.hentaila.com",
+        "baseUrl": "https://hentaila.com",
         "versionId": 1
       }
     ]
@@ -2573,10 +2533,10 @@
   {
     "name": "Aniyomi: Katanime",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.katanime",
-    "apk": "aniyomi-es.katanime-v14.9.apk",
+    "apk": "aniyomi-es.katanime-v14.10.apk",
     "lang": "es",
-    "code": 9,
-    "version": "14.9",
+    "code": 10,
+    "version": "14.10",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2813,10 +2773,10 @@
   {
     "name": "Aniyomi: Pelisplushd",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.pelisplushd",
-    "apk": "aniyomi-es.pelisplushd-v14.79.apk",
+    "apk": "aniyomi-es.pelisplushd-v14.80.apk",
     "lang": "es",
-    "code": 79,
-    "version": "14.79",
+    "code": 80,
+    "version": "14.80",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2967,6 +2927,26 @@
         "lang": "es",
         "id": "6262145028910416459",
         "baseUrl": "https://wwv.veranimes.net",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: VerPelisTop",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.verpelistop",
+    "apk": "aniyomi-es.verpelistop-v14.4.apk",
+    "lang": "es",
+    "code": 4,
+    "version": "14.4",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "name": "VerPelisTop",
+        "lang": "es",
+        "id": "8167780943978050375",
+        "baseUrl": "https://www1.verpelis.top",
         "versionId": 1
       }
     ]
@@ -3934,10 +3914,10 @@
   {
     "name": "Aniyomi: Q1N",
     "pkg": "eu.kanade.tachiyomi.animeextension.pt.animesgratis",
-    "apk": "aniyomi-pt.animesgratis-v14.24.apk",
+    "apk": "aniyomi-pt.animesgratis-v14.26.apk",
     "lang": "pt-BR",
-    "code": 24,
-    "version": "14.24",
+    "code": 26,
+    "version": "14.26",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -4579,6 +4559,26 @@
     ]
   },
   {
+    "name": "Aniyomi: Cycity",
+    "pkg": "eu.kanade.tachiyomi.animeextension.zh.cycity",
+    "apk": "aniyomi-zh.cycity-v14.1.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "name": "次元城动漫",
+        "lang": "zh",
+        "id": "4928029692398241219",
+        "baseUrl": "https://www.cycani.org/search.html?wd=",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: Hanime1",
     "pkg": "eu.kanade.tachiyomi.animeextension.zh.hanime1",
     "apk": "aniyomi-zh.hanime1-v14.5.apk",
@@ -4641,10 +4641,10 @@
   {
     "name": "Aniyomi: Xfani",
     "pkg": "eu.kanade.tachiyomi.animeextension.zh.xfani",
-    "apk": "aniyomi-zh.xfani-v14.6.apk",
+    "apk": "aniyomi-zh.xfani-v14.7.apk",
     "lang": "zh",
-    "code": 6,
-    "version": "14.6",
+    "code": 7,
+    "version": "14.7",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
