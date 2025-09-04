@@ -11492,6 +11492,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Kira Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.kirascans",
+    "apk": "tachiyomi-en.kirascans-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Kira Scans",
+        "lang": "en",
+        "id": "3557441564547637963",
+        "baseUrl": "https://kirascans.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Kissmanga.in",
     "pkg": "eu.kanade.tachiyomi.extension.en.kissmangain",
     "apk": "tachiyomi-en.kissmangain-v1.4.46.apk",
@@ -17548,18 +17566,18 @@
   {
     "name": "Tachiyomi: LectorJPG",
     "pkg": "eu.kanade.tachiyomi.extension.es.lectorjpg",
-    "apk": "tachiyomi-es.lectorjpg-v1.4.43.apk",
+    "apk": "tachiyomi-es.lectorjpg-v1.4.44.apk",
     "lang": "es",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
         "name": "LectorJPG",
         "lang": "es",
-        "id": "1550293439110493554",
+        "id": "4439526602175493484",
         "baseUrl": "https://lectorjpg.com",
-        "versionId": 2
+        "versionId": 3
       }
     ]
   },
