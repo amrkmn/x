@@ -19427,18 +19427,18 @@
   {
     "name": "Tachiyomi: Starbound Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.starboundscans",
-    "apk": "tachiyomi-fr.starboundscans-v1.4.17.apk",
+    "apk": "tachiyomi-fr.starboundscans-v1.4.43.apk",
     "lang": "fr",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 0,
     "sources": [
       {
         "name": "Starbound Scans",
         "lang": "fr",
-        "id": "483118110804293215",
+        "id": "5202353939371941449",
         "baseUrl": "https://starboundscans.com",
-        "versionId": 1
+        "versionId": 2
       }
     ]
   },
