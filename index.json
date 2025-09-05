@@ -8532,10 +8532,10 @@
   {
     "name": "Tachiyomi: Manga Pro",
     "pkg": "eu.kanade.tachiyomi.extension.ar.mangapro",
-    "apk": "tachiyomi-ar.mangapro-v1.4.39.apk",
+    "apk": "tachiyomi-ar.mangapro-v1.4.40.apk",
     "lang": "ar",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 40,
+    "version": "1.4.40",
     "nsfw": 0,
     "sources": [
       {
@@ -11096,24 +11096,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: HolyManga",
-    "pkg": "eu.kanade.tachiyomi.extension.en.holymanga",
-    "apk": "tachiyomi-en.holymanga-v1.4.14.apk",
-    "lang": "en",
-    "code": 14,
-    "version": "1.4.14",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "HolyManga",
-        "lang": "en",
-        "id": "7468618940673448443",
-        "baseUrl": "https://w34.holymanga.net",
-        "versionId": 2
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: HonkaiImpact3",
     "pkg": "eu.kanade.tachiyomi.extension.en.honkaiimpact",
     "apk": "tachiyomi-en.honkaiimpact-v1.4.3.apk",
@@ -11559,24 +11541,6 @@
         "lang": "en",
         "id": "987549744200556532",
         "baseUrl": "https://kunmanga.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: LemonFont",
-    "pkg": "eu.kanade.tachiyomi.extension.en.lemonfont",
-    "apk": "tachiyomi-en.lemonfont-v1.4.3.apk",
-    "lang": "en",
-    "code": 3,
-    "version": "1.4.3",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "LemonFont",
-        "lang": "en",
-        "id": "7074271619480929378",
-        "baseUrl": "https://lemonfontcomics.com",
         "versionId": 1
       }
     ]
@@ -14533,20 +14497,20 @@
     ]
   },
   {
-    "name": "Tachiyomi: Quantum Scans",
+    "name": "Tachiyomi: Quantum Toon",
     "pkg": "eu.kanade.tachiyomi.extension.en.quantumscans",
-    "apk": "tachiyomi-en.quantumscans-v1.4.38.apk",
+    "apk": "tachiyomi-en.quantumscans-v1.4.39.apk",
     "lang": "en",
-    "code": 38,
-    "version": "1.4.38",
+    "code": 39,
+    "version": "1.4.39",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Quantum Scans",
+        "name": "Quantum Toon",
         "lang": "en",
-        "id": "646896929669805526",
-        "baseUrl": "https://quantumscans.org",
-        "versionId": 3
+        "id": "5691503170132046915",
+        "baseUrl": "https://quantumtoon.com",
+        "versionId": 4
       }
     ]
   },
@@ -19265,10 +19229,10 @@
   {
     "name": "Tachiyomi: Poseidon Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.poseidonscans",
-    "apk": "tachiyomi-fr.poseidonscans-v1.4.45.apk",
+    "apk": "tachiyomi-fr.poseidonscans-v1.4.46.apk",
     "lang": "fr",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 0,
     "sources": [
       {
