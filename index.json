@@ -7292,126 +7292,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Snow Machine Translations",
-    "pkg": "eu.kanade.tachiyomi.extension.all.snowmtl",
-    "apk": "tachiyomi-all.snowmtl-v1.4.19.apk",
-    "lang": "all",
-    "code": 19,
-    "version": "1.4.19",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Snow Machine Translations",
-        "lang": "ar",
-        "id": "3256725460652928083",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "en",
-        "id": "4081896837386227017",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "es",
-        "id": "3745825547128290234",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "fr",
-        "id": "5142262850933524944",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "id",
-        "id": "6145898756643108632",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "it",
-        "id": "6739293713685351908",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      },
-      {
-        "name": "Snow Machine Translations",
-        "lang": "pt-BR",
-        "id": "2403930281757492771",
-        "baseUrl": "https://snowmtl.ru",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Solar Machine Translations",
-    "pkg": "eu.kanade.tachiyomi.extension.all.solarmtl",
-    "apk": "tachiyomi-all.solarmtl-v1.4.9.apk",
-    "lang": "all",
-    "code": 9,
-    "version": "1.4.9",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Solar Machine Translations",
-        "lang": "ar",
-        "id": "9047784057592846951",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "en",
-        "id": "259790152045733571",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "es",
-        "id": "5729145435687120584",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "fr",
-        "id": "8848430663030554671",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "id",
-        "id": "3732984954088754198",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "it",
-        "id": "181621256584381733",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      },
-      {
-        "name": "Solar Machine Translations",
-        "lang": "pt-BR",
-        "id": "7753226890814033342",
-        "baseUrl": "https://solarmtl.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Taddy INK (Webtoons)",
     "pkg": "eu.kanade.tachiyomi.extension.all.taddyink",
     "apk": "tachiyomi-all.taddyink-v1.4.1.apk",
@@ -19337,10 +19217,10 @@
   {
     "name": "Tachiyomi: Scan-Manga",
     "pkg": "eu.kanade.tachiyomi.extension.fr.scanmanga",
-    "apk": "tachiyomi-fr.scanmanga-v1.4.10.apk",
+    "apk": "tachiyomi-fr.scanmanga-v1.4.11.apk",
     "lang": "fr",
-    "code": 10,
-    "version": "1.4.10",
+    "code": 11,
+    "version": "1.4.11",
     "nsfw": 1,
     "sources": [
       {
