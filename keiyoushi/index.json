@@ -7539,10 +7539,10 @@
   {
     "name": "Tachiyomi: Webtoons.com",
     "pkg": "eu.kanade.tachiyomi.extension.all.webtoons",
-    "apk": "tachiyomi-all.webtoons-v1.4.50.apk",
+    "apk": "tachiyomi-all.webtoons-v1.4.51.apk",
     "lang": "all",
-    "code": 50,
-    "version": "1.4.50",
+    "code": 51,
+    "version": "1.4.51",
     "nsfw": 0,
     "sources": [
       {
@@ -14030,6 +14030,24 @@
         "lang": "en",
         "id": "892734527131844367",
         "baseUrl": "https://1manhwa.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Nyanu Kafe",
+    "pkg": "eu.kanade.tachiyomi.extension.en.nyanukafe",
+    "apk": "tachiyomi-en.nyanukafe-v1.4.17.apk",
+    "lang": "en",
+    "code": 17,
+    "version": "1.4.17",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Nyanu Kafe",
+        "lang": "en",
+        "id": "3025454996745441538",
+        "baseUrl": "https://nyanukafe.com",
         "versionId": 1
       }
     ]
@@ -28529,10 +28547,10 @@
   {
     "name": "Tachiyomi: Roumanwu",
     "pkg": "eu.kanade.tachiyomi.extension.zh.roumanwu",
-    "apk": "tachiyomi-zh.roumanwu-v1.4.17.apk",
+    "apk": "tachiyomi-zh.roumanwu-v1.4.18.apk",
     "lang": "zh",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 18,
+    "version": "1.4.18",
     "nsfw": 1,
     "sources": [
       {
