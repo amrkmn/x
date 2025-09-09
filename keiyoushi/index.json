@@ -9076,24 +9076,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Animated Glitched Comics",
-    "pkg": "eu.kanade.tachiyomi.extension.en.animatedglitchedcomics",
-    "apk": "tachiyomi-en.animatedglitchedcomics-v1.4.40.apk",
-    "lang": "en",
-    "code": 40,
-    "version": "1.4.40",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "Animated Glitched Comics",
-        "lang": "en",
-        "id": "8373624335456547405",
-        "baseUrl": "https://agrcomics.com",
-        "versionId": 2
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Anisa Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.anisascans",
     "apk": "tachiyomi-en.anisascans-v1.4.43.apk",
@@ -11691,24 +11673,6 @@
         "lang": "en",
         "id": "8982378204931160451",
         "baseUrl": "https://manga1s.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Manga347",
-    "pkg": "eu.kanade.tachiyomi.extension.en.manga347",
-    "apk": "tachiyomi-en.manga347-v1.4.46.apk",
-    "lang": "en",
-    "code": 46,
-    "version": "1.4.46",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "Manga347",
-        "lang": "en",
-        "id": "3058779900487127621",
-        "baseUrl": "https://manga347.com",
         "versionId": 1
       }
     ]
