@@ -1146,6 +1146,23 @@
     ]
   },
   {
+    "name": "Aniyomi: AnimeKai",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.animekai",
+    "apk": "aniyomi-en.animekai-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "AnimeKai",
+        "lang": "en",
+        "id": "3345817169056352231",
+        "baseUrl": "https://animekai.to"
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: AnimeKhor",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.animekhor",
     "apk": "aniyomi-en.animekhor-v14.14.apk",
