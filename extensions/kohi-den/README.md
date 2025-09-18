@@ -22,7 +22,7 @@ and please check the discord BEFORE making an issue
 
 [Template](https://github.com/aniyomiorg/aniyomi-extensions/blob/master/CONTRIBUTING.md)
 
-If you want to report issues, report them [here](https://kohiden.xyz/Kohi-den/extensions-source/issues/new/choose)
+If you want to report issues, report them [here](https://github.com/Kohi-den/extensions-source/issues/new/choose)
 
 ## Disclaimer
 
