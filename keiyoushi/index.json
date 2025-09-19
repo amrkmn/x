@@ -1184,304 +1184,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Comick",
-    "pkg": "eu.kanade.tachiyomi.extension.all.comickfun",
-    "apk": "tachiyomi-all.comickfun-v1.4.62.apk",
-    "lang": "all",
-    "code": 62,
-    "version": "1.4.62",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Comick",
-        "lang": "all",
-        "id": "982606170401027267",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "en",
-        "id": "2971557565147974499",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "pt-BR",
-        "id": "8729626158695297897",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ru",
-        "id": "5846182885417171581",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "fr",
-        "id": "9126078936214680667",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "es-419",
-        "id": "3182432228546767958",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "pl",
-        "id": "7005108854993254607",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "tr",
-        "id": "7186425300860782365",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "it",
-        "id": "8807318985460553537",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "es",
-        "id": "9052019484488287695",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "id",
-        "id": "5506707690027487154",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "hu",
-        "id": "7838940669485160901",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "vi",
-        "id": "9191587139933034493",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "zh-Hant",
-        "id": "3140511316190656180",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ar",
-        "id": "8266599095155001097",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "de",
-        "id": "7552236568334706863",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "zh-Hans",
-        "id": "1071494508319622063",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ca",
-        "id": "2159382907508433047",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "bg",
-        "id": "8981320463367739957",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "th",
-        "id": "4246541831082737053",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "fa",
-        "id": "3146252372540608964",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "uk",
-        "id": "3505068018066717349",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "mn",
-        "id": "2147260678391898600",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ro",
-        "id": "6676949771764486043",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "he",
-        "id": "5354540502202034685",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ms",
-        "id": "4731643595200952045",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "tl",
-        "id": "8549617092958820123",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ja",
-        "id": "8288710818308434509",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "hi",
-        "id": "5176570178081213805",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "my",
-        "id": "9199495862098963317",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "ko",
-        "id": "3493720175703105662",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "cs",
-        "id": "2651978322082769022",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "pt",
-        "id": "4153491877797434408",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "nl",
-        "id": "6104206360977276112",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "sv",
-        "id": "979314012722687145",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "bn",
-        "id": "3598159956413889411",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "no",
-        "id": "5932005504194733317",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "lt",
-        "id": "1792260331167396074",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "el",
-        "id": "6190162673651111756",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "sr",
-        "id": "571668187470919545",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      },
-      {
-        "name": "Comick",
-        "lang": "da",
-        "id": "7137437402245830147",
-        "baseUrl": "https://comick.io",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Comico",
     "pkg": "eu.kanade.tachiyomi.extension.all.comico",
     "apk": "tachiyomi-all.comico-v1.4.7.apk",
@@ -5673,6 +5375,66 @@
     ]
   },
   {
+    "name": "Tachiyomi: Manhuarm",
+    "pkg": "eu.kanade.tachiyomi.extension.all.manhuarm",
+    "apk": "tachiyomi-all.manhuarm-v1.4.45.apk",
+    "lang": "all",
+    "code": 45,
+    "version": "1.4.45",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Manhuarm",
+        "lang": "ar",
+        "id": "797946349800265191",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "en",
+        "id": "7690709834650404718",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "es",
+        "id": "8547169224512757621",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "fr",
+        "id": "8537659881437820380",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "id",
+        "id": "6421419166134585378",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "it",
+        "id": "7611240442736670513",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      },
+      {
+        "name": "Manhuarm",
+        "lang": "pt-BR",
+        "id": "5618121635049025093",
+        "baseUrl": "https://manhuarm.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Manhwa18.cc",
     "pkg": "eu.kanade.tachiyomi.extension.all.manhwa18cc",
     "apk": "tachiyomi-all.manhwa18cc-v1.4.50.apk",
@@ -9276,10 +9038,10 @@
   {
     "name": "Tachiyomi: Asura Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.asurascans",
-    "apk": "tachiyomi-en.asurascans-v1.4.47.apk",
+    "apk": "tachiyomi-en.asurascans-v1.4.48.apk",
     "lang": "en",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 0,
     "sources": [
       {
@@ -10130,6 +9892,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Elf Toon",
+    "pkg": "eu.kanade.tachiyomi.extension.en.elftoon",
+    "apk": "tachiyomi-en.elftoon-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Elf Toon",
+        "lang": "en",
+        "id": "3896703921896511395",
+        "baseUrl": "https://elftoon.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: EnryuManga",
     "pkg": "eu.kanade.tachiyomi.extension.en.enryumanga",
     "apk": "tachiyomi-en.enryumanga-v1.4.32.apk",
@@ -10472,6 +10252,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Grim Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.grimscans",
+    "apk": "tachiyomi-en.grimscans-v1.4.17.apk",
+    "lang": "en",
+    "code": 17,
+    "version": "1.4.17",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Grim Scans",
+        "lang": "en",
+        "id": "8588684547293952127",
+        "baseUrl": "https://grimscans.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Grrl Power Comic",
     "pkg": "eu.kanade.tachiyomi.extension.en.grrlpower",
     "apk": "tachiyomi-en.grrlpower-v1.4.4.apk",
@@ -10780,10 +10578,10 @@
   {
     "name": "Tachiyomi: HentaiRead",
     "pkg": "eu.kanade.tachiyomi.extension.en.hentairead",
-    "apk": "tachiyomi-en.hentairead-v1.4.53.apk",
+    "apk": "tachiyomi-en.hentairead-v1.4.54.apk",
     "lang": "en",
-    "code": 53,
-    "version": "1.4.53",
+    "code": 54,
+    "version": "1.4.54",
     "nsfw": 1,
     "sources": [
       {
@@ -11349,6 +11147,24 @@
         "lang": "en",
         "id": "3112384885023225761",
         "baseUrl": "https://kissmanga.in",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: K Manga",
+    "pkg": "eu.kanade.tachiyomi.extension.en.kmanga",
+    "apk": "tachiyomi-en.kmanga-v1.4.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "K Manga",
+        "lang": "en",
+        "id": "8143442163119480220",
+        "baseUrl": "https://kmanga.kodansha.com",
         "versionId": 1
       }
     ]
@@ -13064,24 +12880,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Manhuarm",
-    "pkg": "eu.kanade.tachiyomi.extension.en.manhuarm",
-    "apk": "tachiyomi-en.manhuarm-v1.4.44.apk",
-    "lang": "en",
-    "code": 44,
-    "version": "1.4.44",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Manhuarm",
-        "lang": "en",
-        "id": "7690709834650404718",
-        "baseUrl": "https://manhuarm.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Manhuascan.us",
     "pkg": "eu.kanade.tachiyomi.extension.en.manhuascanus",
     "apk": "tachiyomi-en.manhuascanus-v1.4.30.apk",
@@ -13354,10 +13152,10 @@
   {
     "name": "Tachiyomi: ManhwaHub",
     "pkg": "eu.kanade.tachiyomi.extension.en.manhwahub",
-    "apk": "tachiyomi-en.manhwahub-v1.4.2.apk",
+    "apk": "tachiyomi-en.manhwahub-v1.4.3.apk",
     "lang": "en",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
@@ -13498,10 +13296,10 @@
   {
     "name": "Tachiyomi: ManhwaZ",
     "pkg": "eu.kanade.tachiyomi.extension.en.manhwaz",
-    "apk": "tachiyomi-en.manhwaz-v1.4.37.apk",
+    "apk": "tachiyomi-en.manhwaz-v1.4.38.apk",
     "lang": "en",
-    "code": 37,
-    "version": "1.4.37",
+    "code": 38,
+    "version": "1.4.38",
     "nsfw": 1,
     "sources": [
       {
@@ -13837,24 +13635,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: NIGHT SCANS",
-    "pkg": "eu.kanade.tachiyomi.extension.en.nightscans",
-    "apk": "tachiyomi-en.nightscans-v1.4.42.apk",
-    "lang": "en",
-    "code": 42,
-    "version": "1.4.42",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "NIGHT SCANS",
-        "lang": "en",
-        "id": "9064192854751334524",
-        "baseUrl": "https://nightsup.net",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: NineAnime",
     "pkg": "eu.kanade.tachiyomi.extension.en.nineanime",
     "apk": "tachiyomi-en.nineanime-v1.4.5.apk",
@@ -13940,6 +13720,24 @@
         "lang": "en",
         "id": "1938055834465929349",
         "baseUrl": "https://novelmic.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Noxen Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.noxenscans",
+    "apk": "tachiyomi-en.noxenscans-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Noxen Scans",
+        "lang": "en",
+        "id": "3116973119218453326",
+        "baseUrl": "https://noxenscan.com",
         "versionId": 1
       }
     ]
@@ -14323,20 +14121,20 @@
     ]
   },
   {
-    "name": "Tachiyomi: Quantum Toon",
-    "pkg": "eu.kanade.tachiyomi.extension.en.quantumscans",
-    "apk": "tachiyomi-en.quantumscans-v1.4.39.apk",
+    "name": "Tachiyomi: Qi Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.qiscans",
+    "apk": "tachiyomi-en.qiscans-v1.4.10.apk",
     "lang": "en",
-    "code": 39,
-    "version": "1.4.39",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Quantum Toon",
+        "name": "Qi Scans",
         "lang": "en",
-        "id": "5691503170132046915",
-        "baseUrl": "https://quantumtoon.com",
-        "versionId": 4
+        "id": "7597513901538568173",
+        "baseUrl": "https://qiscans.org",
+        "versionId": 1
       }
     ]
   },
@@ -15236,6 +15034,24 @@
         "lang": "en",
         "id": "7432213955030892585",
         "baseUrl": "https://shootingstarscans.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Siren Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.sirenscans",
+    "apk": "tachiyomi-en.sirenscans-v1.4.17.apk",
+    "lang": "en",
+    "code": 17,
+    "version": "1.4.17",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Siren Scans",
+        "lang": "en",
+        "id": "5804710058654490234",
+        "baseUrl": "https://sirenscans.com",
         "versionId": 1
       }
     ]
@@ -17176,17 +16992,17 @@
   {
     "name": "Tachiyomi: Ikigai Mangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.ikigaimangas",
-    "apk": "tachiyomi-es.ikigaimangas-v1.4.25.apk",
+    "apk": "tachiyomi-es.ikigaimangas-v1.4.26.apk",
     "lang": "es",
-    "code": 25,
-    "version": "1.4.25",
+    "code": 26,
+    "version": "1.4.26",
     "nsfw": 1,
     "sources": [
       {
         "name": "Ikigai Mangas",
         "lang": "es",
         "id": "3546919326830738510",
-        "baseUrl": "https://ikigaitoon.bookir.net",
+        "baseUrl": "https://visualikigai.eurofiyati.online",
         "versionId": 1
       }
     ]
@@ -22589,17 +22405,17 @@
   {
     "name": "Tachiyomi: Coven Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.covenscan",
-    "apk": "tachiyomi-pt.covenscan-v1.4.44.apk",
+    "apk": "tachiyomi-pt.covenscan-v1.4.45.apk",
     "lang": "pt-BR",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 1,
     "sources": [
       {
         "name": "Coven Scan",
         "lang": "pt-BR",
         "id": "5558728935088189480",
-        "baseUrl": "https://cvnscan.com",
+        "baseUrl": "https://covendasbruxonas.com",
         "versionId": 1
       }
     ]
@@ -22805,18 +22621,18 @@
   {
     "name": "Tachiyomi: Galinha Samurai Scan",
     "pkg": "eu.kanade.tachiyomi.extension.pt.galinhasamuraiscan",
-    "apk": "tachiyomi-pt.galinhasamuraiscan-v1.4.42.apk",
+    "apk": "tachiyomi-pt.galinhasamuraiscan-v1.4.44.apk",
     "lang": "pt-BR",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 0,
     "sources": [
       {
         "name": "Galinha Samurai Scan",
         "lang": "pt-BR",
-        "id": "5085205208030136350",
+        "id": "9092271790381887145",
         "baseUrl": "https://galinhasamurai.com",
-        "versionId": 2
+        "versionId": 3
       }
     ]
   },
@@ -27429,24 +27245,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Fecomic",
-    "pkg": "eu.kanade.tachiyomi.extension.vi.fecomic",
-    "apk": "tachiyomi-vi.fecomic-v1.4.45.apk",
-    "lang": "vi",
-    "code": 45,
-    "version": "1.4.45",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Fecomic",
-        "lang": "vi",
-        "id": "5167500504203693125",
-        "baseUrl": "https://mangasup.net",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Goc Truyen Tranh",
     "pkg": "eu.kanade.tachiyomi.extension.vi.goctruyentranh",
     "apk": "tachiyomi-vi.goctruyentranh-v1.4.5.apk",
@@ -27539,17 +27337,17 @@
   {
     "name": "Tachiyomi: ManhuaRock",
     "pkg": "eu.kanade.tachiyomi.extension.vi.manhuarock",
-    "apk": "tachiyomi-vi.manhuarock-v1.4.14.apk",
+    "apk": "tachiyomi-vi.manhuarock-v1.4.15.apk",
     "lang": "vi",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 0,
     "sources": [
       {
         "name": "ManhuaRock",
         "lang": "vi",
         "id": "5818973680777851987",
-        "baseUrl": "https://manhuarock.site",
+        "baseUrl": "https://manhuarock4.site",
         "versionId": 2
       }
     ]
@@ -27627,24 +27425,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: NhatTruyenS (unoriginal)",
-    "pkg": "eu.kanade.tachiyomi.extension.vi.nhattruyens",
-    "apk": "tachiyomi-vi.nhattruyens-v1.4.9.apk",
-    "lang": "vi",
-    "code": 9,
-    "version": "1.4.9",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "NhatTruyenS (unoriginal)",
-        "lang": "vi",
-        "id": "3351211853254823251",
-        "baseUrl": "https://nhattruyensss.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: Rua Hap Chanh Day",
     "pkg": "eu.kanade.tachiyomi.extension.vi.ruahapchanhday",
     "apk": "tachiyomi-vi.ruahapchanhday-v1.4.44.apk",
@@ -27665,10 +27445,10 @@
   {
     "name": "Tachiyomi: SayHentai",
     "pkg": "eu.kanade.tachiyomi.extension.vi.sayhentai",
-    "apk": "tachiyomi-vi.sayhentai-v1.4.15.apk",
+    "apk": "tachiyomi-vi.sayhentai-v1.4.16.apk",
     "lang": "vi",
-    "code": 15,
-    "version": "1.4.15",
+    "code": 16,
+    "version": "1.4.16",
     "nsfw": 1,
     "sources": [
       {
@@ -27717,16 +27497,16 @@
     ]
   },
   {
-    "name": "Tachiyomi: TruyenGG",
+    "name": "Tachiyomi: FoxTruyen",
     "pkg": "eu.kanade.tachiyomi.extension.vi.truyengg",
-    "apk": "tachiyomi-vi.truyengg-v1.4.7.apk",
+    "apk": "tachiyomi-vi.truyengg-v1.4.8.apk",
     "lang": "vi",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
-        "name": "TruyenGG",
+        "name": "FoxTruyen",
         "lang": "vi",
         "id": "1458993267006200127",
         "baseUrl": "https://foxtruyen.com",
@@ -27827,10 +27607,10 @@
   {
     "name": "Tachiyomi: UmeTruyen",
     "pkg": "eu.kanade.tachiyomi.extension.vi.umetruyen",
-    "apk": "tachiyomi-vi.umetruyen-v1.4.5.apk",
+    "apk": "tachiyomi-vi.umetruyen-v1.4.6.apk",
     "lang": "vi",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 1,
     "sources": [
       {
@@ -28673,10 +28453,10 @@
   {
     "name": "Tachiyomi: Zaimanhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.zaimanhua",
-    "apk": "tachiyomi-zh.zaimanhua-v1.4.13.apk",
+    "apk": "tachiyomi-zh.zaimanhua-v1.4.14.apk",
     "lang": "zh",
-    "code": 13,
-    "version": "1.4.13",
+    "code": 14,
+    "version": "1.4.14",
     "nsfw": 0,
     "sources": [
       {
