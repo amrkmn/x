@@ -5377,10 +5377,10 @@
   {
     "name": "Tachiyomi: Manhuarm",
     "pkg": "eu.kanade.tachiyomi.extension.all.manhuarm",
-    "apk": "tachiyomi-all.manhuarm-v1.4.45.apk",
+    "apk": "tachiyomi-all.manhuarm-v1.4.46.apk",
     "lang": "all",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 1,
     "sources": [
       {
@@ -9108,6 +9108,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Azuki",
+    "pkg": "eu.kanade.tachiyomi.extension.en.azuki",
+    "apk": "tachiyomi-en.azuki-v1.4.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Azuki",
+        "lang": "en",
+        "id": "5983175010393979119",
+        "baseUrl": "https://www.azuki.co",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Bakkin",
     "pkg": "eu.kanade.tachiyomi.extension.en.bakkin",
     "apk": "tachiyomi-en.bakkin-v1.4.7.apk",
@@ -9643,6 +9661,24 @@
         "lang": "en",
         "id": "1057298314437889941",
         "baseUrl": "https://digitalcomicmuseum.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Diva Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.divascans",
+    "apk": "tachiyomi-en.divascans-v1.4.10.apk",
+    "lang": "en",
+    "code": 10,
+    "version": "1.4.10",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Diva Scans",
+        "lang": "en",
+        "id": "5481739102875145368",
+        "baseUrl": "https://divatoon.com",
         "versionId": 1
       }
     ]
@@ -10684,6 +10720,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Hijala Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.hijalascans",
+    "apk": "tachiyomi-en.hijalascans-v1.4.10.apk",
+    "lang": "en",
+    "code": 10,
+    "version": "1.4.10",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Hijala Scans",
+        "lang": "en",
+        "id": "454381816904772144",
+        "baseUrl": "https://en-hijala.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Hiperdex",
     "pkg": "eu.kanade.tachiyomi.extension.en.hiperdex",
     "apk": "tachiyomi-en.hiperdex-v1.4.63.apk",
@@ -10918,6 +10972,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Kagane",
+    "pkg": "eu.kanade.tachiyomi.extension.en.kagane",
+    "apk": "tachiyomi-en.kagane-v1.4.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Kagane",
+        "lang": "en",
+        "id": "4024736764982024684",
+        "baseUrl": "https://kagane.org",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Kai Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.kaiscans",
     "apk": "tachiyomi-en.kaiscans-v1.4.37.apk",
@@ -11118,10 +11190,10 @@
   {
     "name": "Tachiyomi: Kira Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.kirascans",
-    "apk": "tachiyomi-en.kirascans-v1.4.30.apk",
+    "apk": "tachiyomi-en.kirascans-v1.4.31.apk",
     "lang": "en",
-    "code": 30,
-    "version": "1.4.30",
+    "code": 31,
+    "version": "1.4.31",
     "nsfw": 0,
     "sources": [
       {
@@ -11310,6 +11382,24 @@
         "id": "972271455406675873",
         "baseUrl": "https://luacomic.org",
         "versionId": 3
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Luna Toons",
+    "pkg": "eu.kanade.tachiyomi.extension.en.lunatoons",
+    "apk": "tachiyomi-en.lunatoons-v1.4.17.apk",
+    "lang": "en",
+    "code": 17,
+    "version": "1.4.17",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Luna Toons",
+        "lang": "en",
+        "id": "1950516905235913490",
+        "baseUrl": "https://lunatoons.org",
+        "versionId": 1
       }
     ]
   },
@@ -13635,6 +13725,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Nika Toons",
+    "pkg": "eu.kanade.tachiyomi.extension.en.nikatoons",
+    "apk": "tachiyomi-en.nikatoons-v1.4.30.apk",
+    "lang": "en",
+    "code": 30,
+    "version": "1.4.30",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Nika Toons",
+        "lang": "en",
+        "id": "1688373109141386238",
+        "baseUrl": "https://nikatoons.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: NineAnime",
     "pkg": "eu.kanade.tachiyomi.extension.en.nineanime",
     "apk": "tachiyomi-en.nineanime-v1.4.5.apk",
@@ -14049,19 +14157,19 @@
     ]
   },
   {
-    "name": "Tachiyomi: Pluto Scans",
+    "name": "Tachiyomi: FlameScans.lol",
     "pkg": "eu.kanade.tachiyomi.extension.en.plutoscans",
-    "apk": "tachiyomi-en.plutoscans-v1.4.44.apk",
+    "apk": "tachiyomi-en.plutoscans-v1.4.45.apk",
     "lang": "en",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Pluto Scans",
+        "name": "FlameScans.lol",
         "lang": "en",
         "id": "1001157238479601077",
-        "baseUrl": "https://plutoscans.com",
+        "baseUrl": "https://flamescans.lol",
         "versionId": 1
       }
     ]
@@ -15005,10 +15113,10 @@
   {
     "name": "Tachiyomi: Violet Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.shojoscans",
-    "apk": "tachiyomi-en.shojoscans-v1.4.31.apk",
+    "apk": "tachiyomi-en.shojoscans-v1.4.32.apk",
     "lang": "en",
-    "code": 31,
-    "version": "1.4.31",
+    "code": 32,
+    "version": "1.4.32",
     "nsfw": 0,
     "sources": [
       {
@@ -15718,6 +15826,24 @@
         "lang": "en",
         "id": "5399846924306111232",
         "baseUrl": "https://valirscans.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Vanilla Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.vanillascans",
+    "apk": "tachiyomi-en.vanillascans-v1.4.10.apk",
+    "lang": "en",
+    "code": 10,
+    "version": "1.4.10",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Vanilla Scans",
+        "lang": "en",
+        "id": "587361422129220750",
+        "baseUrl": "https://vanillascans.org",
         "versionId": 1
       }
     ]
@@ -19105,10 +19231,10 @@
   {
     "name": "Tachiyomi: Starbound Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.starboundscans",
-    "apk": "tachiyomi-fr.starboundscans-v1.4.45.apk",
+    "apk": "tachiyomi-fr.starboundscans-v1.4.46.apk",
     "lang": "fr",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 0,
     "sources": [
       {
@@ -21227,19 +21353,19 @@
     ]
   },
   {
-    "name": "Tachiyomi: MangaGun",
+    "name": "Tachiyomi: NihonKuni",
     "pkg": "eu.kanade.tachiyomi.extension.ja.mangagun",
-    "apk": "tachiyomi-ja.mangagun-v1.4.14.apk",
+    "apk": "tachiyomi-ja.mangagun-v1.4.15.apk",
     "lang": "ja",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 1,
     "sources": [
       {
-        "name": "MangaGun",
+        "name": "NihonKuni",
         "lang": "ja",
         "id": "3811800324362294701",
-        "baseUrl": "https://mangagun.net",
+        "baseUrl": "https://nihonkuni.com",
         "versionId": 1
       }
     ]
@@ -23035,17 +23161,17 @@
   {
     "name": "Tachiyomi: Ler Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.lertoons",
-    "apk": "tachiyomi-pt.lertoons-v1.4.3.apk",
+    "apk": "tachiyomi-pt.lertoons-v1.4.4.apk",
     "lang": "pt-BR",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 1,
     "sources": [
       {
         "name": "Ler Toons",
         "lang": "pt-BR",
         "id": "2196494451763416282",
-        "baseUrl": "https://www.unionmangas.com",
+        "baseUrl": "https://www.readmangas.org",
         "versionId": 3
       }
     ]
@@ -23737,18 +23863,18 @@
   {
     "name": "Tachiyomi: Pluma Comics",
     "pkg": "eu.kanade.tachiyomi.extension.pt.plumacomics",
-    "apk": "tachiyomi-pt.plumacomics-v1.4.42.apk",
+    "apk": "tachiyomi-pt.plumacomics-v1.4.43.apk",
     "lang": "pt-BR",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 0,
     "sources": [
       {
         "name": "Pluma Comics",
         "lang": "pt-BR",
-        "id": "94625443821099088",
-        "baseUrl": "https://new.plumacomics.cloud",
-        "versionId": 3
+        "id": "800704868906538326",
+        "baseUrl": "https://plumacomics.cloud",
+        "versionId": 4
       }
     ]
   },
