@@ -1904,6 +1904,26 @@
     ]
   },
   {
+    "name": "Aniyomi: AnimeAv1",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.animeav1",
+    "apk": "aniyomi-es.animeav1-v14.2.apk",
+    "lang": "es",
+    "code": 2,
+    "version": "14.2",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "name": "AnimeAv1",
+        "lang": "es",
+        "id": "1563723619853520901",
+        "baseUrl": "https://animeav1.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: AnimeBum",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.animebum",
     "apk": "aniyomi-es.animebum-v14.9.apk",
