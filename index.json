@@ -3393,10 +3393,10 @@
   {
     "name": "Tachiyomi: Komga",
     "pkg": "eu.kanade.tachiyomi.extension.all.komga",
-    "apk": "tachiyomi-all.komga-v1.4.63.apk",
+    "apk": "tachiyomi-all.komga-v1.4.64.apk",
     "lang": "all",
-    "code": 63,
-    "version": "1.4.63",
+    "code": 64,
+    "version": "1.4.64",
     "nsfw": 0,
     "sources": [
       {
@@ -10039,18 +10039,18 @@
   {
     "name": "Tachiyomi: EZmanga",
     "pkg": "eu.kanade.tachiyomi.extension.en.ezmanga",
-    "apk": "tachiyomi-en.ezmanga-v1.4.50.apk",
+    "apk": "tachiyomi-en.ezmanga-v1.4.51.apk",
     "lang": "en",
-    "code": 50,
-    "version": "1.4.50",
+    "code": 51,
+    "version": "1.4.51",
     "nsfw": 0,
     "sources": [
       {
         "name": "EZmanga",
         "lang": "en",
-        "id": "9113621284621762457",
+        "id": "610148674542079240",
         "baseUrl": "https://ezmanga.org",
-        "versionId": 3
+        "versionId": 4
       }
     ]
   },
@@ -10597,10 +10597,10 @@
   {
     "name": "Tachiyomi: HentaiNexus",
     "pkg": "eu.kanade.tachiyomi.extension.en.hentainexus",
-    "apk": "tachiyomi-en.hentainexus-v1.4.11.apk",
+    "apk": "tachiyomi-en.hentainexus-v1.4.12.apk",
     "lang": "en",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 1,
     "sources": [
       {
@@ -18307,17 +18307,17 @@
   {
     "name": "Tachiyomi: Tojimangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.tojimangas",
-    "apk": "tachiyomi-es.tojimangas-v1.4.3.apk",
+    "apk": "tachiyomi-es.tojimangas-v1.4.4.apk",
     "lang": "es",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 1,
     "sources": [
       {
         "name": "Tojimangas",
         "lang": "es",
         "id": "6976108800986842339",
-        "baseUrl": "https://tojimangas.xyz",
+        "baseUrl": "https://tojimangas.com",
         "versionId": 1
       }
     ]
@@ -19088,10 +19088,10 @@
   {
     "name": "Tachiyomi: Poseidon Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.poseidonscans",
-    "apk": "tachiyomi-fr.poseidonscans-v1.4.46.apk",
+    "apk": "tachiyomi-fr.poseidonscans-v1.4.47.apk",
     "lang": "fr",
-    "code": 46,
-    "version": "1.4.46",
+    "code": 47,
+    "version": "1.4.47",
     "nsfw": 0,
     "sources": [
       {
