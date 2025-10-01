@@ -3591,10 +3591,10 @@
   {
     "name": "Tachiyomi: Luscious",
     "pkg": "eu.kanade.tachiyomi.extension.all.luscious",
-    "apk": "tachiyomi-all.luscious-v1.4.21.apk",
+    "apk": "tachiyomi-all.luscious-v1.4.22.apk",
     "lang": "all",
-    "code": 21,
-    "version": "1.4.21",
+    "code": 22,
+    "version": "1.4.22",
     "nsfw": 1,
     "sources": [
       {
@@ -11076,6 +11076,24 @@
         "lang": "en",
         "id": "5603525525580919366",
         "baseUrl": "https://kappabeast.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Kayn Scans",
+    "pkg": "eu.kanade.tachiyomi.extension.en.kaynscans",
+    "apk": "tachiyomi-en.kaynscans-v1.4.17.apk",
+    "lang": "en",
+    "code": 17,
+    "version": "1.4.17",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Kayn Scans",
+        "lang": "en",
+        "id": "3406901199711327034",
+        "baseUrl": "https://kaynscan.com",
         "versionId": 1
       }
     ]
@@ -21050,10 +21068,10 @@
   {
     "name": "Tachiyomi: Comic Days",
     "pkg": "eu.kanade.tachiyomi.extension.ja.comicdays",
-    "apk": "tachiyomi-ja.comicdays-v1.4.7.apk",
+    "apk": "tachiyomi-ja.comicdays-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
@@ -21086,10 +21104,10 @@
   {
     "name": "Tachiyomi: Comic Gardo",
     "pkg": "eu.kanade.tachiyomi.extension.ja.comicgardo",
-    "apk": "tachiyomi-ja.comicgardo-v1.4.7.apk",
+    "apk": "tachiyomi-ja.comicgardo-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
@@ -21158,10 +21176,10 @@
   {
     "name": "Tachiyomi: Comiplex",
     "pkg": "eu.kanade.tachiyomi.extension.ja.comiplex",
-    "apk": "tachiyomi-ja.comiplex-v1.4.7.apk",
+    "apk": "tachiyomi-ja.comiplex-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
@@ -21176,10 +21194,10 @@
   {
     "name": "Tachiyomi: Corocoro Online",
     "pkg": "eu.kanade.tachiyomi.extension.ja.corocoroonline",
-    "apk": "tachiyomi-ja.corocoroonline-v1.4.7.apk",
+    "apk": "tachiyomi-ja.corocoroonline-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
@@ -21246,6 +21264,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Ichicomi",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.ichicomi",
+    "apk": "tachiyomi-ja.ichicomi-v1.4.8.apk",
+    "lang": "ja",
+    "code": 8,
+    "version": "1.4.8",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Ichicomi",
+        "lang": "ja",
+        "id": "2248461957459826404",
+        "baseUrl": "https://ichicomi.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Idol. gravureprincess .date",
     "pkg": "eu.kanade.tachiyomi.extension.ja.idolgravureprincessdate",
     "apk": "tachiyomi-ja.idolgravureprincessdate-v1.4.4.apk",
@@ -21302,10 +21338,10 @@
   {
     "name": "Tachiyomi: Kurage Bunch",
     "pkg": "eu.kanade.tachiyomi.extension.ja.kuragebunch",
-    "apk": "tachiyomi-ja.kuragebunch-v1.4.7.apk",
+    "apk": "tachiyomi-ja.kuragebunch-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 1,
     "sources": [
       {
@@ -21320,10 +21356,10 @@
   {
     "name": "Tachiyomi: Magazine Pocket",
     "pkg": "eu.kanade.tachiyomi.extension.ja.magazinepocket",
-    "apk": "tachiyomi-ja.magazinepocket-v1.4.7.apk",
+    "apk": "tachiyomi-ja.magazinepocket-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
@@ -21338,10 +21374,10 @@
   {
     "name": "Tachiyomi: MAGCOMI",
     "pkg": "eu.kanade.tachiyomi.extension.ja.magcomi",
-    "apk": "tachiyomi-ja.magcomi-v1.4.8.apk",
+    "apk": "tachiyomi-ja.magcomi-v1.4.10.apk",
     "lang": "ja",
-    "code": 8,
-    "version": "1.4.8",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 0,
     "sources": [
       {
@@ -21806,10 +21842,10 @@
   {
     "name": "Tachiyomi: Shonen Jump+",
     "pkg": "eu.kanade.tachiyomi.extension.ja.shonenjumpplus",
-    "apk": "tachiyomi-ja.shonenjumpplus-v1.4.9.apk",
+    "apk": "tachiyomi-ja.shonenjumpplus-v1.4.10.apk",
     "lang": "ja",
-    "code": 9,
-    "version": "1.4.9",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 0,
     "sources": [
       {
@@ -21824,10 +21860,10 @@
   {
     "name": "Tachiyomi: Sunday Web Every",
     "pkg": "eu.kanade.tachiyomi.extension.ja.sundaywebevery",
-    "apk": "tachiyomi-ja.sundaywebevery-v1.4.7.apk",
+    "apk": "tachiyomi-ja.sundaywebevery-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 1,
     "sources": [
       {
@@ -21860,10 +21896,10 @@
   {
     "name": "Tachiyomi: Tonari no Young Jump",
     "pkg": "eu.kanade.tachiyomi.extension.ja.tonarinoyoungjump",
-    "apk": "tachiyomi-ja.tonarinoyoungjump-v1.4.7.apk",
+    "apk": "tachiyomi-ja.tonarinoyoungjump-v1.4.8.apk",
     "lang": "ja",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
