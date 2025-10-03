@@ -3974,10 +3974,10 @@
   {
     "name": "Aniyomi: Q1N",
     "pkg": "eu.kanade.tachiyomi.animeextension.pt.animesgratis",
-    "apk": "aniyomi-pt.animesgratis-v14.26.apk",
+    "apk": "aniyomi-pt.animesgratis-v14.28.apk",
     "lang": "pt-BR",
-    "code": 26,
-    "version": "14.26",
+    "code": 28,
+    "version": "14.28",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
