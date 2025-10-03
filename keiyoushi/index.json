@@ -5645,10 +5645,10 @@
   {
     "name": "Tachiyomi: MyReadingManga",
     "pkg": "eu.kanade.tachiyomi.extension.all.myreadingmanga",
-    "apk": "tachiyomi-all.myreadingmanga-v1.4.58.apk",
+    "apk": "tachiyomi-all.myreadingmanga-v1.4.59.apk",
     "lang": "all",
-    "code": 58,
-    "version": "1.4.58",
+    "code": 59,
+    "version": "1.4.59",
     "nsfw": 1,
     "sources": [
       {
@@ -8751,10 +8751,10 @@
   {
     "name": "Tachiyomi: AllManga",
     "pkg": "eu.kanade.tachiyomi.extension.en.allanime",
-    "apk": "tachiyomi-en.allanime-v1.4.9.apk",
+    "apk": "tachiyomi-en.allanime-v1.4.10.apk",
     "lang": "en",
-    "code": 9,
-    "version": "1.4.9",
+    "code": 10,
+    "version": "1.4.10",
     "nsfw": 0,
     "sources": [
       {
@@ -11101,10 +11101,10 @@
   {
     "name": "Tachiyomi: Ken Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.kenscans",
-    "apk": "tachiyomi-en.kenscans-v1.4.17.apk",
+    "apk": "tachiyomi-en.kenscans-v1.4.18.apk",
     "lang": "en",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 18,
+    "version": "1.4.18",
     "nsfw": 0,
     "sources": [
       {
@@ -12181,10 +12181,10 @@
   {
     "name": "Tachiyomi: Mangamo",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangamo",
-    "apk": "tachiyomi-en.mangamo-v1.4.6.apk",
+    "apk": "tachiyomi-en.mangamo-v1.4.7.apk",
     "lang": "en",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 0,
     "sources": [
       {
@@ -16669,17 +16669,17 @@
   {
     "name": "Tachiyomi: Catharsis World",
     "pkg": "eu.kanade.tachiyomi.extension.es.catharsisworld",
-    "apk": "tachiyomi-es.catharsisworld-v1.4.50.apk",
+    "apk": "tachiyomi-es.catharsisworld-v1.4.51.apk",
     "lang": "es",
-    "code": 50,
-    "version": "1.4.50",
+    "code": 51,
+    "version": "1.4.51",
     "nsfw": 1,
     "sources": [
       {
         "name": "Catharsis World",
         "lang": "es",
         "id": "2856082375563763469",
-        "baseUrl": "https://catharsisworld.akan01.com",
+        "baseUrl": "https://catharsisworld.dig-it.info",
         "versionId": 2
       }
     ]
@@ -17551,10 +17551,10 @@
   {
     "name": "Tachiyomi: Manga Crab",
     "pkg": "eu.kanade.tachiyomi.extension.es.mangacrab",
-    "apk": "tachiyomi-es.mangacrab-v1.4.59.apk",
+    "apk": "tachiyomi-es.mangacrab-v1.4.60.apk",
     "lang": "es",
-    "code": 59,
-    "version": "1.4.59",
+    "code": 60,
+    "version": "1.4.60",
     "nsfw": 0,
     "sources": [
       {
@@ -26204,10 +26204,10 @@
   {
     "name": "Tachiyomi: Koreli Scans",
     "pkg": "eu.kanade.tachiyomi.extension.tr.koreliscans",
-    "apk": "tachiyomi-tr.koreliscans-v1.4.46.apk",
+    "apk": "tachiyomi-tr.koreliscans-v1.4.47.apk",
     "lang": "tr",
-    "code": 46,
-    "version": "1.4.46",
+    "code": 47,
+    "version": "1.4.47",
     "nsfw": 0,
     "sources": [
       {
@@ -26348,17 +26348,17 @@
   {
     "name": "Tachiyomi: MangaGezgini",
     "pkg": "eu.kanade.tachiyomi.extension.tr.mangagezgini",
-    "apk": "tachiyomi-tr.mangagezgini-v1.4.51.apk",
+    "apk": "tachiyomi-tr.mangagezgini-v1.4.52.apk",
     "lang": "tr",
-    "code": 51,
-    "version": "1.4.51",
+    "code": 52,
+    "version": "1.4.52",
     "nsfw": 0,
     "sources": [
       {
         "name": "MangaGezgini",
         "lang": "tr",
         "id": "6502558540101660304",
-        "baseUrl": "https://mangagezginim.com",
+        "baseUrl": "https://mangagezgini.love",
         "versionId": 1
       }
     ]
@@ -27644,17 +27644,17 @@
   {
     "name": "Tachiyomi: Team Lanh Lung",
     "pkg": "eu.kanade.tachiyomi.extension.vi.teamlanhlung",
-    "apk": "tachiyomi-vi.teamlanhlung-v1.4.25.apk",
+    "apk": "tachiyomi-vi.teamlanhlung-v1.4.26.apk",
     "lang": "vi",
-    "code": 25,
-    "version": "1.4.25",
+    "code": 26,
+    "version": "1.4.26",
     "nsfw": 1,
     "sources": [
       {
         "name": "Team Lạnh Lùng",
         "lang": "vi",
         "id": "1832370231745386795",
-        "baseUrl": "https://teamlanhlung11.shop",
+        "baseUrl": "https://teamlanhlungday3.xyz",
         "versionId": 1
       }
     ]
