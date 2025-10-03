@@ -3994,17 +3994,17 @@
   {
     "name": "Aniyomi: Animelib",
     "pkg": "eu.kanade.tachiyomi.animeextension.ru.animelib",
-    "apk": "aniyomi-ru.animelib-v14.8.apk",
+    "apk": "aniyomi-ru.animelib-v14.9.apk",
     "lang": "ru",
-    "code": 8,
-    "version": "14.8",
+    "code": 9,
+    "version": "14.9",
     "nsfw": 1,
     "sources": [
       {
         "name": "Animelib",
         "lang": "ru",
         "id": "1484002441113474607",
-        "baseUrl": "https://anilib.me/ru"
+        "baseUrl": "https://v3.animelib.org/ru"
       }
     ]
   },
