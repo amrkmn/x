@@ -6465,59 +6465,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Otaku Sanctuary",
-    "pkg": "eu.kanade.tachiyomi.extension.all.otakusanctuary",
-    "apk": "tachiyomi-all.otakusanctuary-v1.4.6.apk",
-    "lang": "all",
-    "code": 6,
-    "version": "1.4.6",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "all",
-        "id": "6202136521654555507",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      },
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "vi",
-        "id": "535683348681357931",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      },
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "en",
-        "id": "5984016495600750670",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      },
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "it",
-        "id": "2831689775722886708",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      },
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "fr",
-        "id": "8524319665390149182",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      },
-      {
-        "name": "Otaku Sanctuary",
-        "lang": "es",
-        "id": "6403460862880262722",
-        "baseUrl": "https://otakusan.me",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: PandaChaika",
     "pkg": "eu.kanade.tachiyomi.extension.all.pandachaika",
     "apk": "tachiyomi-all.pandachaika-v1.4.2.apk",
@@ -10957,10 +10904,10 @@
   {
     "name": "Tachiyomi: Kagane",
     "pkg": "eu.kanade.tachiyomi.extension.en.kagane",
-    "apk": "tachiyomi-en.kagane-v1.4.1.apk",
+    "apk": "tachiyomi-en.kagane-v1.4.2.apk",
     "lang": "en",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 1,
     "sources": [
       {
@@ -12415,10 +12362,10 @@
   {
     "name": "Tachiyomi: MangaGeko",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangarawclub",
-    "apk": "tachiyomi-en.mangarawclub-v1.4.26.apk",
+    "apk": "tachiyomi-en.mangarawclub-v1.4.27.apk",
     "lang": "en",
-    "code": 26,
-    "version": "1.4.26",
+    "code": 27,
+    "version": "1.4.27",
     "nsfw": 1,
     "sources": [
       {
@@ -18289,17 +18236,17 @@
   {
     "name": "Tachiyomi: Tojimangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.tojimangas",
-    "apk": "tachiyomi-es.tojimangas-v1.4.4.apk",
+    "apk": "tachiyomi-es.tojimangas-v1.4.5.apk",
     "lang": "es",
-    "code": 4,
-    "version": "1.4.4",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
         "name": "Tojimangas",
         "lang": "es",
         "id": "6976108800986842339",
-        "baseUrl": "https://tojimangas.com",
+        "baseUrl": "https://manhwass.com",
         "versionId": 1
       }
     ]
@@ -27530,24 +27477,6 @@
         "id": "5818973680777851987",
         "baseUrl": "https://manhuarock4.site",
         "versionId": 2
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: MiMiHentai",
-    "pkg": "eu.kanade.tachiyomi.extension.vi.mimihentai",
-    "apk": "tachiyomi-vi.mimihentai-v1.4.3.apk",
-    "lang": "vi",
-    "code": 3,
-    "version": "1.4.3",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "MiMiHentai",
-        "lang": "vi",
-        "id": "8070257113818912648",
-        "baseUrl": "https://mimihentai.com",
-        "versionId": 1
       }
     ]
   },
