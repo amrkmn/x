@@ -6347,17 +6347,17 @@
   {
     "name": "Tachiyomi: NineManga",
     "pkg": "eu.kanade.tachiyomi.extension.all.ninemanga",
-    "apk": "tachiyomi-all.ninemanga-v1.4.21.apk",
+    "apk": "tachiyomi-all.ninemanga-v1.4.22.apk",
     "lang": "all",
-    "code": 21,
-    "version": "1.4.21",
+    "code": 22,
+    "version": "1.4.22",
     "nsfw": 0,
     "sources": [
       {
         "name": "NineMangaEn",
         "lang": "en",
         "id": "120391793502126753",
-        "baseUrl": "https://en.ninemanga.com",
+        "baseUrl": "https://ninemanga.com",
         "versionId": 1
       },
       {
@@ -8841,10 +8841,10 @@
   {
     "name": "Tachiyomi: Arcanescans",
     "pkg": "eu.kanade.tachiyomi.extension.en.arcanescans",
-    "apk": "tachiyomi-en.arcanescans-v1.4.44.apk",
+    "apk": "tachiyomi-en.arcanescans-v1.4.45.apk",
     "lang": "en",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 0,
     "sources": [
       {
@@ -9924,24 +9924,6 @@
         "lang": "en",
         "id": "3896703921896511395",
         "baseUrl": "https://elftoon.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: EnryuManga",
-    "pkg": "eu.kanade.tachiyomi.extension.en.enryumanga",
-    "apk": "tachiyomi-en.enryumanga-v1.4.32.apk",
-    "lang": "en",
-    "code": 32,
-    "version": "1.4.32",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "EnryuManga",
-        "lang": "en",
-        "id": "1541707858895373368",
-        "baseUrl": "https://enryucomics.com",
         "versionId": 1
       }
     ]
@@ -12433,10 +12415,10 @@
   {
     "name": "Tachiyomi: MangaGeko",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangarawclub",
-    "apk": "tachiyomi-en.mangarawclub-v1.4.25.apk",
+    "apk": "tachiyomi-en.mangarawclub-v1.4.26.apk",
     "lang": "en",
-    "code": 25,
-    "version": "1.4.25",
+    "code": 26,
+    "version": "1.4.26",
     "nsfw": 1,
     "sources": [
       {
@@ -16561,10 +16543,10 @@
   {
     "name": "Tachiyomi: BarManga",
     "pkg": "eu.kanade.tachiyomi.extension.es.barmanga",
-    "apk": "tachiyomi-es.barmanga-v1.4.47.apk",
+    "apk": "tachiyomi-es.barmanga-v1.4.48.apk",
     "lang": "es",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 0,
     "sources": [
       {
@@ -16921,10 +16903,10 @@
   {
     "name": "Tachiyomi: DoujinHentai",
     "pkg": "eu.kanade.tachiyomi.extension.es.doujinhentai",
-    "apk": "tachiyomi-es.doujinhentai-v1.4.45.apk",
+    "apk": "tachiyomi-es.doujinhentai-v1.4.46.apk",
     "lang": "es",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 1,
     "sources": [
       {
@@ -17101,35 +17083,17 @@
   {
     "name": "Tachiyomi: Hades no Fansub",
     "pkg": "eu.kanade.tachiyomi.extension.es.hadesnofansub",
-    "apk": "tachiyomi-es.hadesnofansub-v1.4.48.apk",
+    "apk": "tachiyomi-es.hadesnofansub-v1.4.49.apk",
     "lang": "es",
-    "code": 48,
-    "version": "1.4.48",
+    "code": 49,
+    "version": "1.4.49",
     "nsfw": 1,
     "sources": [
       {
         "name": "Hades no Fansub",
         "lang": "es",
         "id": "8311505150576608267",
-        "baseUrl": "https://hadesnofansub.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: Hades no Fansub Hentai",
-    "pkg": "eu.kanade.tachiyomi.extension.es.hadesnofansubhentai",
-    "apk": "tachiyomi-es.hadesnofansubhentai-v1.4.44.apk",
-    "lang": "es",
-    "code": 44,
-    "version": "1.4.44",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Hades no Fansub Hentai",
-        "lang": "es",
-        "id": "4727550488994664301",
-        "baseUrl": "https://h.mangareaderpro.com",
+        "baseUrl": "https://lectorhades.latamtoon.com",
         "versionId": 1
       }
     ]
@@ -18361,10 +18325,10 @@
   {
     "name": "Tachiyomi: Traducciones Moonlight",
     "pkg": "eu.kanade.tachiyomi.extension.es.traduccionesmoonlight",
-    "apk": "tachiyomi-es.traduccionesmoonlight-v1.4.43.apk",
+    "apk": "tachiyomi-es.traduccionesmoonlight-v1.4.44.apk",
     "lang": "es",
-    "code": 43,
-    "version": "1.4.43",
+    "code": 44,
+    "version": "1.4.44",
     "nsfw": 1,
     "sources": [
       {
