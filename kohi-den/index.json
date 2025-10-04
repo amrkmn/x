@@ -2146,10 +2146,10 @@
   {
     "name": "Aniyomi: AsiaLiveAction",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.asialiveaction",
-    "apk": "aniyomi-es.asialiveaction-v14.40.apk",
+    "apk": "aniyomi-es.asialiveaction-v14.41.apk",
     "lang": "es",
-    "code": 40,
-    "version": "14.40",
+    "code": 41,
+    "version": "14.41",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2713,10 +2713,10 @@
   {
     "name": "Aniyomi: MhdFlix",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.mhdflix",
-    "apk": "aniyomi-es.mhdflix-v14.11.apk",
+    "apk": "aniyomi-es.mhdflix-v14.12.apk",
     "lang": "es",
-    "code": 11,
-    "version": "14.11",
+    "code": 12,
+    "version": "14.12",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -2725,7 +2725,7 @@
         "name": "MhdFlix",
         "lang": "es",
         "id": "4812325950703384298",
-        "baseUrl": "https://ww2.mhdflix.com",
+        "baseUrl": "https://ww1.mhdflix.com",
         "versionId": 1
       }
     ]
