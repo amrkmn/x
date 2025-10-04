@@ -2413,10 +2413,10 @@
   {
     "name": "Aniyomi: FlixLatam",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.flixlatam",
-    "apk": "aniyomi-es.flixlatam-v14.14.apk",
+    "apk": "aniyomi-es.flixlatam-v14.15.apk",
     "lang": "es",
-    "code": 14,
-    "version": "14.14",
+    "code": 15,
+    "version": "14.15",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
