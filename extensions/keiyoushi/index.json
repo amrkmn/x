@@ -2673,10 +2673,10 @@
   {
     "name": "Tachiyomi: HentaiHand",
     "pkg": "eu.kanade.tachiyomi.extension.all.hentaihand",
-    "apk": "tachiyomi-all.hentaihand-v1.4.8.apk",
+    "apk": "tachiyomi-all.hentaihand-v1.4.9.apk",
     "lang": "all",
-    "code": 8,
-    "version": "1.4.8",
+    "code": 9,
+    "version": "1.4.9",
     "nsfw": 1,
     "sources": [
       {
@@ -5352,10 +5352,10 @@
   {
     "name": "Tachiyomi: Manhuarm",
     "pkg": "eu.kanade.tachiyomi.extension.all.manhuarm",
-    "apk": "tachiyomi-all.manhuarm-v1.4.46.apk",
+    "apk": "tachiyomi-all.manhuarm-v1.4.47.apk",
     "lang": "all",
-    "code": 46,
-    "version": "1.4.46",
+    "code": 47,
+    "version": "1.4.47",
     "nsfw": 1,
     "sources": [
       {
@@ -6098,10 +6098,10 @@
   {
     "name": "Tachiyomi: nHentai.com (unoriginal)",
     "pkg": "eu.kanade.tachiyomi.extension.all.nhentaicom",
-    "apk": "tachiyomi-all.nhentaicom-v1.4.7.apk",
+    "apk": "tachiyomi-all.nhentaicom-v1.4.9.apk",
     "lang": "all",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 9,
+    "version": "1.4.9",
     "nsfw": 1,
     "sources": [
       {
@@ -6113,15 +6113,15 @@
       },
       {
         "name": "nHentai.com (unoriginal)",
-        "lang": "en",
-        "id": "5591830863732393712",
+        "lang": "zh",
+        "id": "8504927104562262528",
         "baseUrl": "https://nhentai.com",
         "versionId": 1
       },
       {
         "name": "nHentai.com (unoriginal)",
-        "lang": "zh",
-        "id": "8504927104562262528",
+        "lang": "en",
+        "id": "5591830863732393712",
         "baseUrl": "https://nhentai.com",
         "versionId": 1
       },
@@ -6141,190 +6141,8 @@
       },
       {
         "name": "nHentai.com (unoriginal)",
-        "lang": "eo",
-        "id": "5464986831390726554",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "ceb",
-        "id": "8306394815737846919",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "cs",
-        "id": "1144495813995437124",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
         "lang": "ar",
         "id": "1773653553472615327",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "sk",
-        "id": "8189813976393792973",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "mn",
-        "id": "3640686393110022124",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "uk",
-        "id": "1872394332504252034",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "la",
-        "id": "6750311061190710079",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "tl",
-        "id": "4352420071178605258",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "es",
-        "id": "5423915111527486314",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "it",
-        "id": "3744610546977132305",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "ko",
-        "id": "6508316838749142103",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "th",
-        "id": "8747453124413686273",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "pl",
-        "id": "101839933940485648",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "fr",
-        "id": "228866561747756808",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "pt-BR",
-        "id": "2086417689343495410",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "de",
-        "id": "4693699466052963324",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "fi",
-        "id": "8555144793292118035",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "ru",
-        "id": "4336954121393784927",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "hu",
-        "id": "4763421699191654674",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "id",
-        "id": "46773580351141704",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "vi",
-        "id": "6190116525797271593",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "nl",
-        "id": "7712211718694688285",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "tr",
-        "id": "6423038744951581148",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "el",
-        "id": "6038464145206378323",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "bg",
-        "id": "5355858532116403799",
-        "baseUrl": "https://nhentai.com",
-        "versionId": 1
-      },
-      {
-        "name": "nHentai.com (unoriginal)",
-        "lang": "sr",
-        "id": "1001519209586733699",
         "baseUrl": "https://nhentai.com",
         "versionId": 1
       },
@@ -6337,8 +6155,106 @@
       },
       {
         "name": "nHentai.com (unoriginal)",
-        "lang": "hi",
-        "id": "5088597341675298414",
+        "lang": "bg",
+        "id": "5355858532116403799",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "cs",
+        "id": "1144495813995437124",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "uk",
+        "id": "1872394332504252034",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "sk",
+        "id": "8189813976393792973",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "eo",
+        "id": "5464986831390726554",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "mn",
+        "id": "3640686393110022124",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "la",
+        "id": "6750311061190710079",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "ceb",
+        "id": "8306394815737846919",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "tl",
+        "id": "4352420071178605258",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "fi",
+        "id": "8555144793292118035",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "tr",
+        "id": "6423038744951581148",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "sr",
+        "id": "1001519209586733699",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "el",
+        "id": "6038464145206378323",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "ko",
+        "id": "6508316838749142103",
+        "baseUrl": "https://nhentai.com",
+        "versionId": 1
+      },
+      {
+        "name": "nHentai.com (unoriginal)",
+        "lang": "ro",
+        "id": "8274834393370700931",
         "baseUrl": "https://nhentai.com",
         "versionId": 1
       }
@@ -16004,10 +15920,10 @@
   {
     "name": "Tachiyomi: Webcomics",
     "pkg": "eu.kanade.tachiyomi.extension.en.webcomics",
-    "apk": "tachiyomi-en.webcomics-v1.4.6.apk",
+    "apk": "tachiyomi-en.webcomics-v1.4.7.apk",
     "lang": "en",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 0,
     "sources": [
       {
@@ -18783,10 +18699,10 @@
   {
     "name": "Tachiyomi: Japscan",
     "pkg": "eu.kanade.tachiyomi.extension.fr.japscan",
-    "apk": "tachiyomi-fr.japscan-v1.4.52.apk",
+    "apk": "tachiyomi-fr.japscan-v1.4.53.apk",
     "lang": "fr",
-    "code": 52,
-    "version": "1.4.52",
+    "code": 53,
+    "version": "1.4.53",
     "nsfw": 0,
     "sources": [
       {
@@ -20079,10 +19995,10 @@
   {
     "name": "Tachiyomi: Ikiru",
     "pkg": "eu.kanade.tachiyomi.extension.id.mangatale",
-    "apk": "tachiyomi-id.mangatale-v1.4.40.apk",
+    "apk": "tachiyomi-id.mangatale-v1.4.41.apk",
     "lang": "id",
-    "code": 40,
-    "version": "1.4.40",
+    "code": 41,
+    "version": "1.4.41",
     "nsfw": 1,
     "sources": [
       {
@@ -20347,16 +20263,16 @@
     ]
   },
   {
-    "name": "Tachiyomi: Ngomik",
+    "name": "Tachiyomi: Ngomik (unoriginal)",
     "pkg": "eu.kanade.tachiyomi.extension.id.ngomik",
-    "apk": "tachiyomi-id.ngomik-v1.4.33.apk",
+    "apk": "tachiyomi-id.ngomik-v1.4.34.apk",
     "lang": "id",
-    "code": 33,
-    "version": "1.4.33",
+    "code": 34,
+    "version": "1.4.34",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Ngomik",
+        "name": "Ngomik (unoriginal)",
         "lang": "id",
         "id": "5360960267485387879",
         "baseUrl": "https://ngomik.mom",
@@ -25413,10 +25329,10 @@
   {
     "name": "Tachiyomi: Nekopost",
     "pkg": "eu.kanade.tachiyomi.extension.th.nekopost",
-    "apk": "tachiyomi-th.nekopost-v1.4.12.apk",
+    "apk": "tachiyomi-th.nekopost-v1.4.13.apk",
     "lang": "th",
-    "code": 12,
-    "version": "1.4.12",
+    "code": 13,
+    "version": "1.4.13",
     "nsfw": 1,
     "sources": [
       {
@@ -27447,10 +27363,10 @@
   {
     "name": "Tachiyomi: LXManga",
     "pkg": "eu.kanade.tachiyomi.extension.vi.lxhentai",
-    "apk": "tachiyomi-vi.lxhentai-v1.4.23.apk",
+    "apk": "tachiyomi-vi.lxhentai-v1.4.24.apk",
     "lang": "vi",
-    "code": 23,
-    "version": "1.4.23",
+    "code": 24,
+    "version": "1.4.24",
     "nsfw": 1,
     "sources": [
       {
