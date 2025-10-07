@@ -1589,10 +1589,10 @@
   {
     "name": "Aniyomi: DopeBox",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.dopebox",
-    "apk": "aniyomi-en.dopebox-v14.38.apk",
+    "apk": "aniyomi-en.dopebox-v14.39.apk",
     "lang": "en",
-    "code": 38,
-    "version": "14.38",
+    "code": 39,
+    "version": "14.39",
     "nsfw": 0,
     "sources": [
       {
@@ -1600,6 +1600,23 @@
         "lang": "en",
         "id": "787491081765201367",
         "baseUrl": "https://dopebox.to"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: DopeFlix",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.dopeflix",
+    "apk": "aniyomi-en.dopeflix-v14.22.apk",
+    "lang": "en",
+    "code": 22,
+    "version": "14.22",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "DopeFlix",
+        "lang": "en",
+        "id": "1804641041032730564",
+        "baseUrl": "https://gomovies.gg"
       }
     ]
   },
@@ -1997,17 +2014,17 @@
   {
     "name": "Aniyomi: SFlix",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.sflix",
-    "apk": "aniyomi-en.sflix-v14.37.apk",
+    "apk": "aniyomi-en.sflix-v14.38.apk",
     "lang": "en",
-    "code": 37,
-    "version": "14.37",
+    "code": 38,
+    "version": "14.38",
     "nsfw": 0,
     "sources": [
       {
         "name": "SFlix",
         "lang": "en",
         "id": "8615824918772726940",
-        "baseUrl": "https://sflix.to"
+        "baseUrl": "https://sflix.ps"
       }
     ]
   },
