@@ -327,6 +327,209 @@
     ]
   },
   {
+    "name": "Aniyomi: MyReadingManga",
+    "pkg": "eu.kanade.tachiyomi.animeextension.all.myreadingmanga",
+    "apk": "aniyomi-all.myreadingmanga-v14.1.apk",
+    "lang": "all",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "MyReadingManga",
+        "lang": "ar",
+        "id": "4864082317433034574",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "id",
+        "id": "8842237058298566885",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "bg",
+        "id": "2574695051338042046",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "zh_hk",
+        "id": "7427702196987674367",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "zh",
+        "id": "8339625080404115366",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "zh_tw",
+        "id": "114373076711569621",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "cs",
+        "id": "7131955720858058783",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "da",
+        "id": "5371514224509665564",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "en",
+        "id": "6318378620301107421",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "fil",
+        "id": "3226915867864141356",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "fi",
+        "id": "849421505944509897",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "nl",
+        "id": "4376917703158179535",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "fr",
+        "id": "437664019446265570",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "de",
+        "id": "2084769296792806394",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "el",
+        "id": "8822988174773173078",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "he",
+        "id": "5231220639630323919",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "hi",
+        "id": "8926928666838596626",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "hu",
+        "id": "8708782130191102760",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "it",
+        "id": "3371822795753272045",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "ja",
+        "id": "7616097631685192755",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "ko",
+        "id": "8341594492961776810",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "ms",
+        "id": "1723826339924620549",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "no",
+        "id": "8445980320294828568",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "pl",
+        "id": "2019706989618234044",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "pt-BR",
+        "id": "7097816699537539700",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "ro",
+        "id": "1896532101387970682",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "ru",
+        "id": "4213491422253699699",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "es",
+        "id": "3547244847403070407",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "sv",
+        "id": "4833177807047559630",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "th",
+        "id": "1912103614802930406",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "tr",
+        "id": "164535712016830416",
+        "baseUrl": "https://myreadingmanga.info"
+      },
+      {
+        "name": "MyReadingManga",
+        "lang": "vi",
+        "id": "4129272632455883902",
+        "baseUrl": "https://myreadingmanga.info"
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: Newgrounds",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.newgrounds",
     "apk": "aniyomi-all.newgrounds-v14.1.apk",
@@ -3365,17 +3568,17 @@
   {
     "name": "Aniyomi: Anime Saturn",
     "pkg": "eu.kanade.tachiyomi.animeextension.it.animesaturn",
-    "apk": "aniyomi-it.animesaturn-v14.10.apk",
+    "apk": "aniyomi-it.animesaturn-v14.11.apk",
     "lang": "it",
-    "code": 10,
-    "version": "14.10",
+    "code": 11,
+    "version": "14.11",
     "nsfw": 0,
     "sources": [
       {
         "name": "AnimeSaturn",
         "lang": "it",
         "id": "1863212142777957799",
-        "baseUrl": "https://anisaturn.com"
+        "baseUrl": "https://www.anisaturn.net"
       }
     ]
   },
