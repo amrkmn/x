@@ -2199,6 +2199,23 @@
     ]
   },
   {
+    "name": "Aniyomi: YFlix",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.yflix",
+    "apk": "aniyomi-en.yflix-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "YFlix",
+        "lang": "en",
+        "id": "969504852294796462",
+        "baseUrl": "https://yflix.to"
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: HiAnime",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.zoro",
     "apk": "aniyomi-en.zoro-v14.71.apk",
