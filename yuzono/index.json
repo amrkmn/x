@@ -1689,6 +1689,23 @@
     ]
   },
   {
+    "name": "Aniyomi: HexaWatch",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.hexawatch",
+    "apk": "aniyomi-en.hexawatch-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "HexaWatch",
+        "lang": "en",
+        "id": "8787688252737895237",
+        "baseUrl": "https://hexa.watch"
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: Hstream",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.hstream",
     "apk": "aniyomi-en.hstream-v14.10.apk",
