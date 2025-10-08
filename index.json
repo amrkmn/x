@@ -14131,10 +14131,10 @@
   {
     "name": "Tachiyomi: Rage Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.ragescans",
-    "apk": "tachiyomi-en.ragescans-v1.4.30.apk",
+    "apk": "tachiyomi-en.ragescans-v1.4.31.apk",
     "lang": "en",
-    "code": 30,
-    "version": "1.4.30",
+    "code": 31,
+    "version": "1.4.31",
     "nsfw": 0,
     "sources": [
       {
@@ -25851,10 +25851,10 @@
   {
     "name": "Tachiyomi: Elder Manga",
     "pkg": "eu.kanade.tachiyomi.extension.tr.eldermanga",
-    "apk": "tachiyomi-tr.eldermanga-v1.4.1.apk",
+    "apk": "tachiyomi-tr.eldermanga-v1.4.2.apk",
     "lang": "tr",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 0,
     "sources": [
       {
@@ -27039,10 +27039,10 @@
   {
     "name": "Tachiyomi: Uzay Manga",
     "pkg": "eu.kanade.tachiyomi.extension.tr.uzaymanga",
-    "apk": "tachiyomi-tr.uzaymanga-v1.4.38.apk",
+    "apk": "tachiyomi-tr.uzaymanga-v1.4.39.apk",
     "lang": "tr",
-    "code": 38,
-    "version": "1.4.38",
+    "code": 39,
+    "version": "1.4.39",
     "nsfw": 0,
     "sources": [
       {
@@ -27579,17 +27579,17 @@
   {
     "name": "Tachiyomi: TruyenTranh3Q",
     "pkg": "eu.kanade.tachiyomi.extension.vi.truyentranh3q",
-    "apk": "tachiyomi-vi.truyentranh3q-v1.4.1.apk",
+    "apk": "tachiyomi-vi.truyentranh3q-v1.4.2.apk",
     "lang": "vi",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 1,
     "sources": [
       {
         "name": "TruyenTranh3Q",
         "lang": "vi",
         "id": "8738237169240254245",
-        "baseUrl": "https://truyentranh3q.com",
+        "baseUrl": "https://truyentranh3qb.com",
         "versionId": 1
       }
     ]
@@ -28479,10 +28479,10 @@
   {
     "name": "Tachiyomi: Zaimanhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.zaimanhua",
-    "apk": "tachiyomi-zh.zaimanhua-v1.4.14.apk",
+    "apk": "tachiyomi-zh.zaimanhua-v1.4.15.apk",
     "lang": "zh",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 0,
     "sources": [
       {
