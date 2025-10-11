@@ -7,7 +7,7 @@ jobs:
     gitlab:
         runs-on: ubuntu-latest
         steps:
-            - uses: keninkujovic/gitlab-sync@b19399d43e81ac88acb6eefd5588e6ebde3d7d88 # 2.1.0
+            - uses: keninkujovic/gitlab-sync@2255578444d23f254d08592bb8434084d29474d5 # 2.1.0
               with:
                   gitlab_url: ${{ secrets.GITLAB_REPO }}
                   username: ujol
