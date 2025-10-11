@@ -8794,10 +8794,10 @@
   {
     "name": "Tachiyomi: Vortex Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.arvenscans",
-    "apk": "tachiyomi-en.arvenscans-v1.4.49.apk",
+    "apk": "tachiyomi-en.arvenscans-v1.4.50.apk",
     "lang": "en",
-    "code": 49,
-    "version": "1.4.49",
+    "code": 50,
+    "version": "1.4.50",
     "nsfw": 0,
     "sources": [
       {
@@ -20031,17 +20031,17 @@
   {
     "name": "Tachiyomi: Ikiru",
     "pkg": "eu.kanade.tachiyomi.extension.id.mangatale",
-    "apk": "tachiyomi-id.mangatale-v1.4.41.apk",
+    "apk": "tachiyomi-id.mangatale-v1.4.42.apk",
     "lang": "id",
-    "code": 41,
-    "version": "1.4.41",
+    "code": 42,
+    "version": "1.4.42",
     "nsfw": 1,
     "sources": [
       {
         "name": "Ikiru",
         "lang": "id",
         "id": "1532456597012176985",
-        "baseUrl": "https://01.ikiru.wtf",
+        "baseUrl": "https://02.ikiru.wtf",
         "versionId": 1
       }
     ]
@@ -27914,6 +27914,24 @@
         "lang": "zh",
         "id": "8110122805257580230",
         "baseUrl": "https://www.8comic.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Creative Comic Collection",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.creativecomic",
+    "apk": "tachiyomi-zh.creativecomic-v1.4.1.apk",
+    "lang": "zh-Hant",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "CCC追漫台",
+        "lang": "zh-Hant",
+        "id": "8346821279138091413",
+        "baseUrl": "https://www.creative-comic.tw",
         "versionId": 1
       }
     ]
