@@ -28,62 +28,43 @@ jobs:
 
             - name: Update all subtrees
               run: |
+                  # Define all subtrees to update
+                  # Format: "name:remote_url:branch"
+                  subtrees=(
+                    "keiyoushi:https://github.com/keiyoushi/extensions.git:repo"
+                    "yuzono:https://github.com/yuzono/anime-repo.git:repo"
+                    "kohi-den:https://kohiden.xyz/Kohi-den/extensions:main"
+                  )
+
                   # Track if any updates occurred
                   UPDATES_MADE=false
 
-                  # Process keiyoushi
-                  echo "processing keiyoushi"
-                  git remote add keiyoushi https://github.com/keiyoushi/extensions.git 2>/dev/null || true
-                  git fetch keiyoushi repo
+                  # Process each subtree
+                  for subtree in "${subtrees[@]}"; do
+                    # Parse the subtree definition
+                    IFS=':' read -r name remote branch <<< "$subtree"
+                    echo "processing $name"
+                    
+                    # Add remote if it doesn't exist
+                    git remote add "$name" "$remote" 2>/dev/null || true
+                    
+                    # Fetch the specified branch
+                    git fetch "$name" "$branch"
 
-                  echo "current commit in keiyoushi subtree:"
-                  git log --oneline -1 extensions/keiyoushi/ || echo "no existing subtree"
+                    echo "current commit in $name subtree:"
+                    git log --oneline -1 "extensions/$name/" || echo "no existing subtree"
 
-                  echo "latest commit in keiyoushi remote:"
-                  git log --oneline -1 keiyoushi/repo
+                    echo "latest commit in $name remote:"
+                    git log --oneline -1 "$name/$branch"
 
-                  if git subtree pull --prefix=extensions/keiyoushi keiyoushi repo --squash; then
-                    echo "keiyoushi subtree updated successfully"
-                    UPDATES_MADE=true
-                  else
-                    echo "no updates available for keiyoushi or update failed"
-                  fi
-
-                  # Process yuzono
-                  echo "processing yuzono"
-                  git remote add yuzono https://github.com/yuzono/anime-repo.git 2>/dev/null || true
-                  git fetch yuzono repo
-
-                  echo "current commit in yuzono subtree:"
-                  git log --oneline -1 extensions/yuzono/ || echo "no existing subtree"
-
-                  echo "latest commit in yuzono remote:"
-                  git log --oneline -1 yuzono/repo
-
-                  if git subtree pull --prefix=extensions/yuzono yuzono repo --squash; then
-                    echo "yuzono subtree updated successfully"
-                    UPDATES_MADE=true
-                  else
-                    echo "no updates available for yuzono or update failed"
-                  fi
-
-                  # Process kohi-den
-                  echo "processing kohi-den"
-                  git remote add kohi-den https://kohiden.xyz/Kohi-den/extensions 2>/dev/null || true
-                  git fetch kohi-den main
-
-                  echo "current commit in kohi-den subtree:"
-                  git log --oneline -1 extensions/kohi-den/ || echo "no existing subtree"
-
-                  echo "latest commit in kohi-den remote:"
-                  git log --oneline -1 kohi-den/main
-
-                  if git subtree pull --prefix=extensions/kohi-den kohi-den main --squash; then
-                    echo "kohi-den subtree updated successfully"
-                    UPDATES_MADE=true
-                  else
-                    echo "no updates available for kohi-den or update failed"
-                  fi
+                    # Pull subtree updates
+                    if git subtree pull --prefix="extensions/$name" "$name" "$branch" --squash; then
+                      echo "$name subtree updated successfully"
+                      UPDATES_MADE=true
+                    else
+                      echo "no updates available for $name or update failed"
+                    fi
+                  done
 
                   # Store the result for next step
                   echo "UPDATES_MADE=$UPDATES_MADE" >> $GITHUB_ENV
@@ -117,6 +98,13 @@ jobs:
                     if [[ -n $(git status --porcelain) ]]; then
                       git add .
                       git commit -m "Add uncommitted changes [$(date +'%Y-%m-%d %H:%M:%S')]"
+                    fi
+
+                    # Create a single summary commit if subtree commits were made
+                    if [[ "$UPDATES_MADE" == "true" ]] && [[ "$COMMITS_AHEAD" -gt 0 ]]; then
+                      echo "subtree commits detected, creating summary commit"
+                      git reset --soft HEAD~$COMMITS_AHEAD
+                      git commit -m "Update extensions to the latest commit"
                     fi
 
                     # Try to push, if it fails, fetch, rebase, and try again
