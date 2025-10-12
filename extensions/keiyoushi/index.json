@@ -4199,10 +4199,10 @@
   {
     "name": "Tachiyomi: MangaFire",
     "pkg": "eu.kanade.tachiyomi.extension.all.mangafire",
-    "apk": "tachiyomi-all.mangafire-v1.4.12.apk",
+    "apk": "tachiyomi-all.mangafire-v1.4.13.apk",
     "lang": "all",
-    "code": 12,
-    "version": "1.4.12",
+    "code": 13,
+    "version": "1.4.13",
     "nsfw": 1,
     "sources": [
       {
@@ -10838,10 +10838,10 @@
   {
     "name": "Tachiyomi: Kagane",
     "pkg": "eu.kanade.tachiyomi.extension.en.kagane",
-    "apk": "tachiyomi-en.kagane-v1.4.3.apk",
+    "apk": "tachiyomi-en.kagane-v1.4.5.apk",
     "lang": "en",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
@@ -20929,6 +20929,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Big Comics",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.bigcomics",
+    "apk": "tachiyomi-ja.bigcomics-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Big Comics",
+        "lang": "ja",
+        "id": "2944603286439592172",
+        "baseUrl": "https://bigcomics.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Comic Days",
     "pkg": "eu.kanade.tachiyomi.extension.ja.comicdays",
     "apk": "tachiyomi-ja.comicdays-v1.4.8.apk",
@@ -20983,6 +21001,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Comic MeDu",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.comicmedu",
+    "apk": "tachiyomi-ja.comicmedu-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Comic MeDu",
+        "lang": "ja",
+        "id": "7310112963091407823",
+        "baseUrl": "https://comic-medu.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Comic Meteor",
     "pkg": "eu.kanade.tachiyomi.extension.ja.comicmeteor",
     "apk": "tachiyomi-ja.comicmeteor-v1.4.2.apk",
@@ -21014,6 +21050,42 @@
         "lang": "ja",
         "id": "3578485966664786330",
         "baseUrl": "https://comic.webnewtype.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Comic Pash",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.comicpash",
+    "apk": "tachiyomi-ja.comicpash-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Comic Pash",
+        "lang": "ja",
+        "id": "6626616605316433619",
+        "baseUrl": "https://comicpash.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Comic Ride",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.comicride",
+    "apk": "tachiyomi-ja.comicride-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Comic Ride",
+        "lang": "ja",
+        "id": "6786869574657969795",
+        "baseUrl": "https://comicride.jp",
         "versionId": 1
       }
     ]
@@ -21163,6 +21235,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: J-N Books",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.jnbooks",
+    "apk": "tachiyomi-ja.jnbooks-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "J-N Books",
+        "lang": "ja",
+        "id": "2876739237900975302",
+        "baseUrl": "https://comic.j-nbooks.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: KadoComi",
     "pkg": "eu.kanade.tachiyomi.extension.ja.kadocomi",
     "apk": "tachiyomi-ja.kadocomi-v1.4.2.apk",
@@ -21176,6 +21266,24 @@
         "lang": "ja",
         "id": "8396089563187142394",
         "baseUrl": "https://comic-walker.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: KimiComi",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.kimicomi",
+    "apk": "tachiyomi-ja.kimicomi-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "KimiComi",
+        "lang": "ja",
+        "id": "645302785022492537",
+        "baseUrl": "https://kimicomi.com",
         "versionId": 1
       }
     ]
@@ -21253,6 +21361,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: MagKan",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.magkan",
+    "apk": "tachiyomi-ja.magkan-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "MagKan",
+        "lang": "ja",
+        "id": "8826192789792786070",
+        "baseUrl": "https://kansai.mag-garden.co.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Manga1000",
     "pkg": "eu.kanade.tachiyomi.extension.ja.manga1000",
     "apk": "tachiyomi-ja.manga1000-v1.4.12.apk",
@@ -21285,6 +21411,24 @@
         "id": "4572869149806246133",
         "baseUrl": "https://manga1001.in#, https://mangaraw.to#, https://mangaraw.io#, https://mangarawjp.io",
         "versionId": 2
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: MangaBang Comics",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.mangabang",
+    "apk": "tachiyomi-ja.mangabang-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "MangaBang Comics",
+        "lang": "ja",
+        "id": "6323380629311776595",
+        "baseUrl": "https://comics.manga-bang.com",
+        "versionId": 1
       }
     ]
   },
@@ -21867,6 +22011,42 @@
         "lang": "ja",
         "id": "2227240489801599645",
         "baseUrl": "https://yanmaga.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Young Animal",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.younganimal",
+    "apk": "tachiyomi-ja.younganimal-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Young Animal",
+        "lang": "ja",
+        "id": "3590997004623427971",
+        "baseUrl": "https://younganimal.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Young Champion",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.youngchampion",
+    "apk": "tachiyomi-ja.youngchampion-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Young Champion",
+        "lang": "ja",
+        "id": "162182610453532778",
+        "baseUrl": "https://youngchampion.jp",
         "versionId": 1
       }
     ]
