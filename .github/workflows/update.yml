@@ -29,11 +29,11 @@ jobs:
             - name: Update all subtrees
               run: |
                   # Define all subtrees to update
-                  # Format: "name:remote_url:branch"
+                  # Format: "name|remote_url|branch"
                   subtrees=(
-                    "keiyoushi:https://github.com/keiyoushi/extensions.git:repo"
-                    "yuzono:https://github.com/yuzono/anime-repo.git:repo"
-                    "kohi-den:https://kohiden.xyz/Kohi-den/extensions:main"
+                    "keiyoushi|https://github.com/keiyoushi/extensions.git|repo"
+                    "yuzono|https://github.com/yuzono/anime-repo.git|repo"
+                    "kohi-den|https://kohiden.xyz/Kohi-den/extensions|main"
                   )
 
                   # Track if any updates occurred
@@ -41,9 +41,11 @@ jobs:
 
                   # Process each subtree
                   for subtree in "${subtrees[@]}"; do
-                    # Parse the subtree definition
-                    IFS=':' read -r name remote branch <<< "$subtree"
+                    # Parse the subtree definition using | as delimiter
+                    IFS='|' read -r name remote branch <<< "$subtree"
                     echo "processing $name"
+                    echo "remote: $remote"
+                    echo "branch: $branch"
                     
                     # Add remote if it doesn't exist
                     git remote add "$name" "$remote" 2>/dev/null || true
