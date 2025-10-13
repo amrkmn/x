@@ -676,10 +676,10 @@
   {
     "name": "Aniyomi: Stremio",
     "pkg": "eu.kanade.tachiyomi.animeextension.all.stremio",
-    "apk": "aniyomi-all.stremio-v14.7.apk",
+    "apk": "aniyomi-all.stremio-v14.8.apk",
     "lang": "all",
-    "code": 7,
-    "version": "14.7",
+    "code": 8,
+    "version": "14.8",
     "nsfw": 0,
     "sources": [
       {
@@ -1351,10 +1351,10 @@
   {
     "name": "Aniyomi: AnimeKai",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.animekai",
-    "apk": "aniyomi-en.animekai-v14.7.apk",
+    "apk": "aniyomi-en.animekai-v14.8.apk",
     "lang": "en",
-    "code": 7,
-    "version": "14.7",
+    "code": 8,
+    "version": "14.8",
     "nsfw": 0,
     "sources": [
       {
