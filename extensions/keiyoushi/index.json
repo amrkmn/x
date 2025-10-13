@@ -277,10 +277,10 @@
   {
     "name": "Tachiyomi: Bato.to",
     "pkg": "eu.kanade.tachiyomi.extension.all.batoto",
-    "apk": "tachiyomi-all.batoto-v1.4.53.apk",
+    "apk": "tachiyomi-all.batoto-v1.4.54.apk",
     "lang": "all",
-    "code": 53,
-    "version": "1.4.53",
+    "code": 54,
+    "version": "1.4.54",
     "nsfw": 1,
     "sources": [
       {
@@ -1168,16 +1168,16 @@
   {
     "name": "Tachiyomi: Comic Growl",
     "pkg": "eu.kanade.tachiyomi.extension.all.comicgrowl",
-    "apk": "tachiyomi-all.comicgrowl-v1.4.7.apk",
+    "apk": "tachiyomi-all.comicgrowl-v1.4.8.apk",
     "lang": "all",
-    "code": 7,
-    "version": "1.4.7",
+    "code": 8,
+    "version": "1.4.8",
     "nsfw": 0,
     "sources": [
       {
-        "name": "コミックグロウル",
+        "name": "Comic Growl",
         "lang": "all",
-        "id": "3178619745776554387",
+        "id": "299423548273637501",
         "baseUrl": "https://comic-growl.com",
         "versionId": 1
       }
@@ -8884,10 +8884,10 @@
   {
     "name": "Tachiyomi: Atsumaru",
     "pkg": "eu.kanade.tachiyomi.extension.en.atsumaru",
-    "apk": "tachiyomi-en.atsumaru-v1.4.4.apk",
+    "apk": "tachiyomi-en.atsumaru-v1.4.5.apk",
     "lang": "en",
-    "code": 4,
-    "version": "1.4.4",
+    "code": 5,
+    "version": "1.4.5",
     "nsfw": 1,
     "sources": [
       {
@@ -14941,10 +14941,10 @@
   {
     "name": "Tachiyomi: Sana Scans",
     "pkg": "eu.kanade.tachiyomi.extension.en.sanascans",
-    "apk": "tachiyomi-en.sanascans-v1.4.11.apk",
+    "apk": "tachiyomi-en.sanascans-v1.4.12.apk",
     "lang": "en",
-    "code": 11,
-    "version": "1.4.11",
+    "code": 12,
+    "version": "1.4.12",
     "nsfw": 0,
     "sources": [
       {
@@ -16568,10 +16568,10 @@
   {
     "name": "Tachiyomi: Catharsis World",
     "pkg": "eu.kanade.tachiyomi.extension.es.catharsisworld",
-    "apk": "tachiyomi-es.catharsisworld-v1.4.52.apk",
+    "apk": "tachiyomi-es.catharsisworld-v1.4.53.apk",
     "lang": "es",
-    "code": 52,
-    "version": "1.4.52",
+    "code": 53,
+    "version": "1.4.53",
     "nsfw": 1,
     "sources": [
       {
@@ -21418,6 +21418,7 @@
     "name": "Tachiyomi: MangaBang Comics",
     "pkg": "eu.kanade.tachiyomi.extension.ja.mangabang",
     "apk": "tachiyomi-ja.mangabang-v1.4.1.apk",
+<<<<<<< HEAD
     "lang": "ja",
     "code": 1,
     "version": "1.4.1",
@@ -21436,17 +21437,37 @@
     "name": "Tachiyomi: Manga Cross",
     "pkg": "eu.kanade.tachiyomi.extension.ja.mangacross",
     "apk": "tachiyomi-ja.mangacross-v1.4.5.apk",
+=======
+>>>>>>> c8e8976b45d74e5143071451b9d94c5ba2f4bd26
     "lang": "ja",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 1,
+    "version": "1.4.1",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Manga Cross",
+        "name": "MangaBang Comics",
         "lang": "ja",
-        "id": "6046098060941487866",
-        "baseUrl": "https://mangacross.jp",
+        "id": "6323380629311776595",
+        "baseUrl": "https://comics.manga-bang.com",
         "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Champion Cross",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.mangacross",
+    "apk": "tachiyomi-ja.mangacross-v1.4.6.apk",
+    "lang": "ja",
+    "code": 6,
+    "version": "1.4.6",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Champion Cross",
+        "lang": "ja",
+        "id": "4711824862797870329",
+        "baseUrl": "https://championcross.jp",
+        "versionId": 2
       }
     ]
   },
@@ -21993,10 +22014,10 @@
   {
     "name": "Tachiyomi: Weekly Young Magazine",
     "pkg": "eu.kanade.tachiyomi.extension.ja.yanmaga",
-    "apk": "tachiyomi-ja.yanmaga-v1.4.2.apk",
+    "apk": "tachiyomi-ja.yanmaga-v1.4.3.apk",
     "lang": "ja",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 1,
     "sources": [
       {
@@ -27507,17 +27528,17 @@
   {
     "name": "Tachiyomi: Goc Truyen Tranh",
     "pkg": "eu.kanade.tachiyomi.extension.vi.goctruyentranh",
-    "apk": "tachiyomi-vi.goctruyentranh-v1.4.5.apk",
+    "apk": "tachiyomi-vi.goctruyentranh-v1.4.6.apk",
     "lang": "vi",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 1,
     "sources": [
       {
         "name": "GocTruyenTranh",
         "lang": "vi",
         "id": "8162695314495646445",
-        "baseUrl": "https://goctruyentranh.org",
+        "baseUrl": "https://goctruyentranh.net",
         "versionId": 1
       }
     ]
