@@ -99,7 +99,7 @@ jobs:
                     # Add any uncommitted files
                     if [[ -n $(git status --porcelain) ]]; then
                       git add .
-                      git commit -m "Add uncommitted changes [$(date +'%Y-%m-%d %H:%M:%S')]"
+                      git commit -m "Update extensions to the latest commit"
                     fi
 
                     # Create a single summary commit if subtree commits were made
