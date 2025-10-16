@@ -87,6 +87,8 @@ jobs:
             - name: Commit and push changes
               id: commit
               run: |
+                  git fetch origin main
+
                   # Check if we're ahead of origin (meaning subtree commits were made)
                   COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0")
 
@@ -109,23 +111,45 @@ jobs:
                       git commit -m "Update extensions to the latest commit"
                     fi
 
-                    # Try to push, if it fails, fetch, rebase, and try again
-                    MAX_RETRIES=5
-                    RETRY_COUNT=0
-                    while ! git push origin main && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-                      echo "push failed. fetching and rebasing... (attempt $((RETRY_COUNT+1)) of $MAX_RETRIES)"
-                      git fetch origin main
-                      git rebase origin/main
-                      RETRY_COUNT=$((RETRY_COUNT+1))
-                    done
-
-                    if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-                      echo "failed to push updates after $MAX_RETRIES attempts."
+                    # Rebasing before pushing keeps the branch aligned with the latest remote state.
+                    git fetch origin main
+                    if ! git rebase origin/main; then
+                      echo "rebase failed, aborting"
                       exit 1
                     fi
 
-                    echo "successfully pushed changes"
-                    echo "updated=true" >> $GITHUB_OUTPUT
+                    COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0")
+                    echo "commits ahead of origin after rebase: $COMMITS_AHEAD"
+
+                    if [[ "$COMMITS_AHEAD" -eq 0 ]] && [[ -z $(git status --porcelain) ]]; then
+                      echo "no new commits remain after syncing with origin"
+                      echo "updated=false" >> $GITHUB_OUTPUT
+                      exit 0
+                    fi
+
+                    # Try to push, if it fails, fetch, rebase, and try again
+                    MAX_RETRIES=5
+                    RETRY_COUNT=0
+                    while true; do
+                      if git push origin main; then
+                        echo "successfully pushed changes"
+                        echo "updated=true" >> $GITHUB_OUTPUT
+                        break
+                      fi
+
+                      RETRY_COUNT=$((RETRY_COUNT+1))
+                      if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+                        echo "failed to push updates after $MAX_RETRIES attempts."
+                        exit 1
+                      fi
+
+                      echo "push failed. fetching and rebasing... (attempt $RETRY_COUNT of $MAX_RETRIES)"
+                      git fetch origin main
+                      if ! git rebase origin/main; then
+                        echo "rebase failed during retry, aborting"
+                        exit 1
+                      fi
+                    done
                   else
                     echo "no changes to commit and not ahead of origin"
                     echo "updated=false" >> $GITHUB_OUTPUT
@@ -134,7 +158,7 @@ jobs:
     trigger-workflows:
         needs: update
         runs-on: ubuntu-latest
-        if: success() && needs.update.outputs.updated == 'true'
+        if: ${{ needs.update.result == 'success' && needs.update.outputs.updated == 'true' }}
         permissions:
             actions: write
         steps:
