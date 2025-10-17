@@ -1184,6 +1184,143 @@
     ]
   },
   {
+    "name": "Tachiyomi: Comick (Unoriginal)",
+    "pkg": "eu.kanade.tachiyomi.extension.all.comicklive",
+    "apk": "tachiyomi-all.comicklive-v1.4.1.apk",
+    "lang": "all",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "en",
+        "id": "4972933717624256217",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "ru",
+        "id": "1095063608575855195",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "vi",
+        "id": "1242615521765763940",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "fr",
+        "id": "3494454472553986530",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "pl",
+        "id": "5107985495531372013",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "id",
+        "id": "8935908788702897887",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "tr",
+        "id": "7976210704034726483",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "it",
+        "id": "3726023637787405221",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "es",
+        "id": "4425270083878931881",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "uk",
+        "id": "5456927204345304785",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "de",
+        "id": "4042311977545840779",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "ko",
+        "id": "2383498398383195108",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "th",
+        "id": "1760602273537165744",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "ro",
+        "id": "4145490410049708986",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "ms",
+        "id": "3139638167324501617",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "ja",
+        "id": "1887856725598271183",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "sv",
+        "id": "5535756921059789785",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      },
+      {
+        "name": "Comick (Unoriginal)",
+        "lang": "no",
+        "id": "2810925842440106828",
+        "baseUrl": "https://comick.live",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Comico",
     "pkg": "eu.kanade.tachiyomi.extension.all.comico",
     "apk": "tachiyomi-all.comico-v1.4.7.apk",
@@ -20121,17 +20258,17 @@
   {
     "name": "Tachiyomi: ManhwaDesu",
     "pkg": "eu.kanade.tachiyomi.extension.id.manhwadesu",
-    "apk": "tachiyomi-id.manhwadesu-v1.4.37.apk",
+    "apk": "tachiyomi-id.manhwadesu-v1.4.38.apk",
     "lang": "id",
-    "code": 37,
-    "version": "1.4.37",
+    "code": 38,
+    "version": "1.4.38",
     "nsfw": 1,
     "sources": [
       {
         "name": "ManhwaDesu",
         "lang": "id",
         "id": "8258394658125354785",
-        "baseUrl": "https://manhwadesu.ws",
+        "baseUrl": "https://manhwadesu.io",
         "versionId": 1
       }
     ]
@@ -20157,17 +20294,17 @@
   {
     "name": "Tachiyomi: ManhwaLand.mom",
     "pkg": "eu.kanade.tachiyomi.extension.id.manhwalandmom",
-    "apk": "tachiyomi-id.manhwalandmom-v1.4.38.apk",
+    "apk": "tachiyomi-id.manhwalandmom-v1.4.39.apk",
     "lang": "id",
-    "code": 38,
-    "version": "1.4.38",
+    "code": 39,
+    "version": "1.4.39",
     "nsfw": 1,
     "sources": [
       {
         "name": "ManhwaLand.mom",
         "lang": "id",
         "id": "4281611327457686416",
-        "baseUrl": "https://www.manhwaland.asia",
+        "baseUrl": "https://02.manhwaland.land",
         "versionId": 1
       }
     ]
@@ -28407,10 +28544,10 @@
   {
     "name": "Tachiyomi: Manhuaren",
     "pkg": "eu.kanade.tachiyomi.extension.zh.manhuaren",
-    "apk": "tachiyomi-zh.manhuaren-v1.4.17.apk",
+    "apk": "tachiyomi-zh.manhuaren-v1.4.18.apk",
     "lang": "zh",
-    "code": 17,
-    "version": "1.4.17",
+    "code": 18,
+    "version": "1.4.18",
     "nsfw": 0,
     "sources": [
       {
