@@ -994,17 +994,17 @@
   {
     "name": "Aniyomi: FASELHD",
     "pkg": "eu.kanade.tachiyomi.animeextension.ar.faselhd",
-    "apk": "aniyomi-ar.faselhd-v14.24.apk",
+    "apk": "aniyomi-ar.faselhd-v14.25.apk",
     "lang": "ar",
-    "code": 24,
-    "version": "14.24",
+    "code": 25,
+    "version": "14.25",
     "nsfw": 0,
     "sources": [
       {
         "name": "فاصل اعلاني",
         "lang": "ar",
         "id": "1378291029586884571",
-        "baseUrl": "https://www.faselhds.life"
+        "baseUrl": "https://www.faselhds.biz"
       }
     ]
   },
