@@ -1,116 +1,114 @@
 name: Update Subtrees
 
 on:
-    schedule:
-        - cron: "0 */4 * * *"
-    workflow_dispatch:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
 
 jobs:
-    update:
-        runs-on: ubuntu-latest
-        outputs:
-            updated: ${{ steps.commit.outputs.updated }}
-        permissions:
-            contents: write
-            actions: write
+  update:
+    runs-on: ubuntu-latest
+    outputs:
+      updated: ${{ steps.commit.outputs.updated }}
+    permissions:
+      contents: write
+      actions: write
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-              with:
-                  fetch-depth: 0
-                  token: ${{ secrets.GH_PAT }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
-            - name: Configure Git
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  
-                  # Set merge strategy to prefer incoming changes for subtree updates
-                  git config merge.conflictstyle diff3
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Update all subtrees
-              run: |
-                  # Define all subtrees to update
-                  subtrees=(
-                    "keiyoushi|https://github.com/keiyoushi/extensions.git|repo"
-                    "yuzono|https://github.com/yuzono/anime-repo.git|repo"
-                    "kohi-den|https://kohiden.xyz/Kohi-den/extensions|main"
-                  )
+      - name: Update subtrees
+        run: |
+          # Define subtrees to update
+          declare -A subtrees=(
+            ["keiyoushi"]="https://github.com/keiyoushi/extensions.git repo"
+            ["yuzono"]="https://github.com/yuzono/anime-repo.git repo"
+            ["kohi-den"]="https://kohiden.xyz/Kohi-den/extensions.git main"
+          )
+          
+          UPDATES_MADE=false
+          
+          for subtree in "${!subtrees[@]}"; do
+            IFS=' ' read -r url branch <<< "${subtrees[$subtree]}"
+            echo "Processing $subtree"
+            
+            git remote add "$subtree" "$url" 2>/dev/null || true
+            git fetch "$subtree" "$branch"
+            
+            if git subtree pull --prefix="extensions/$subtree" "$subtree" "$branch" --squash; then
+              echo "$subtree updated successfully"
+              UPDATES_MADE=true
+            else
+              echo "No updates for $subtree or update failed"
+            fi
+          done
+          
+          echo "UPDATES_MADE=$UPDATES_MADE" >> $GITHUB_ENV
 
-                  UPDATES_MADE=false
-
-                  # Function to resolve conflicts automatically
-                  resolve_conflicts() {
-                    echo "resolving conflicts..."
-                    # Accept all incoming changes for conflicts
-                    git status --porcelain | grep -E "^(UU|AA|DD|AU|UA|DU|UD)" | awk '{print $2}' | while read file; do
-                      git checkout --theirs "$file" 2>/dev/null && git add "$file" || git rm "$file" 2>/dev/null || true
-                    done
-                    return 0
-                  }
-
-                  # Process each subtree
-                  for subtree in "${subtrees[@]}"; do
-                    IFS='|' read -r name remote branch <<< "$subtree"
-                    echo "Processing $name..."
-                    
-                    git remote add "$name" "$remote" 2>/dev/null || true
-                    git fetch "$name" "$branch"
-
-                    # Pull subtree updates
-                    if ! git subtree pull --prefix="extensions/$name" "$name" "$branch" --squash; then
-                      resolve_conflicts
-                      git commit --no-edit 2>/dev/null || true
-                    fi
-                    
-                    UPDATES_MADE=true
-                  done
-
-                  echo "UPDATES_MADE=$UPDATES_MADE" >> $GITHUB_ENV
-
-            - name: Commit and push changes
-              id: commit
-              run: |
-                  # Check if there are changes to push
-                  git add .
-                  git diff --staged --quiet && echo "updated=false" >> $GITHUB_OUTPUT && exit 0
-
-                  # Commit any remaining changes
-                  git commit -m "Update extensions to the latest commit" || true
-
-                  # Sync with remote and push
-                  MAX_RETRIES=3
-                  for i in $(seq 1 $MAX_RETRIES); do
-                    git fetch origin main
-                    git rebase origin/main && git push origin main && echo "updated=true" >> $GITHUB_OUTPUT && exit 0
-                    
-                    # Handle rebase conflicts
-                    git status --porcelain | grep -E "^(UU|AA|DD)" | awk '{print $2}' | while read file; do
-                      git checkout --ours "$file" 2>/dev/null && git add "$file" || git rm "$file" 2>/dev/null || true
-                    done
-                    git rebase --continue 2>/dev/null || git rebase --abort
-                  done
-
-                  echo "Failed to push after $MAX_RETRIES attempts"
+      - name: Commit and push changes
+        id: commit
+        run: |
+          COMMITS_AHEAD=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo "0")
+          
+          if [[ -n $(git status --porcelain) ]] || [[ "$UPDATES_MADE" == "true" ]] || [[ "$COMMITS_AHEAD" -gt 0 ]]; then
+            echo "Changes detected, pushing..."
+            
+            if [[ -n $(git status --porcelain) ]]; then
+              git add .
+              git commit -m "Update subtrees [$(date +'%Y-%m-%d %H:%M:%S')]"
+            fi
+            
+            # Retry push up to 5 times
+            for i in {1..5}; do
+              if git push origin main; then
+                echo "Pushed successfully"
+                echo "updated=true" >> $GITHUB_OUTPUT
+                break
+              else
+                echo "Push failed, fetching and rebasing... (attempt $i/5)"
+                git fetch origin main
+                git rebase origin/main
+                if [ $i -eq 5 ]; then
+                  echo "Failed to push after 5 attempts"
                   exit 1
+                fi
+              fi
+            done
+          else
+            echo "No changes to commit"
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
 
-    trigger-workflows:
-        needs: update
-        runs-on: ubuntu-latest
-        if: ${{ needs.update.result == 'success' && needs.update.outputs.updated == 'true' }}
-        permissions:
-            actions: write
-        steps:
-            - name: Trigger downstream workflows
-              run: |
-                  WORKFLOWS=("sync.yml" "deploy.yml" "repo.yml")
-                  
-                  for workflow in "${WORKFLOWS[@]}"; do
-                    echo "Triggering $workflow..."
-                    curl -L -X POST \
-                      -H "Accept: application/vnd.github+json" \
-                      -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-                      https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches \
-                      -d '{"ref":"main"}' || echo "Failed to trigger $workflow"
-                  done
+  trigger-workflows:
+    needs: update
+    runs-on: ubuntu-latest
+    if: success() && needs.update.outputs.updated == 'true'
+    permissions:
+      actions: write
+    steps:
+      - name: Trigger downstream workflows
+        run: |
+          # Workflows to trigger
+          workflows=("sync" "deploy" "repo")
+          
+          for workflow in "${workflows[@]}"; do
+            echo "Triggering $workflow workflow"
+            curl --fail -L \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow.yml/dispatches" \
+              -d '{"ref":"main"}' || echo "Failed to trigger $workflow workflow"
+          done
+          
+          echo "All downstream workflows triggered"
