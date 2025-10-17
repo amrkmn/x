@@ -11245,10 +11245,10 @@
   {
     "name": "Tachiyomi: K Manga",
     "pkg": "eu.kanade.tachiyomi.extension.en.kmanga",
-    "apk": "tachiyomi-en.kmanga-v1.4.1.apk",
+    "apk": "tachiyomi-en.kmanga-v1.4.2.apk",
     "lang": "en",
-    "code": 1,
-    "version": "1.4.1",
+    "code": 2,
+    "version": "1.4.2",
     "nsfw": 0,
     "sources": [
       {
@@ -17209,17 +17209,17 @@
   {
     "name": "Tachiyomi: Ikigai Mangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.ikigaimangas",
-    "apk": "tachiyomi-es.ikigaimangas-v1.4.26.apk",
+    "apk": "tachiyomi-es.ikigaimangas-v1.4.27.apk",
     "lang": "es",
-    "code": 26,
-    "version": "1.4.26",
+    "code": 27,
+    "version": "1.4.27",
     "nsfw": 1,
     "sources": [
       {
         "name": "Ikigai Mangas",
         "lang": "es",
         "id": "3546919326830738510",
-        "baseUrl": "https://visualikigai.eurofiyati.online",
+        "baseUrl": "https://visualikigai.tutorialesminecraft.com",
         "versionId": 1
       }
     ]
@@ -17803,10 +17803,10 @@
   {
     "name": "Tachiyomi: ManhwaWeb",
     "pkg": "eu.kanade.tachiyomi.extension.es.manhwaweb",
-    "apk": "tachiyomi-es.manhwaweb-v1.4.8.apk",
+    "apk": "tachiyomi-es.manhwaweb-v1.4.9.apk",
     "lang": "es",
-    "code": 8,
-    "version": "1.4.8",
+    "code": 9,
+    "version": "1.4.9",
     "nsfw": 1,
     "sources": [
       {
@@ -27680,10 +27680,10 @@
   {
     "name": "Tachiyomi: Goc Truyen Tranh",
     "pkg": "eu.kanade.tachiyomi.extension.vi.goctruyentranh",
-    "apk": "tachiyomi-vi.goctruyentranh-v1.4.6.apk",
+    "apk": "tachiyomi-vi.goctruyentranh-v1.4.7.apk",
     "lang": "vi",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 1,
     "sources": [
       {
