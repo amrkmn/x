@@ -2216,6 +2216,23 @@
     ]
   },
   {
+    "name": "Aniyomi: XPrime",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.xprime",
+    "apk": "aniyomi-en.xprime-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "XPrime",
+        "lang": "en",
+        "id": "575696070511937376",
+        "baseUrl": "https://xprime.tv"
+      }
+    ]
+  },
+  {
     "name": "Aniyomi: YFlix",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.yflix",
     "apk": "aniyomi-en.yflix-v14.1.apk",
