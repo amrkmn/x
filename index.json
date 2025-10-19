@@ -2791,26 +2791,6 @@
     ]
   },
   {
-    "name": "Aniyomi: Otakuverso",
-    "pkg": "eu.kanade.tachiyomi.animeextension.es.otakuverso",
-    "apk": "aniyomi-es.otakuverso-v14.6.apk",
-    "lang": "es",
-    "code": 6,
-    "version": "14.6",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "Otakuverso",
-        "lang": "es",
-        "id": "3028407037647098593",
-        "baseUrl": "https://otakuverso.net",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Aniyomi: Pandrama",
     "pkg": "eu.kanade.tachiyomi.animeextension.es.pandrama",
     "apk": "aniyomi-es.pandrama-v14.5.apk",
@@ -3347,26 +3327,6 @@
         "lang": "fr",
         "id": "7149332646839704216",
         "baseUrl": "https://wiflix.voto",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Aniyomi: AniSAGA",
-    "pkg": "eu.kanade.tachiyomi.animeextension.hi.animesaga",
-    "apk": "aniyomi-hi.animesaga-v14.23.apk",
-    "lang": "hi",
-    "code": 23,
-    "version": "14.23",
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "AniSAGA",
-        "lang": "hi",
-        "id": "4596377193820476864",
-        "baseUrl": "https://www.anisaga.org",
         "versionId": 1
       }
     ]
@@ -3994,10 +3954,10 @@
   {
     "name": "Aniyomi: Q1N",
     "pkg": "eu.kanade.tachiyomi.animeextension.pt.animesgratis",
-    "apk": "aniyomi-pt.animesgratis-v14.28.apk",
+    "apk": "aniyomi-pt.animesgratis-v14.29.apk",
     "lang": "pt-BR",
-    "code": 28,
-    "version": "14.28",
+    "code": 29,
+    "version": "14.29",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -4314,10 +4274,10 @@
   {
     "name": "Aniyomi: Tomato",
     "pkg": "eu.kanade.tachiyomi.animeextension.pt.tomato",
-    "apk": "aniyomi-pt.tomato-v14.2.apk",
+    "apk": "aniyomi-pt.tomato-v14.3.apk",
     "lang": "pt-BR",
-    "code": 2,
-    "version": "14.2",
+    "code": 3,
+    "version": "14.3",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
