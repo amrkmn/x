@@ -19032,6 +19032,24 @@
     ]
   },
   {
+    "name": "Tachiyomi: Scan-Manga",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.scanmanga",
+    "apk": "tachiyomi-fr.scanmanga-v1.4.12.apk",
+    "lang": "fr",
+    "code": 12,
+    "version": "1.4.12",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Scan-Manga",
+        "lang": "fr",
+        "id": "2062108502806113139",
+        "baseUrl": "https://m.scan-manga.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Scantrad Union",
     "pkg": "eu.kanade.tachiyomi.extension.fr.scantradunion",
     "apk": "tachiyomi-fr.scantradunion-v1.4.2.apk",
