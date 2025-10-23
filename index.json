@@ -17126,17 +17126,17 @@
   {
     "name": "Tachiyomi: Inmortal Scan",
     "pkg": "eu.kanade.tachiyomi.extension.es.inmortalscan",
-    "apk": "tachiyomi-es.inmortalscan-v1.4.47.apk",
+    "apk": "tachiyomi-es.inmortalscan-v1.4.48.apk",
     "lang": "es",
-    "code": 47,
-    "version": "1.4.47",
+    "code": 48,
+    "version": "1.4.48",
     "nsfw": 0,
     "sources": [
       {
         "name": "Inmortal Scan",
         "lang": "es",
         "id": "8879875375160764811",
-        "baseUrl": "https://scaninmortal.com",
+        "baseUrl": "https://scanimnortal.com",
         "versionId": 1
       }
     ]
@@ -17970,24 +17970,6 @@
     ]
   },
   {
-    "name": "Tachiyomi: Shadow Mangas",
-    "pkg": "eu.kanade.tachiyomi.extension.es.shadowmangas",
-    "apk": "tachiyomi-es.shadowmangas-v1.4.31.apk",
-    "lang": "es",
-    "code": 31,
-    "version": "1.4.31",
-    "nsfw": 1,
-    "sources": [
-      {
-        "name": "Shadow Mangas",
-        "lang": "es",
-        "id": "2625405366577148715",
-        "baseUrl": "https://shadowmangas.com",
-        "versionId": 1
-      }
-    ]
-  },
-  {
     "name": "Tachiyomi: 6ianfranc9",
     "pkg": "eu.kanade.tachiyomi.extension.es.sixianfranc9",
     "apk": "tachiyomi-es.sixianfranc9-v1.4.2.apk",
@@ -18055,24 +18037,6 @@
         "lang": "es",
         "id": "5157867187592331768",
         "baseUrl": "https://taurus.topmanhuas.org",
-        "versionId": 1
-      }
-    ]
-  },
-  {
-    "name": "Tachiyomi: TecnoProjects",
-    "pkg": "eu.kanade.tachiyomi.extension.es.tecnoprojects",
-    "apk": "tachiyomi-es.tecnoprojects-v1.4.43.apk",
-    "lang": "es",
-    "code": 43,
-    "version": "1.4.43",
-    "nsfw": 0,
-    "sources": [
-      {
-        "name": "TecnoProjects",
-        "lang": "es",
-        "id": "2035850802381264987",
-        "baseUrl": "https://tecnoprojects.xyz",
         "versionId": 1
       }
     ]
@@ -18987,17 +18951,17 @@
   {
     "name": "Tachiyomi: Raijin Scans",
     "pkg": "eu.kanade.tachiyomi.extension.fr.raijinscans",
-    "apk": "tachiyomi-fr.raijinscans-v1.4.48.apk",
+    "apk": "tachiyomi-fr.raijinscans-v1.4.49.apk",
     "lang": "fr",
-    "code": 48,
-    "version": "1.4.48",
+    "code": 49,
+    "version": "1.4.49",
     "nsfw": 0,
     "sources": [
       {
         "name": "Raijin Scans",
         "lang": "fr",
         "id": "8373267671495516033",
-        "baseUrl": "https://raijinscan.co",
+        "baseUrl": "https://raijin-scans.fr",
         "versionId": 1
       }
     ]
@@ -27759,10 +27723,10 @@
   {
     "name": "Tachiyomi: Baka Manhua",
     "pkg": "eu.kanade.tachiyomi.extension.zh.bakamh",
-    "apk": "tachiyomi-zh.bakamh-v1.4.48.apk",
+    "apk": "tachiyomi-zh.bakamh-v1.4.49.apk",
     "lang": "zh",
-    "code": 48,
-    "version": "1.4.48",
+    "code": 49,
+    "version": "1.4.49",
     "nsfw": 1,
     "sources": [
       {
