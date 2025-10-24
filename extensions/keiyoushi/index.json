@@ -16154,10 +16154,10 @@
   {
     "name": "Tachiyomi: YakshaComics",
     "pkg": "eu.kanade.tachiyomi.extension.en.yakshacomics",
-    "apk": "tachiyomi-en.yakshacomics-v1.4.45.apk",
+    "apk": "tachiyomi-en.yakshacomics-v1.4.46.apk",
     "lang": "en",
-    "code": 45,
-    "version": "1.4.45",
+    "code": 46,
+    "version": "1.4.46",
     "nsfw": 0,
     "sources": [
       {
@@ -16856,17 +16856,17 @@
   {
     "name": "Tachiyomi: Emperor Scan",
     "pkg": "eu.kanade.tachiyomi.extension.es.emperorscan",
-    "apk": "tachiyomi-es.emperorscan-v1.4.52.apk",
+    "apk": "tachiyomi-es.emperorscan-v1.4.53.apk",
     "lang": "es",
-    "code": 52,
-    "version": "1.4.52",
+    "code": 53,
+    "version": "1.4.53",
     "nsfw": 0,
     "sources": [
       {
         "name": "Emperor Scan",
         "lang": "es",
         "id": "4562754350961964148",
-        "baseUrl": "https://zonaemperor.com",
+        "baseUrl": "https://emperorscan.mundoalterno.org",
         "versionId": 1
       }
     ]
@@ -19455,10 +19455,10 @@
   {
     "name": "Tachiyomi: Kiryuu",
     "pkg": "eu.kanade.tachiyomi.extension.id.kiryuu",
-    "apk": "tachiyomi-id.kiryuu-v1.4.42.apk",
+    "apk": "tachiyomi-id.kiryuu-v1.4.43.apk",
     "lang": "id",
-    "code": 42,
-    "version": "1.4.42",
+    "code": 43,
+    "version": "1.4.43",
     "nsfw": 0,
     "sources": [
       {
