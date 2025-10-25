@@ -4311,10 +4311,10 @@
   {
     "name": "Tachiyomi: MangaFire",
     "pkg": "eu.kanade.tachiyomi.extension.all.mangafire",
-    "apk": "tachiyomi-all.mangafire-v1.4.14.apk",
+    "apk": "tachiyomi-all.mangafire-v1.4.15.apk",
     "lang": "all",
-    "code": 14,
-    "version": "1.4.14",
+    "code": 15,
+    "version": "1.4.15",
     "nsfw": 1,
     "sources": [
       {
@@ -9028,10 +9028,10 @@
   {
     "name": "Tachiyomi: Atsumaru",
     "pkg": "eu.kanade.tachiyomi.extension.en.atsumaru",
-    "apk": "tachiyomi-en.atsumaru-v1.4.5.apk",
+    "apk": "tachiyomi-en.atsumaru-v1.4.6.apk",
     "lang": "en",
-    "code": 5,
-    "version": "1.4.5",
+    "code": 6,
+    "version": "1.4.6",
     "nsfw": 1,
     "sources": [
       {
@@ -10892,10 +10892,10 @@
   {
     "name": "Tachiyomi: Kagane",
     "pkg": "eu.kanade.tachiyomi.extension.en.kagane",
-    "apk": "tachiyomi-en.kagane-v1.4.6.apk",
+    "apk": "tachiyomi-en.kagane-v1.4.7.apk",
     "lang": "en",
-    "code": 6,
-    "version": "1.4.6",
+    "code": 7,
+    "version": "1.4.7",
     "nsfw": 1,
     "sources": [
       {
@@ -18782,6 +18782,24 @@
         "lang": "fr",
         "id": "5554585746492602896",
         "baseUrl": "https://pornhwascans.fr",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Manga-Corporation",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.mangacorporation",
+    "apk": "tachiyomi-fr.mangacorporation-v1.4.4.apk",
+    "lang": "fr",
+    "code": 4,
+    "version": "1.4.4",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Manga-Corporation",
+        "lang": "fr",
+        "id": "1528177119657303302",
+        "baseUrl": "https://manga-corporation.com",
         "versionId": 1
       }
     ]
