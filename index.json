@@ -17036,17 +17036,17 @@
   {
     "name": "Tachiyomi: Ikigai Mangas",
     "pkg": "eu.kanade.tachiyomi.extension.es.ikigaimangas",
-    "apk": "tachiyomi-es.ikigaimangas-v1.4.27.apk",
+    "apk": "tachiyomi-es.ikigaimangas-v1.4.28.apk",
     "lang": "es",
-    "code": 27,
-    "version": "1.4.27",
+    "code": 28,
+    "version": "1.4.28",
     "nsfw": 1,
     "sources": [
       {
         "name": "Ikigai Mangas",
         "lang": "es",
         "id": "3546919326830738510",
-        "baseUrl": "https://visualikigai.tutorialesminecraft.com",
+        "baseUrl": "https://visorikigai.damilok.xyz",
         "versionId": 1
       }
     ]
@@ -19070,6 +19070,24 @@
         "lang": "fr",
         "id": "2062108502806113139",
         "baseUrl": "https://m.scan-manga.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: ScanR",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.scanr",
+    "apk": "tachiyomi-fr.scanr-v1.4.1.apk",
+    "lang": "fr",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "ScanR",
+        "lang": "fr",
+        "id": "5710047468564158686",
+        "baseUrl": "https://teamscanr.fr",
         "versionId": 1
       }
     ]
@@ -21165,18 +21183,18 @@
   {
     "name": "Tachiyomi: Magazine Pocket",
     "pkg": "eu.kanade.tachiyomi.extension.ja.magazinepocket",
-    "apk": "tachiyomi-ja.magazinepocket-v1.4.8.apk",
+    "apk": "tachiyomi-ja.magazinepocket-v1.4.9.apk",
     "lang": "ja",
-    "code": 8,
-    "version": "1.4.8",
+    "code": 9,
+    "version": "1.4.9",
     "nsfw": 0,
     "sources": [
       {
         "name": "Magazine Pocket",
         "lang": "ja",
-        "id": "6622145914196228080",
+        "id": "583369548372015159",
         "baseUrl": "https://pocket.shonenmagazine.com",
-        "versionId": 1
+        "versionId": 2
       }
     ]
   },
@@ -21291,10 +21309,10 @@
   {
     "name": "Tachiyomi: NihonKuni",
     "pkg": "eu.kanade.tachiyomi.extension.ja.mangagun",
-    "apk": "tachiyomi-ja.mangagun-v1.4.15.apk",
+    "apk": "tachiyomi-ja.mangagun-v1.4.16.apk",
     "lang": "ja",
-    "code": 15,
-    "version": "1.4.15",
+    "code": 16,
+    "version": "1.4.16",
     "nsfw": 1,
     "sources": [
       {
