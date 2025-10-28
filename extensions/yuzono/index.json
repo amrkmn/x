@@ -1351,10 +1351,10 @@
   {
     "name": "Aniyomi: AnimeKai",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.animekai",
-    "apk": "aniyomi-en.animekai-v14.8.apk",
+    "apk": "aniyomi-en.animekai-v14.9.apk",
     "lang": "en",
-    "code": 8,
-    "version": "14.8",
+    "code": 9,
+    "version": "14.9",
     "nsfw": 0,
     "sources": [
       {
