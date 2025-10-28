@@ -12512,10 +12512,10 @@
   {
     "name": "Tachiyomi: MangaTaro",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangataro",
-    "apk": "tachiyomi-en.mangataro-v1.4.2.apk",
+    "apk": "tachiyomi-en.mangataro-v1.4.3.apk",
     "lang": "en",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 0,
     "sources": [
       {
@@ -18411,14 +18411,14 @@
   {
     "name": "Tachiyomi: BigSolo",
     "pkg": "eu.kanade.tachiyomi.extension.fr.bigsolo",
-    "apk": "tachiyomi-fr.bigsolo-v1.4.2.apk",
+    "apk": "tachiyomi-fr.bigsolo-v1.4.3.apk",
     "lang": "fr",
-    "code": 2,
-    "version": "1.4.2",
+    "code": 3,
+    "version": "1.4.3",
     "nsfw": 0,
     "sources": [
       {
-        "name": "Big Solo",
+        "name": "BigSolo",
         "lang": "fr",
         "id": "4410528266393104437",
         "baseUrl": "https://bigsolo.org",
@@ -18836,6 +18836,24 @@
         "lang": "fr",
         "id": "1384625280015637699",
         "baseUrl": "https://www.mangakawaii.io",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: MangaNova",
+    "pkg": "eu.kanade.tachiyomi.extension.fr.manganova",
+    "apk": "tachiyomi-fr.manganova-v1.4.1.apk",
+    "lang": "fr",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "MangaNova",
+        "lang": "fr",
+        "id": "514127183927359583",
+        "baseUrl": "https://www.manga-nova.com",
         "versionId": 1
       }
     ]
@@ -20996,6 +21014,24 @@
         "lang": "ja",
         "id": "6276622162610581454",
         "baseUrl": "https://firecross.jp",
+        "versionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: Gangan Online",
+    "pkg": "eu.kanade.tachiyomi.extension.ja.ganganonline",
+    "apk": "tachiyomi-ja.ganganonline-v1.4.1.apk",
+    "lang": "ja",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "Gangan Online",
+        "lang": "ja",
+        "id": "1467355738916791140",
+        "baseUrl": "https://www.ganganonline.com",
         "versionId": 1
       }
     ]
@@ -27429,6 +27465,24 @@
         "id": "5818973680777851987",
         "baseUrl": "https://manhuarock4.site",
         "versionId": 2
+      }
+    ]
+  },
+  {
+    "name": "Tachiyomi: MeHentai",
+    "pkg": "eu.kanade.tachiyomi.extension.vi.mehentai",
+    "apk": "tachiyomi-vi.mehentai-v1.4.4.apk",
+    "lang": "vi",
+    "code": 4,
+    "version": "1.4.4",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "MeHentai",
+        "lang": "vi",
+        "id": "1503074002208879050",
+        "baseUrl": "https://mehentai.tv",
+        "versionId": 1
       }
     ]
   },
