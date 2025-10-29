@@ -10046,10 +10046,10 @@
   {
     "name": "Tachiyomi: Flame Comics",
     "pkg": "eu.kanade.tachiyomi.extension.en.flamecomics",
-    "apk": "tachiyomi-en.flamecomics-v1.4.44.apk",
+    "apk": "tachiyomi-en.flamecomics-v1.4.45.apk",
     "lang": "en",
-    "code": 44,
-    "version": "1.4.44",
+    "code": 45,
+    "version": "1.4.45",
     "nsfw": 0,
     "sources": [
       {
@@ -12512,10 +12512,10 @@
   {
     "name": "Tachiyomi: MangaTaro",
     "pkg": "eu.kanade.tachiyomi.extension.en.mangataro",
-    "apk": "tachiyomi-en.mangataro-v1.4.3.apk",
+    "apk": "tachiyomi-en.mangataro-v1.4.4.apk",
     "lang": "en",
-    "code": 3,
-    "version": "1.4.3",
+    "code": 4,
+    "version": "1.4.4",
     "nsfw": 0,
     "sources": [
       {
@@ -17684,17 +17684,17 @@
   {
     "name": "Tachiyomi: MHScans",
     "pkg": "eu.kanade.tachiyomi.extension.es.mhscans",
-    "apk": "tachiyomi-es.mhscans-v1.4.52.apk",
+    "apk": "tachiyomi-es.mhscans-v1.4.53.apk",
     "lang": "es",
-    "code": 52,
-    "version": "1.4.52",
+    "code": 53,
+    "version": "1.4.53",
     "nsfw": 0,
     "sources": [
       {
         "name": "MHScans",
         "lang": "es",
         "id": "3253304651550496369",
-        "baseUrl": "https://mh.topmanhuas.net",
+        "baseUrl": "https://curiosidadtop.com",
         "versionId": 1
       }
     ]
@@ -21672,18 +21672,18 @@
   {
     "name": "Tachiyomi: Rawkuma",
     "pkg": "eu.kanade.tachiyomi.extension.ja.rawkuma",
-    "apk": "tachiyomi-ja.rawkuma-v1.4.33.apk",
+    "apk": "tachiyomi-ja.rawkuma-v1.4.35.apk",
     "lang": "ja",
-    "code": 33,
-    "version": "1.4.33",
+    "code": 35,
+    "version": "1.4.35",
     "nsfw": 1,
     "sources": [
       {
         "name": "Rawkuma",
         "lang": "ja",
-        "id": "1512072040307511188",
-        "baseUrl": "https://old.rawkuma.net",
-        "versionId": 1
+        "id": "5746834068092446709",
+        "baseUrl": "https://rawkuma.net",
+        "versionId": 2
       }
     ]
   },
