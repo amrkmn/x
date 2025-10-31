@@ -17432,10 +17432,10 @@
   {
     "name": "Tachiyomi: Manga Crab",
     "pkg": "eu.kanade.tachiyomi.extension.es.mangacrab",
-    "apk": "tachiyomi-es.mangacrab-v1.4.61.apk",
+    "apk": "tachiyomi-es.mangacrab-v1.4.62.apk",
     "lang": "es",
-    "code": 61,
-    "version": "1.4.61",
+    "code": 62,
+    "version": "1.4.62",
     "nsfw": 0,
     "sources": [
       {
@@ -22024,14 +22024,14 @@
         "name": "ManaToki",
         "lang": "ko",
         "id": "2526381983439079467",
-        "baseUrl": "https://manatoki468.net",
+        "baseUrl": "https://manatoki469.net",
         "versionId": 1
       },
       {
         "name": "NewToki",
         "lang": "ko",
         "id": "1977818283770282459",
-        "baseUrl": "https://newtoki468.com",
+        "baseUrl": "https://newtoki469.com",
         "versionId": 1
       }
     ]
