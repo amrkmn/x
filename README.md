@@ -1,6 +1,6 @@
 # Mihon & Aniyomi Extensions
 
-[![CI](https://github.com/amrkmn/yomi/actions/workflows/update.yml/badge.svg)](https://github.com/amrkmn/yomi/actions/workflows/update.yml) [![Deploy](https://github.com/amrkmn/yomi/actions/workflows/deploy.yml/badge.svg)](https://github.com/amrkmn/yomi/actions/workflows/deploy.yml)
+[![CI](https://github.com/amrkmn/yomi/actions/workflows/update.yml/badge.svg)](https://github.com/amrkmn/yomi/actions/workflows/update.yml)
 
 ## Main Links
 - [x.noz.one](https://x.noz.one)
