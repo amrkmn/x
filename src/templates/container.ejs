@@ -1,0 +1,73 @@
+<div class="container">
+    <h1>Mihon & Aniyomi Extensions</h1>
+
+    <div class="controls">
+        <label for="mirror-select">Select Mirror: </label>
+        <select id="mirror-select">
+            <% domains.forEach((domain, index) => { %>
+            <option value="<%= domain %>"><%= new URL(domain).hostname %></option>
+            <% }); %>
+        </select>
+    </div>
+
+    <% for (const [category, repos] of Object.entries(extensions)) { const protocol = category.toLowerCase() === 'mihon' ? 'tachiyomi'
+    : 'aniyomi'; %>
+    <div class="<%= category %>">
+        <h2><%= category.charAt(0).toUpperCase() + category.slice(1) %> Extensions</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Commit</th>
+                <th>Install</th>
+                <th>Repo URL</th>
+            </tr>
+            <% for (const repo of repos) { %>
+            <tr>
+                <td><a href="<%= repo.source %>" target="_blank"><%= repo.name %></a></td>
+                <td>
+                    <% if (repo.commit) { %>
+                    <a href="<%= repo.source %>/commit/<%= repo.commit %>" target="_blank"
+                        ><code><%= repo.commit.substring(0, 7) %></code></a
+                    >
+                    <% } else { %>
+                    <code>N/A</code>
+                    <% } %>
+                </td>
+                <td>
+                    <a href="#" class="install-link" data-path="<%= repo.path %>" data-protocol="<%= protocol %>"> Add Repo </a>
+                </td>
+                <td>
+                    <a href="#" target="_blank" class="repo-link" data-path="<%= repo.path %>"> index.min.json </a>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+    <% } %>
+</div>
+
+<script>
+    const mirrorSelect = document.getElementById("mirror-select");
+    const installLinks = document.querySelectorAll(".install-link");
+    const repoLinks = document.querySelectorAll(".repo-link");
+
+    function updateLinks() {
+        const selectedDomain = mirrorSelect.value;
+
+        installLinks.forEach((link) => {
+            const path = link.getAttribute("data-path");
+            const protocol = link.getAttribute("data-protocol");
+            link.href = `${protocol}://add-repo?url=${selectedDomain}${path}`;
+        });
+
+        repoLinks.forEach((link) => {
+            const path = link.getAttribute("data-path");
+            link.href = `${selectedDomain}${path}`;
+        });
+    }
+
+    mirrorSelect.addEventListener("change", updateLinks);
+
+    // Initialize links
+    updateLinks();
+</script>

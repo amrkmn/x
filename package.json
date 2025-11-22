@@ -1,0 +1,30 @@
+{
+    "name": "yomi",
+    "version": "1.0.0",
+    "author": "Amar Tukimin",
+    "main": "src/index.ts",
+    "description": "Mihon & Aniyomi Extensions",
+    "keywords": [
+        "mihon",
+        "aniyomi",
+        "extensions",
+        "manga",
+        "anime"
+    ],
+    "license": "ISC",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "bun run clean && bun run src/index.ts",
+        "update": "bun run src/update.ts",
+        "clean": "bun run src/clean.ts"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@types/ejs": "^3.1.5",
+        "ejs": "^3.1.10"
+    },
+    "peerDependencies": {
+        "typescript": "^5.8.3"
+    }
+}
