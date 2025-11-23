@@ -46,16 +46,16 @@ jobs:
                   git commit -m "chore: update extensions.json [skip ci]"
                   git push
 
-            - name: Build project
-              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              run: bun run build
-
             - name: Deploy to Cloudflare Workers
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
               run: bunx wrangler deploy
+
+            - name: Build project
+              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
+              run: bun run build
 
             - name: Upload artifact
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
