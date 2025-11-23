@@ -29,8 +29,7 @@ function ExtensionCard({ repo, protocol, selectedDomain }) {
                 <div class="card-meta">
                     ${repo.commit
                         ? html`
-                              Commit:
-                              <a href="${repo.source}/commit/${repo.commit}" target="_blank" class="commit-link">
+                              Commit: <a href="${repo.source}/commit/${repo.commit}" target="_blank" class="commit-link">
                                   ${repo.commit.substring(0, 7)}
                               </a>
                           `
