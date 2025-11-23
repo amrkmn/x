@@ -1,5 +1,4 @@
 import { $ } from "bun";
-import ejs from "ejs";
 import { PathLike } from "fs";
 import fs from "fs/promises";
 import { join } from "path";
@@ -103,20 +102,20 @@ try {
     const repositorySource = `https://github.com/${repositoryOwner}/${repositoryName}`;
     const commitLink = `${repositorySource}/commit/${longCommitHash}`;
 
-    const templateContent = await fs.readFile(`${templateDirectory}/index.ejs`, "utf-8");
-    const renderedOutput = ejs.render(
-        templateContent,
-        {
-            extensions: extensionSources,
-            source: repositorySource,
-            commitLink,
-            latestCommitHash,
-            domains: deploymentDomains,
-        },
-        { views: [join(__dirname, "templates")] }
-    );
+    // Prepare data object
+    const data = {
+        extensions: extensionSources,
+        domains: deploymentDomains,
+        source: repositorySource,
+        commitLink,
+        latestCommitHash,
+    };
 
-    await fs.writeFile(`${outputDirectory}/index.html`, renderedOutput);
+    await fs.writeFile(join(outputDirectory, "data.json"), JSON.stringify(data));
+    await fs.copyFile(join(templateDirectory, "index.html"), join(outputDirectory, "index.html"));
+    await fs.copyFile(join(templateDirectory, "styles.css"), join(outputDirectory, "styles.css"));
+    await fs.copyFile(join(templateDirectory, "script.js"), join(outputDirectory, "script.js"));
+
     console.log(`Build index.html with commit hash: ${latestCommitHash} (${commitLink})`);
 } catch (error) {
     console.error(error);
