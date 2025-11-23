@@ -80,15 +80,16 @@ async function copyExtensions() {
 
             await ensureDir(destinationExtensionPath);
 
+            console.log(`Copying ${extensionName}...`);
+
             for (const fileItem of filesToCopy) {
                 const sourceItemPath = join(sourceExtensionPath, fileItem);
                 const destinationItemPath = join(destinationExtensionPath, fileItem);
 
                 await copyRecursive(sourceItemPath, destinationItemPath);
-                console.log(`Copied ${fileItem} from ${extensionName} to dist/${extensionName}`);
             }
         }
-        console.log("Extensions copied successfully to dist!");
+        console.log("Extensions copied successfully to dist");
     } catch (error) {}
 }
 
@@ -112,9 +113,10 @@ try {
     };
 
     await fs.writeFile(join(outputDirectory, "data.json"), JSON.stringify(data));
-    await fs.copyFile(join(templateDirectory, "index.html"), join(outputDirectory, "index.html"));
-    await fs.copyFile(join(templateDirectory, "styles.css"), join(outputDirectory, "styles.css"));
-    await fs.copyFile(join(templateDirectory, "script.js"), join(outputDirectory, "script.js"));
+    
+    for (const file of ["index.html", "styles.css", "script.js"]) {
+        await fs.copyFile(join(templateDirectory, file), join(outputDirectory, file));
+    }
 
     console.log(`Build index.html with commit hash: ${latestCommitHash} (${commitLink})`);
 } catch (error) {
