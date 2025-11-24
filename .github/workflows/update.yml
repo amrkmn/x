@@ -10,6 +10,10 @@ permissions:
     pages: write
     id-token: write
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
@@ -22,8 +26,6 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-              with:
-                  fetch-depth: 0
 
             - name: Install bun
               uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -33,6 +35,13 @@ jobs:
             - name: Install dependencies
               run: bun install --frozen-lockfile
 
+            - name: Restore extensions cache
+              uses: actions/cache@v4
+              with:
+                  path: extensions
+                  key: extensions-${{ hashFiles('extensions.json') }}
+                  restore-keys: extensions-
+
             - name: Update extensions
               id: update
               run: bun run update
@@ -40,11 +49,15 @@ jobs:
             - name: Commit and push changes
               if: steps.update.outputs.updated == 'true'
               run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git config --local user.name "github-actions[bot]"
+                  git config --local user.email "github-actions[bot]@users.noreply.github.com"
                   git add extensions.json
                   git commit -m "chore: update extensions.json [skip ci]"
                   git push
+
+            - name: Build project
+              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
+              run: bun run build
 
             - name: Deploy to Cloudflare Workers
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
@@ -53,27 +66,23 @@ jobs:
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
               run: bunx wrangler deploy
 
-            - name: Build project
-              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              run: bunx vite build && bun run scripts/index.ts
-
-            - name: Upload artifact
+            - name: Upload Pages artifact
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
               uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
               with:
-                  path: ./dist
+                  path: dist
 
             - name: Deploy to GitHub Pages
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
               id: deployment
               uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 
-            - name: Push dist to repo branch
+            - name: Push to repo branch
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
               uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
               with:
                   personal_token: ${{ secrets.GH_PAT }}
-                  publish_dir: ./dist
+                  publish_dir: dist
                   publish_branch: repo
                   force_orphan: true
 
