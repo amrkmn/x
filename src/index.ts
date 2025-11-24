@@ -113,8 +113,8 @@ try {
     };
 
     await fs.writeFile(join(outputDirectory, "data.json"), JSON.stringify(data));
-    
-    for (const file of ["index.html", "styles.css", "script.js"]) {
+
+    for (const file of ["index.html", "styles.css", "script.js", "favicon.ico"]) {
         await fs.copyFile(join(templateDirectory, file), join(outputDirectory, file));
     }
 
