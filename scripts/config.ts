@@ -12,7 +12,6 @@ export const config = {
     ],
     directories: {
         output: "dist",
-        templates: "src/views",
         extensions: "extensions",
     },
     filesToCopy: [

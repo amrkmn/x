@@ -2,7 +2,7 @@
     "name": "yomi",
     "version": "1.0.0",
     "author": "Amar Tukimin",
-    "main": "src/index.ts",
+    "main": "scripts/index.ts",
     "description": "Mihon & Aniyomi Extensions",
     "keywords": [
         "mihon",
@@ -15,14 +15,23 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "bun run clean && bun run src/index.ts",
-        "update": "bun run src/update.ts",
-        "clean": "bun run src/clean.ts"
+        "dev": "vite",
+        "build": "vite build && bun run scripts/index.ts",
+        "preview": "vite preview",
+        "update": "bun run scripts/update.ts",
+        "clean": "bun run scripts/clean.ts"
     },
     "devDependencies": {
-        "@types/bun": "latest"
+        "@preact/preset-vite": "^2.10.2",
+        "@types/bun": "latest",
+        "vite": "^7.2.4",
+        "wrangler": "^4.50.0"
     },
     "peerDependencies": {
-        "typescript": "^5.8.3"
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "fuse.js": "^7.1.0",
+        "preact": "^10.27.2"
     }
 }

@@ -55,7 +55,7 @@ jobs:
 
             - name: Build project
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              run: bun run build
+              run: bunx vite build && bun run scripts/index.ts
 
             - name: Upload artifact
               if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'

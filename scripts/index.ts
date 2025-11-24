@@ -34,7 +34,6 @@ function getExtensionSources(): ExtensionSources {
 }
 
 const outputDirectory = join(process.cwd(), config.directories.output);
-const templateDirectory = join(process.cwd(), config.directories.templates);
 const extensionsDirectory = join(process.cwd(), config.directories.extensions);
 const extensionNames = getExtensionNames();
 const filesToCopy = config.filesToCopy;
@@ -72,7 +71,8 @@ async function copyRecursive(src: string, dest: string) {
 
 async function copyExtensions() {
     try {
-        await ensureDir(outputDirectory);
+        // Extensions are now copied to existing dist created by Vite
+        // Ensure dist directory exists (it should already exist from Vite build)
 
         for (const extensionName of extensionNames) {
             const sourceExtensionPath = join(extensionsDirectory, extensionName);
@@ -114,11 +114,7 @@ try {
 
     await fs.writeFile(join(outputDirectory, "data.json"), JSON.stringify(data));
 
-    for (const file of ["index.html", "styles.css", "script.js", "favicon.ico"]) {
-        await fs.copyFile(join(templateDirectory, file), join(outputDirectory, file));
-    }
-
-    console.log(`Build index.html with commit hash: ${latestCommitHash} (${commitLink})`);
+    console.log(`Build data.json with commit hash: ${latestCommitHash} (${commitLink})`);
 } catch (error) {
     console.error(error);
     process.exit(1);

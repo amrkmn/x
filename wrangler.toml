@@ -1,6 +1,6 @@
 name = "x"
-main = "src/worker.ts"
+main = "scripts/worker.ts"
 compatibility_date = "2024-11-23"
 
-build = { command = "bun run build"}
+build = { command = "bun run build" }
 assets = { directory = "./dist", binding = "ASSETS" }

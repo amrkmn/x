@@ -17,7 +17,6 @@ export interface Config {
     domains: string[];
     directories: {
         output: string;
-        templates: string;
         extensions: string;
     };
     filesToCopy: string[];
