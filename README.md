@@ -1,8 +1,39 @@
 # Mihon & Aniyomi Extensions
 
-[![CI](https://github.com/amrkmn/yomi/actions/workflows/update.yml/badge.svg)](https://github.com/amrkmn/yomi/actions/workflows/update.yml)
+A repository aggregator for Mihon and Aniyomi extensions that automatically syncs from multiple upstream sources.
 
-## Main Links
+## Links
+
 - [x.noz.one](https://x.noz.one)
 - [x.ujol.dev](https://x.ujol.dev)
-- [amrkmn.github.io/x/](https://amrkmn.github.io/x/)
+- [x.amar.kim](https://x.amar.kim)
+- [x.ujol.workers.dev](https://x.ujol.workers.dev)
+
+## Features
+
+- Automatic updates every 4 hours from upstream extension repositories
+- Static website for browsing and adding extensions
+- Multiple deployment mirrors (GitHub Pages, Cloudflare Workers)
+- Built with Vite and Preact
+
+## Extension Sources
+
+- **Keiyoushi** - Mihon extensions
+- **Kohi-den** - Aniyomi extensions
+- **Yuzono** - Aniyomi extensions
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+
+# Update extensions from upstream
+bun run update
+
+# Build for production
+bun run build
+```
