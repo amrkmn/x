@@ -26,7 +26,7 @@ for (const [key, ext] of Object.entries(extensions)) {
         const hash = output.split("\t")[0];
 
         const previousHash = ext.commit;
-        const extDestDir = join(extensionsDir, ext.dirname);
+        const extDestDir = join(extensionsDir, key);
         const isMissing = !existsSync(extDestDir);
 
         if (previousHash !== hash) {
@@ -97,7 +97,7 @@ for (const key of extensionsToUpdate) {
     console.log(`Processing ${ext.name} (${key})...`);
 
     const extTempDir = join(tempExtensionsDir, key);
-    const extDestDir = join(extensionsDir, ext.dirname);
+    const extDestDir = join(extensionsDir, key);
 
     try {
         console.log(`  Cloning ${ext.source}...`);

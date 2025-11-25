@@ -1,6 +1,5 @@
 // Type definitions for config.json
 export interface ExtensionConfig {
-    dirname: string;
     source: string;
     name: string;
     path: string;

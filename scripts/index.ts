@@ -12,7 +12,7 @@ const extensions: Record<string, ExtensionConfig> = JSON.parse(extensionsFile);
 
 // Helper functions to process config data
 function getExtensionNames(): string[] {
-    return Object.values(extensions).map((ext) => ext.dirname);
+    return Object.keys(extensions);
 }
 
 function getExtensionSources(): ExtensionSources {
