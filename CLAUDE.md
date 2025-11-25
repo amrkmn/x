@@ -58,26 +58,29 @@ The build process uses Vite for the frontend and custom scripts in `scripts/`:
 
 ### Extension Configuration
 
-Extensions are defined in `extensions.json` at the root:
+Extensions are defined in `extensions.json` at the root with a nested structure by category:
 ```json
 {
-  "keiyoushi": {
-    "name": "Keiyoushi",
-    "source": "https://github.com/keiyoushi/extensions",
-    "dirname": "keiyoushi",
-    "path": "/keiyoushi/index.min.json",
-    "category": "mihon",
-    "commit": "..."
+  "mihon": {
+    "keiyoushi": {
+      "name": "Keiyoushi",
+      "source": "https://github.com/keiyoushi/extensions",
+      "path": "/keiyoushi/index.min.json",
+      "commit": "..."
+    }
+  },
+  "aniyomi": {
+    "kohi-den": { ... }
   }
 }
 ```
 
 Each extension specifies:
 - `source`: Git repository URL
-- `dirname`: Local directory name in `extensions/`
-- `path`: URL path for the extension index
-- `category`: Either "mihon" or "aniyomi"
+- `path`: URL path for the extension index (can include subdirectories like `/yuzono/manga/index.min.json`)
 - `commit`: Current tracked commit hash
+
+The key (e.g., "keiyoushi", "yuzono/manga") is used as the directory name in `extensions/` and as part of the URL path.
 
 ### Files Copied from Extensions
 
@@ -119,26 +122,31 @@ Configured via `wrangler.toml` and `.github/workflows/update.yml`:
 
 1. **Cloudflare Workers**: Serves static assets from `dist/` via Workers Assets
 2. **GitHub Pages**: Deploys `dist/` to the default GitHub Pages site
-3. **Orphan branch**: Pushes `dist/` to `repo` branch with `force_orphan`
-4. **Mirror**: Syncs to GitLab using SSH
+3. **Orphan branch**: Pushes `dist/` to `repo` branch with `force_orphan` for direct access
+4. **GitLab Mirror**: Syncs entire repository to GitLab using SSH
 
 The workflow runs on:
 - Schedule: Every 4 hours (`0 */4 * * *`)
 - Manual: `workflow_dispatch`
 
 Deployments only occur if:
-- Extensions have updates (`updated=true` output)
-- Workflow is manually triggered
+- Extensions have updates (`updated=true` from `update.ts`)
+- Workflow is manually triggered (`workflow_dispatch`)
+
+The workflow has two jobs:
+- `build-and-deploy`: Updates extensions, builds, and deploys to all platforms
+- `sync-repos`: Mirrors to GitLab (depends on build-and-deploy)
 
 ## Important Patterns
 
 ### Update Logic
 
-The update script uses smart conditional logic:
-- In CI, only downloads if there are actual hash changes
-- Locally (non-CI), always downloads to restore missing files
-- Manual workflow triggers force downloads
-- Individual extensions are re-downloaded if missing, even without hash changes
+The update script (`scripts/update.ts`) uses smart conditional logic:
+- In CI: only downloads if there are actual hash changes
+- Locally (non-CI): always downloads to restore missing files
+- Manual workflow triggers: force downloads regardless of hash changes
+- Individual extensions: re-downloaded if missing, even without hash changes
+- Sets `updated` output for CI/CD workflows based on hash changes only
 
 ### CI Skip Pattern
 
@@ -150,32 +158,3 @@ git commit -m "chore: update extensions.json [skip ci]"
 ### Configuration
 
 All deployable domains are listed in `scripts/config.ts` under `domains`. The frontend allows users to select which mirror to use for extension URLs.
-
-## Repository Structure
-
-```
-src/
-  components/     - Reusable Preact components (TSX)
-  pages/          - Page components (TSX)
-  App.tsx         - Main application component
-  main.tsx        - Application entry point
-  styles.css      - Global styles
-
-scripts/
-  index.ts        - Post-build script (copies extensions)
-  update.ts       - Extension updater
-  config.ts       - Configuration
-  types.ts        - TypeScript types
-  worker.ts       - Cloudflare Worker entry point
-  clean.ts        - Clean script
-
-public/           - Static assets
-extensions/       - Cloned extension files (gitignored)
-dist/             - Built output (gitignored)
-tmp/              - Temporary clone directory (gitignored)
-index.html        - HTML entry point
-vite.config.ts    - Vite configuration
-tsconfig.json     - TypeScript configuration
-extensions.json   - Extension sources and commit tracking
-wrangler.toml     - Cloudflare Workers configuration
-```
