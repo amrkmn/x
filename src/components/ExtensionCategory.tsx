@@ -1,5 +1,5 @@
-import { FunctionComponent } from 'preact';
-import { ExtensionCard } from './ExtensionCard';
+import { FunctionComponent } from "preact";
+import { ExtensionCard } from "./ExtensionCard";
 
 interface ExtensionCategoryProps {
     category: string;
@@ -13,7 +13,7 @@ interface ExtensionCategoryProps {
 }
 
 export const ExtensionCategory: FunctionComponent<ExtensionCategoryProps> = ({ category, repos, selectedDomain }) => {
-    const protocol = category.toLowerCase() === 'mihon' ? 'tachiyomi' : 'aniyomi';
+    const protocol = category.toLowerCase() === "mihon" ? "tachiyomi" : "aniyomi";
 
     return (
         <div class={category}>

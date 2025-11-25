@@ -1,7 +1,7 @@
-import { FunctionComponent } from 'preact';
-import { useState, useEffect, useMemo } from 'preact/hooks';
-import Fuse from 'fuse.js';
-import { ExtensionRow } from '../components/ExtensionRow';
+import Fuse from "fuse.js";
+import { FunctionComponent } from "preact";
+import { useEffect, useMemo, useState } from "preact/hooks";
+import { ExtensionRow } from "../components/ExtensionRow";
 
 interface Extension {
     pkg: string;
@@ -30,7 +30,7 @@ interface SearchViewProps {
 }
 
 export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack }) => {
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState("");
     const [extensions, setExtensions] = useState<Extension[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
                         const p = fetch(`.${repo.path}`)
                             .then((res) => res.json())
                             .then((extList: Extension[]) => {
-                                const repoFolder = repo.path.substring(0, repo.path.lastIndexOf('/'));
+                                const repoFolder = repo.path.substring(0, repo.path.lastIndexOf("/"));
                                 extList.forEach((ext) => {
                                     allExtensions.push({
                                         ...ext,
@@ -65,7 +65,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
                 setLoading(false);
             } catch (e) {
                 console.error(e);
-                setError('Failed to load extension data.');
+                setError("Failed to load extension data.");
                 setLoading(false);
             }
         }
@@ -74,7 +74,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
 
     const fuse = useMemo(() => {
         return new Fuse(extensions, {
-            keys: ['name', 'pkg'],
+            keys: ["name", "pkg"],
             threshold: 0.4,
         });
     }, [extensions]);

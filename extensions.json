@@ -1,23 +1,36 @@
 {
-    "keiyoushi": {
-        "name": "Keiyoushi",
-        "source": "https://github.com/keiyoushi/extensions",
-        "path": "/keiyoushi/index.min.json",
-        "category": "mihon",
-        "commit": "39417915d53cfe496e518775846c22840fac7571"
+    "mihon": {
+        "keiyoushi": {
+            "name": "Keiyoushi",
+            "source": "https://github.com/keiyoushi/extensions",
+            "path": "/keiyoushi/index.min.json",
+            "commit": "39417915d53cfe496e518775846c22840fac7571"
+        },
+        "yuzono/manga": {
+            "name": "Yuzono Manga",
+            "source": "https://github.com/yuzono/manga-repo",
+            "path": "/yuzono/manga/index.min.json",
+            "commit": "4753b5dd1c5f0f83ac0d5b6ce5fe2f82d374a1ca"
+        }
     },
-    "kohi-den": {
-        "name": "Kohi-den",
-        "source": "https://kohiden.xyz/Kohi-den/extensions",
-        "path": "/kohi-den/index.min.json",
-        "category": "aniyomi",
-        "commit": "b9088d3154210846a3a7d7271efea82f98d37b13"
-    },
-    "yuzono": {
-        "name": "Yuzono",
-        "source": "https://github.com/yuzono/anime-repo",
-        "path": "/yuzono/index.min.json",
-        "category": "aniyomi",
-        "commit": "c524bf1686b2e4d43487fc8aa0c8ac693895818f"
+    "aniyomi": {
+        "kohi-den": {
+            "name": "Kohi-den",
+            "source": "https://kohiden.xyz/Kohi-den/extensions",
+            "path": "/kohi-den/index.min.json",
+            "commit": "b9088d3154210846a3a7d7271efea82f98d37b13"
+        },
+        "yuzono/anime": {
+            "name": "Yuzono Anime",
+            "source": "https://github.com/yuzono/anime-repo",
+            "path": "/yuzono/anime/index.min.json",
+            "commit": "c524bf1686b2e4d43487fc8aa0c8ac693895818f"
+        },
+        "yuzono": {
+            "name": "Yuzono Anime (Deprecated)",
+            "source": "https://github.com/yuzono/anime-repo",
+            "path": "/yuzono/index.min.json",
+            "commit": "c524bf1686b2e4d43487fc8aa0c8ac693895818f"
+        }
     }
 }

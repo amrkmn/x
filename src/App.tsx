@@ -1,9 +1,9 @@
-import { FunctionComponent } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import { MirrorSelector } from './components/MirrorSelector';
-import { ExtensionCategory } from './components/ExtensionCategory';
-import { Footer } from './components/Footer';
-import { SearchView } from './pages/SearchView';
+import { FunctionComponent } from "preact";
+import { useEffect, useState } from "preact/hooks";
+import { ExtensionCategory } from "./components/ExtensionCategory";
+import { Footer } from "./components/Footer";
+import { MirrorSelector } from "./components/MirrorSelector";
+import { SearchView } from "./pages/SearchView";
 
 interface ExtensionRepo {
     source: string;
@@ -24,19 +24,19 @@ interface AppData {
 
 export const App: FunctionComponent = () => {
     const [data, setData] = useState<AppData | null>(null);
-    const [selectedDomain, setSelectedDomain] = useState('');
-    const [view, setView] = useState(window.location.hash === '#/search' ? 'search' : 'home');
+    const [selectedDomain, setSelectedDomain] = useState("");
+    const [view, setView] = useState(window.location.hash === "#/search" ? "search" : "home");
 
     useEffect(() => {
         const handleHashChange = () => {
-            setView(window.location.hash === '#/search' ? 'search' : 'home');
+            setView(window.location.hash === "#/search" ? "search" : "home");
         };
-        window.addEventListener('hashchange', handleHashChange);
-        return () => window.removeEventListener('hashchange', handleHashChange);
+        window.addEventListener("hashchange", handleHashChange);
+        return () => window.removeEventListener("hashchange", handleHashChange);
     }, []);
 
     useEffect(() => {
-        fetch('./data.json')
+        fetch("./data.json")
             .then((res) => res.json())
             .then((d: AppData) => {
                 setData(d);
@@ -44,7 +44,7 @@ export const App: FunctionComponent = () => {
                     setSelectedDomain(d.domains[0]);
                 }
             })
-            .catch((err) => console.error('Failed to load data', err));
+            .catch((err) => console.error("Failed to load data", err));
     }, []);
 
     if (!data) {
@@ -53,10 +53,10 @@ export const App: FunctionComponent = () => {
 
     const { extensions, domains, source, commitLink, latestCommitHash } = data;
 
-    if (view === 'search') {
+    if (view === "search") {
         return (
             <>
-                <SearchView data={data} onBack={() => (window.location.hash = '/')} />
+                <SearchView data={data} onBack={() => (window.location.hash = "/")} />
                 <Footer source={source} commitLink={commitLink} latestCommitHash={latestCommitHash} />
             </>
         );
@@ -67,7 +67,7 @@ export const App: FunctionComponent = () => {
             <div class="container">
                 <div class="page-header">
                     <h1>Mihon & Aniyomi Extensions</h1>
-                    <button onClick={() => (window.location.hash = '/search')} class="btn btn-secondary header-btn">
+                    <button onClick={() => (window.location.hash = "/search")} class="btn btn-secondary header-btn">
                         Search
                     </button>
                 </div>

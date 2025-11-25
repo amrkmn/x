@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'preact';
+import { FunctionComponent } from "preact";
 
 interface ExtensionCardProps {
     repo: {
@@ -15,11 +15,14 @@ export const ExtensionCard: FunctionComponent<ExtensionCardProps> = ({ repo, pro
     return (
         <div class="card">
             <div class="card-header">
-                <a href={repo.source} target="_blank" class="card-title">{repo.name}</a>
+                <a href={repo.source} target="_blank" class="card-title">
+                    {repo.name}
+                </a>
                 <div class="card-meta">
                     {repo.commit ? (
                         <>
-                            Commit: <a href={`${repo.source}/commit/${repo.commit}`} target="_blank" class="commit-link">
+                            Commit:{" "}
+                            <a href={`${repo.source}/commit/${repo.commit}`} target="_blank" class="commit-link">
                                 {repo.commit.substring(0, 7)}
                             </a>
                         </>

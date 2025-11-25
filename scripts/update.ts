@@ -1,26 +1,23 @@
 import { $ } from "bun";
 import { existsSync } from "fs";
-import fs from "fs/promises";
+import { appendFile, cp, mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { config } from "./config";
 import type { ExtensionConfig } from "./types";
 
 // Load extensions configuration
-const extensionsPath = join(process.cwd(), "extensions.json");
-let extensions: Record<string, ExtensionConfig> = {};
-if (existsSync(extensionsPath)) {
-    const content = await fs.readFile(extensionsPath, "utf-8");
-    extensions = JSON.parse(content);
-}
+const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bun.file("extensions.json").json();
 
 let hasUpdates = false;
-const extensionsToUpdate: string[] = [];
+const extensionsToUpdate: Array<{ category: string; key: string }> = [];
 
 console.log("Checking for updates...");
 
 const extensionsDir = join(process.cwd(), config.directories.extensions);
 
-for (const [key, ext] of Object.entries(extensions)) {
+// Flatten the category-based structure for processing
+for (const [category, extensions] of Object.entries(extensionsData)) {
+    for (const [key, ext] of Object.entries(extensions)) {
     try {
         const output = await $`git ls-remote ${ext.source} HEAD`.text();
         const hash = output.split("\t")[0];
@@ -32,7 +29,7 @@ for (const [key, ext] of Object.entries(extensions)) {
         if (previousHash !== hash) {
             console.log(`Update detected for ${ext.name}: ${previousHash} -> ${hash}`);
             hasUpdates = true;
-            extensions[key].commit = hash;
+            extensionsData[category][key].commit = hash;
         } else {
             console.log(`No update for ${ext.name} (Hash: ${hash})`);
         }
@@ -41,12 +38,13 @@ for (const [key, ext] of Object.entries(extensions)) {
         // But we can't know "globally" inside the loop easily without two passes or a deferred check.
         // However, if we just track what needs doing:
         if (previousHash !== hash || isMissing) {
-            extensionsToUpdate.push(key);
+            extensionsToUpdate.push({ category, key });
         }
     } catch (e) {
         console.error(`Failed to check updates for ${ext.name}`, e);
         // If check fails, assume we might need to update if it's missing
-        extensionsToUpdate.push(key);
+        extensionsToUpdate.push({ category, key });
+    }
     }
 }
 
@@ -62,18 +60,18 @@ const shouldDownload = hasUpdates || !isCI || isManual;
 if (extensionsToUpdate.length === 0 || !shouldDownload) {
     console.log(extensionsToUpdate.length === 0 ? "No updates found." : "No updates found (CI). Skipping download.");
     if (process.env.GITHUB_OUTPUT) {
-        await fs.appendFile(process.env.GITHUB_OUTPUT, "updated=false\n");
+        await appendFile(process.env.GITHUB_OUTPUT, "updated=false\n");
     }
     process.exit(0);
 }
 
 if (process.env.GITHUB_OUTPUT) {
-    await fs.appendFile(process.env.GITHUB_OUTPUT, `updated=${hasUpdates}\n`);
+    await appendFile(process.env.GITHUB_OUTPUT, `updated=${hasUpdates}\n`);
 }
 
 // Save updated extensions config with new commit hashes
 if (hasUpdates) {
-    await fs.writeFile(extensionsPath, JSON.stringify(extensions, null, 4));
+    await Bun.write("extensions.json", JSON.stringify(extensionsData, null, 4));
 }
 
 const tempDir = join(process.cwd(), "tmp");
@@ -81,19 +79,19 @@ const tempExtensionsDir = join(tempDir, "extensions");
 
 // Clean temp dir
 if (existsSync(tempDir)) {
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await rm(tempDir, { recursive: true, force: true });
 }
-await fs.mkdir(tempExtensionsDir, { recursive: true });
+await mkdir(tempExtensionsDir, { recursive: true });
 
 // Ensure extensions directory exists
 if (!existsSync(extensionsDir)) {
-    await fs.mkdir(extensionsDir, { recursive: true });
+    await mkdir(extensionsDir, { recursive: true });
 }
 
 console.log("Starting extension update...");
 
-for (const key of extensionsToUpdate) {
-    const ext = extensions[key];
+for (const { category, key } of extensionsToUpdate) {
+    const ext = extensionsData[category][key];
     console.log(`Processing ${ext.name} (${key})...`);
 
     const extTempDir = join(tempExtensionsDir, key);
@@ -105,16 +103,16 @@ for (const key of extensionsToUpdate) {
 
         // Clean destination for this extension
         if (existsSync(extDestDir)) {
-            await fs.rm(extDestDir, { recursive: true, force: true });
+            await rm(extDestDir, { recursive: true, force: true });
         }
-        await fs.mkdir(extDestDir, { recursive: true });
+        await mkdir(extDestDir, { recursive: true });
 
         for (const file of config.filesToCopy) {
             const srcPath = join(extTempDir, file);
             const destPath = join(extDestDir, file);
 
             if (existsSync(srcPath)) {
-                await fs.cp(srcPath, destPath, { recursive: true });
+                await cp(srcPath, destPath, { recursive: true });
                 console.log(`  Copied ${file}`);
             }
         }
@@ -124,5 +122,5 @@ for (const key of extensionsToUpdate) {
 }
 
 console.log("Cleaning up...");
-await fs.rm(tempDir, { recursive: true, force: true });
+await rm(tempDir, { recursive: true, force: true });
 console.log("Update complete!");

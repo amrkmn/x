@@ -1,10 +1,8 @@
-import { rmSync } from "fs";
+import { rm } from "fs/promises";
 import { join } from "path";
 
-const distPath = join(process.cwd(), "dist");
-
 try {
-    rmSync(distPath, { recursive: true, force: true });
+    await rm(join(process.cwd(), "dist"), { recursive: true, force: true });
     console.log("Cleaned dist directory");
 } catch (error) {
     console.log("Dist directory doesn't exist or already clean");

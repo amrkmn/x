@@ -1,33 +1,37 @@
 import { $ } from "bun";
 import { PathLike } from "fs";
-import fs from "fs/promises";
+import { cp, mkdir, readdir, stat } from "fs/promises";
 import { join } from "path";
 import { config } from "./config";
 import type { ExtensionConfig, ExtensionSources } from "./types";
 
 // Read extensions.json
-const extensionsPath = join(process.cwd(), "extensions.json");
-const extensionsFile = await fs.readFile(extensionsPath, "utf-8");
-const extensions: Record<string, ExtensionConfig> = JSON.parse(extensionsFile);
+const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bun.file("extensions.json").json();
 
 // Helper functions to process config data
 function getExtensionNames(): string[] {
-    return Object.keys(extensions);
+    const names: string[] = [];
+    for (const extensions of Object.values(extensionsData)) {
+        names.push(...Object.keys(extensions));
+    }
+    return names;
 }
 
 function getExtensionSources(): ExtensionSources {
     const sources: ExtensionSources = {};
 
-    for (const ext of Object.values(extensions)) {
-        if (!sources[ext.category]) {
-            sources[ext.category] = [];
+    for (const [category, extensions] of Object.entries(extensionsData)) {
+        if (!sources[category]) {
+            sources[category] = [];
         }
-        sources[ext.category].push({
-            source: ext.source,
-            name: ext.name,
-            path: ext.path,
-            commit: ext.commit,
-        });
+        for (const ext of Object.values(extensions)) {
+            sources[category].push({
+                source: ext.source,
+                name: ext.name,
+                path: ext.path,
+                commit: ext.commit,
+            });
+        }
     }
 
     return sources;
@@ -45,7 +49,7 @@ const extensionSources = getExtensionSources();
 
 async function ensureDir(path: PathLike) {
     try {
-        await fs.mkdir(path, { recursive: true });
+        await mkdir(path, { recursive: true });
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
             console.error(`Error creating directory ${path}:`, error);
@@ -54,13 +58,13 @@ async function ensureDir(path: PathLike) {
 }
 async function copyRecursive(src: string, dest: string) {
     try {
-        const stat = await fs.stat(src);
-        if (stat.isDirectory()) {
+        const file = await stat(src);
+        if (file.isDirectory()) {
             await ensureDir(dest);
-            const files = await fs.readdir(src);
+            const files = await readdir(src);
             await Promise.all(files.map((file) => copyRecursive(join(src, file), join(dest, file))));
         } else {
-            await fs.cp(src, dest);
+            await cp(src, dest);
         }
     } catch (err) {
         if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -112,7 +116,7 @@ try {
         latestCommitHash,
     };
 
-    await fs.writeFile(join(outputDirectory, "data.json"), JSON.stringify(data));
+    await Bun.write(join(outputDirectory, "data.json"), JSON.stringify(data));
 
     console.log(`Build data.json with commit hash: ${latestCommitHash} (${commitLink})`);
 } catch (error) {

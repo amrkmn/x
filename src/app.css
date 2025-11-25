@@ -11,7 +11,6 @@ body {
 }
 
 body {
-    padding: 0;
     box-sizing: border-box;
 }
 
@@ -26,7 +25,7 @@ body {
 
 .controls {
     text-align: center;
-    margin: 0 auto 20px auto;
+    margin: 0 auto 20px;
     padding: 8px;
     background-color: #1c2a39;
     border: 1px solid #66b2ff;
@@ -62,7 +61,6 @@ h2 {
 .card {
     background-color: #1c2a39;
     border: 1px solid #2c3e50;
-    border-radius: 0;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -119,7 +117,7 @@ h2 {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0; /* Fix for text overflow in flex items */
+    min-width: 0;
 }
 
 .extension-details .card-header {
@@ -143,7 +141,6 @@ h2 {
     font-size: 0.85em;
 }
 
-/* Table Styles for Search Page */
 .table-container {
     overflow-x: auto;
     background-color: #1c2a39;
@@ -200,6 +197,13 @@ h2 {
     margin-top: 2px;
 }
 
+.extension-source {
+    font-size: 0.7em;
+    color: #8a9ba8;
+    margin-top: 3px;
+    font-style: italic;
+}
+
 .meta-cell {
     font-size: 0.9em;
     color: #ccc;
@@ -244,11 +248,6 @@ h2 {
     border-color: #66b2ff;
 }
 
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.85em;
-}
-
 .page-header {
     display: flex;
     justify-content: center;
@@ -264,73 +263,6 @@ h2 {
 .header-btn {
     position: absolute;
     right: 0;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 600px) {
-    .container {
-        padding: 10px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        position: static;
-        gap: 10px;
-    }
-
-    .header-btn {
-        position: static;
-        width: 100%;
-    }
-
-    .page-header h1 {
-        font-size: 1.5em;
-        margin-bottom: 5px;
-    }
-
-    .page-header .btn {
-        position: static !important; /* Override inline style if present, though we will remove it */
-        width: 100%;
-    }
-
-    .extensions-table th, 
-    .extensions-table td {
-        padding: 8px 5px;
-        font-size: 0.9em;
-    }
-
-    .extension-pkg {
-        display: none; /* Hide package name on small screens to save space */
-    }
-
-    .meta-cell .version {
-        display: block;
-        margin-right: 0;
-        margin-bottom: 2px;
-    }
-
-    .meta-cell .lang {
-        display: inline-block;
-    }
-    
-    .card {
-        flex: 1 1 100%; /* Full width cards on mobile */
-        max-width: 100%;
-    }
-
-    .btn {
-        flex: 1;
-        padding: 10px;
-        text-align: center;
-        border-radius: 0;
-        text-decoration: none;
-        font-weight: bold;
-        transition: all 0.2s;
-        font-size: 0.9em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
 }
 
 .commit-link {
@@ -356,7 +288,6 @@ h2 {
     flex: 1;
     padding: 10px;
     text-align: center;
-    border-radius: 0;
     text-decoration: none;
     font-weight: bold;
     transition: all 0.2s;
@@ -367,9 +298,14 @@ h2 {
     cursor: pointer;
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85em;
+}
+
 .btn-primary {
     background-color: #196ec8;
-    color: white;
+    color: #fff;
     border: 1px solid #196ec8;
 }
 
@@ -385,7 +321,6 @@ h2 {
 }
 
 .btn-secondary:hover {
-    border-color: #66b2ff;
     background-color: rgba(102, 178, 255, 0.1);
 }
 
@@ -406,4 +341,52 @@ footer a {
 
 footer a:hover {
     color: #89cfff;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        position: static;
+        gap: 10px;
+    }
+
+    .header-btn,
+    .page-header .btn {
+        position: static;
+        width: 100%;
+    }
+
+    .page-header h1 {
+        font-size: 1.5em;
+        margin-bottom: 5px;
+    }
+
+    .extensions-table th,
+    .extensions-table td {
+        padding: 8px 5px;
+        font-size: 0.9em;
+    }
+
+    .extension-pkg {
+        display: none;
+    }
+
+    .meta-cell .version {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 2px;
+    }
+
+    .meta-cell .lang {
+        display: inline-block;
+    }
+
+    .card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
 }
