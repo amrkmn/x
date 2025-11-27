@@ -38,31 +38,35 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
     useEffect(() => {
         async function fetchExtensions() {
             try {
-                const allExtensions: Extension[] = [];
-                const promises: Promise<void>[] = [];
+                let pendingCount = 0;
 
                 for (const category in data.extensions) {
                     for (const repo of data.extensions[category]) {
-                        const p = fetch(`.${repo.path}`)
+                        pendingCount++;
+                        fetch(`.${repo.path}`)
                             .then((res) => res.json())
                             .then((extList: Extension[]) => {
                                 const repoFolder = repo.path.substring(0, repo.path.lastIndexOf("/"));
-                                extList.forEach((ext) => {
-                                    allExtensions.push({
-                                        ...ext,
-                                        repoUrl: `.${repoFolder}`,
-                                        sourceName: repo.name,
-                                    });
-                                });
+                                const repoExtensions = extList.map((ext) => ({
+                                    ...ext,
+                                    repoUrl: `.${repoFolder}`,
+                                    sourceName: repo.name,
+                                }));
+                                setExtensions((prev) => [...prev, ...repoExtensions]);
                             })
-                            .catch((err) => console.error(`Failed to load extensions from ${repo.name}`, err));
-                        promises.push(p);
+                            .catch((err) => console.error(`Failed to load extensions from ${repo.name}`, err))
+                            .finally(() => {
+                                pendingCount--;
+                                if (pendingCount === 0) {
+                                    setLoading(false);
+                                }
+                            });
                     }
                 }
 
-                await Promise.all(promises);
-                setExtensions(allExtensions);
-                setLoading(false);
+                if (pendingCount === 0) {
+                    setLoading(false);
+                }
             } catch (e) {
                 console.error(e);
                 setError("Failed to load extension data.");
@@ -84,7 +88,6 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
         return fuse.search(query).map((result) => result.item);
     }, [query, extensions, fuse]);
 
-    if (loading) return <div style="text-align: center; margin-top: 50px;">Loading extensions...</div>;
     if (error) return <div style="text-align: center; margin-top: 50px; color: red;">{error}</div>;
 
     return (
@@ -121,7 +124,8 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
                     </tbody>
                 </table>
             </div>
-            {results.length === 0 && <div style="text-align: center; padding: 20px;">No results found.</div>}
+            {results.length === 0 && !loading && <div style="text-align: center; padding: 20px;">No results found.</div>}
+            {loading && <div style="text-align: center; padding: 20px;">Loading extensions...</div>}
         </div>
     );
 };

@@ -141,12 +141,22 @@ The workflow has two jobs:
 
 ### Update Logic
 
-The update script (`scripts/update.ts`) uses smart conditional logic:
+The update script (`scripts/update.ts`) uses a dual-config sync system:
+- `extensions.json` (root): The desired/target state
+- `extensions/extensions.json`: The successfully synced state (what's actually downloaded)
+
+Update flow:
+1. Compare remote hash with synced hash (not root config hash)
+2. If different, or if files are missing, queue for update
+3. Clone and copy files for each extension
+4. **Only after successful clone/copy**, update both config files
+5. Failed clones don't update hashes, ensuring retry on next run
+
+CI behavior:
 - In CI: only downloads if there are actual hash changes
 - Locally (non-CI): always downloads to restore missing files
 - Manual workflow triggers: force downloads regardless of hash changes
-- Individual extensions: re-downloaded if missing, even without hash changes
-- Sets `updated` output for CI/CD workflows based on hash changes only
+- Sets `updated` output for CI/CD workflows based on successful updates only
 
 ### CI Skip Pattern
 
