@@ -24,13 +24,7 @@
             "name": "Yuzono Anime",
             "source": "https://github.com/yuzono/anime-repo",
             "path": "/yuzono/anime/index.min.json",
-            "commit": "c524bf1686b2e4d43487fc8aa0c8ac693895818f"
-        },
-        "yuzono": {
-            "name": "Yuzono Anime (Deprecated)",
-            "source": "https://github.com/yuzono/anime-repo",
-            "path": "/yuzono/index.min.json",
-            "commit": "c524bf1686b2e4d43487fc8aa0c8ac693895818f"
+            "commit": "63413b7fa75961b7c68a3da4c0305f7539e447fc"
         }
     }
 }
