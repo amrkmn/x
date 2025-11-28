@@ -139,10 +139,12 @@ for (const { category, key, newHash } of extensionsToUpdate) {
 console.log("Cleaning up...");
 await rm(tempDir, { recursive: true, force: true });
 
-// Check if we have actual new updates BEFORE modifying syncedData
+// Check if we have actual new updates by comparing against the ORIGINAL extensionsData
+// (the root extensions.json that will be committed). If the newHash matches what's
+// already in extensionsData, there's no actual change to commit.
 const hasActualUpdates = successfulUpdates.some(({ category, key, newHash }) => {
-    const originalHash = syncedData[category]?.[key]?.commit;
-    return originalHash !== newHash;
+    const originalConfigHash = extensionsData[category]?.[key]?.commit;
+    return originalConfigHash !== newHash;
 });
 
 // Only update configs if we had successful updates
@@ -157,10 +159,14 @@ if (successfulUpdates.length > 0) {
         syncedData[category][key] = { ...extensionsData[category][key] };
     }
 
-    // Save both config files
-    await Bun.write("extensions.json", JSON.stringify(extensionsData, null, 4));
+    // Only write root extensions.json if there are actual hash changes
+    if (hasActualUpdates) {
+        await Bun.write("extensions.json", JSON.stringify(extensionsData, null, 4));
+        console.log("Updated extensions.json");
+    }
+    // Always update the synced config to track successful downloads
     await Bun.write(syncedConfigPath, JSON.stringify(syncedData, null, 4));
-    console.log("Updated extensions.json and extensions/extensions.json");
+    console.log("Updated extensions/extensions.json");
 }
 
 if (process.env.GITHUB_OUTPUT) {
