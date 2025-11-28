@@ -139,6 +139,12 @@ for (const { category, key, newHash } of extensionsToUpdate) {
 console.log("Cleaning up...");
 await rm(tempDir, { recursive: true, force: true });
 
+// Check if we have actual new updates BEFORE modifying syncedData
+const hasActualUpdates = successfulUpdates.some(({ category, key, newHash }) => {
+    const originalHash = syncedData[category]?.[key]?.commit;
+    return originalHash !== newHash;
+});
+
 // Only update configs if we had successful updates
 if (successfulUpdates.length > 0) {
     // Update extensionsData with successful hashes only
@@ -156,12 +162,6 @@ if (successfulUpdates.length > 0) {
     await Bun.write(syncedConfigPath, JSON.stringify(syncedData, null, 4));
     console.log("Updated extensions.json and extensions/extensions.json");
 }
-
-// Report if we have actual new updates (for CI)
-const hasActualUpdates = successfulUpdates.some(({ category, key, newHash }) => {
-    const originalHash = syncedData[category]?.[key]?.commit;
-    return originalHash !== newHash;
-});
 
 if (process.env.GITHUB_OUTPUT) {
     await appendFile(process.env.GITHUB_OUTPUT, `updated=${hasActualUpdates}\n`);
