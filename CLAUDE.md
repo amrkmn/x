@@ -98,14 +98,16 @@ The frontend is a Preact SPA built with Vite using:
 - **Preact + JSX**: React-compatible UI framework with TSX
 - **TypeScript**: Type-safe component development
 - **Fuse.js**: Fuzzy search for extensions
-- **preact-iso**: File-based routing with `/` for home, `/search` for search page
+- **react-router**: Client-side routing using HashRouter with `/` for home, `/#/search` for search page
 
 **Frontend Structure**:
 - `src/App.tsx` - Main application component with routing
 - `src/main.tsx` - Application entry point
-- `src/components/` - Reusable UI components (MirrorSelector, ExtensionCard, etc.)
+- `src/components/` - Reusable UI components (MirrorSelector, ExtensionCard, ExtensionRow, etc.)
+  - `ExtensionRow.tsx` - Table row component displaying extension info with NSFW badge
 - `src/pages/` - Page components (SearchView)
-- `src/styles.css` - Global styles
+  - Search results use unique keys: `${formatSourceName(sourceName)};${pkg}` to handle duplicate packages across forked repos
+- `src/app.css` - Global styles including NSFW badge styling
 - `index.html` - HTML entry point
 - `public/` - Static assets (favicon)
 
@@ -115,6 +117,17 @@ The frontend:
 3. Provides mirror domain selection
 4. Offers "Add Repo" links using `tachiyomi://` or `aniyomi://` protocols
 5. Search page allows browsing all individual extensions from all repos
+6. Shows NSFW badge for extensions with adult content (when `nsfw: 1` in extension data)
+
+### Extension Data Structure
+
+Extensions fetched from upstream repositories contain the following key fields:
+- `name`: Display name (e.g., "Tachiyomi: MangaDex")
+- `pkg`: Package identifier (e.g., "eu.kanade.tachiyomi.extension.en.mangadex")
+- `version`: Version string
+- `lang`: Language code (e.g., "en", "all")
+- `apk`: APK filename
+- `nsfw`: Integer flag (1 = NSFW content, 0 = safe)
 
 ### Deployment
 
@@ -139,6 +152,13 @@ The workflow has two jobs:
 - `sync-repos`: Mirrors to GitLab (depends on build-and-deploy)
 
 ## Important Patterns
+
+### Routing
+
+The app uses react-router with HashRouter for client-side routing:
+- Hash-based URLs (e.g., `/#/search`) work without server-side configuration
+- Suitable for static hosting on GitHub Pages and Cloudflare Workers
+- Routes defined in `src/App.tsx` using `<Routes>` and `<Route>` components
 
 ### Update Logic
 
