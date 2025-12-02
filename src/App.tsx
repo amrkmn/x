@@ -1,8 +1,8 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { ExtensionCategory } from "./components/ExtensionCategory";
+import { LocationProvider, Router } from "preact-iso";
 import { Footer } from "./components/Footer";
-import { MirrorSelector } from "./components/MirrorSelector";
+import { Home } from "./pages/Home";
 import { SearchView } from "./pages/SearchView";
 
 interface ExtensionRepo {
@@ -25,15 +25,6 @@ interface AppData {
 export const App: FunctionComponent = () => {
     const [data, setData] = useState<AppData | null>(null);
     const [selectedDomain, setSelectedDomain] = useState("");
-    const [view, setView] = useState(window.location.hash === "#/search" ? "search" : "home");
-
-    useEffect(() => {
-        const handleHashChange = () => {
-            setView(window.location.hash === "#/search" ? "search" : "home");
-        };
-        window.addEventListener("hashchange", handleHashChange);
-        return () => window.removeEventListener("hashchange", handleHashChange);
-    }, []);
 
     useEffect(() => {
         fetch("./data.json")
@@ -53,32 +44,19 @@ export const App: FunctionComponent = () => {
 
     const { extensions, domains, source, commitLink, latestCommitHash } = data;
 
-    if (view === "search") {
-        return (
-            <>
-                <SearchView data={data} onBack={() => (window.location.hash = "/")} />
-                <Footer source={source} commitLink={commitLink} latestCommitHash={latestCommitHash} />
-            </>
-        );
-    }
-
     return (
-        <>
-            <div class="container">
-                <div class="page-header">
-                    <h1>Mihon & Aniyomi Extensions</h1>
-                    <button onClick={() => (window.location.hash = "/search")} class="btn btn-secondary header-btn">
-                        Search
-                    </button>
-                </div>
-
-                <MirrorSelector domains={domains} selectedDomain={selectedDomain} onSelect={setSelectedDomain} />
-
-                {Object.entries(extensions).map(([category, repos]) => (
-                    <ExtensionCategory category={category} repos={repos} selectedDomain={selectedDomain} />
-                ))}
-            </div>
+        <LocationProvider>
+            <Router>
+                <Home 
+                    path="/" 
+                    extensions={extensions} 
+                    domains={domains} 
+                    selectedDomain={selectedDomain} 
+                    setSelectedDomain={setSelectedDomain} 
+                />
+                <SearchView path="/search" data={data} />
+            </Router>
             <Footer source={source} commitLink={commitLink} latestCommitHash={latestCommitHash} />
-        </>
+        </LocationProvider>
     );
 };

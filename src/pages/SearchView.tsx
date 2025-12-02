@@ -21,15 +21,15 @@ interface ExtensionRepo {
 }
 
 interface SearchViewProps {
+    path?: string;
     data: {
         extensions: {
             [category: string]: ExtensionRepo[];
         };
     };
-    onBack: () => void;
 }
 
-export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack }) => {
+export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
     const [query, setQuery] = useState("");
     const [extensions, setExtensions] = useState<Extension[]>([]);
     const [loading, setLoading] = useState(true);
@@ -94,9 +94,9 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data, onBack })
         <div class="container">
             <div class="page-header">
                 <h1>Search Extensions</h1>
-                <button onClick={onBack} class="btn btn-secondary header-btn">
+                <a href="/" class="btn btn-secondary header-btn">
                     Home
-                </button>
+                </a>
             </div>
             <div class="search-container">
                 <input
