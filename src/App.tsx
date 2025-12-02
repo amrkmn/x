@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { LocationProvider, Router } from "preact-iso";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { Footer } from "./components/Footer";
 import { Home } from "./pages/Home";
 import { SearchView } from "./pages/SearchView";
@@ -45,18 +45,22 @@ export const App: FunctionComponent = () => {
     const { extensions, domains, source, commitLink, latestCommitHash } = data;
 
     return (
-        <LocationProvider>
-            <Router>
-                <Home 
+        <HashRouter>
+            <Routes>
+                <Route 
                     path="/" 
-                    extensions={extensions} 
-                    domains={domains} 
-                    selectedDomain={selectedDomain} 
-                    setSelectedDomain={setSelectedDomain} 
+                    element={
+                        <Home 
+                            extensions={extensions} 
+                            domains={domains} 
+                            selectedDomain={selectedDomain} 
+                            setSelectedDomain={setSelectedDomain} 
+                        />
+                    } 
                 />
-                <SearchView path="/search" data={data} />
-            </Router>
+                <Route path="/search" element={<SearchView data={data} />} />
+            </Routes>
             <Footer source={source} commitLink={commitLink} latestCommitHash={latestCommitHash} />
-        </LocationProvider>
+        </HashRouter>
     );
 };

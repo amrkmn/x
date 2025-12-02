@@ -1,4 +1,5 @@
 import { FunctionComponent } from "preact";
+import { Link } from "react-router-dom";
 import { ExtensionCategory } from "../components/ExtensionCategory";
 import { MirrorSelector } from "../components/MirrorSelector";
 
@@ -10,7 +11,6 @@ interface ExtensionRepo {
 }
 
 interface HomeProps {
-    path?: string;
     extensions: {
         [category: string]: ExtensionRepo[];
     };
@@ -24,9 +24,9 @@ export const Home: FunctionComponent<HomeProps> = ({ extensions, domains, select
         <div class="container">
             <div class="page-header">
                 <h1>Mihon & Aniyomi Extensions</h1>
-                <a href="/search" class="btn btn-secondary header-btn">
+                <Link to="/search" class="btn btn-secondary header-btn">
                     Search
-                </a>
+                </Link>
             </div>
 
             <MirrorSelector domains={domains} selectedDomain={selectedDomain} onSelect={setSelectedDomain} />

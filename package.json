@@ -33,6 +33,6 @@
     "dependencies": {
         "fuse.js": "^7.1.0",
         "preact": "^10.27.2",
-        "preact-iso": "^2.11.0"
+        "react-router-dom": "^7.9.6"
     }
 }

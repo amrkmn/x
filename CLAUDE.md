@@ -98,7 +98,7 @@ The frontend is a Preact SPA built with Vite using:
 - **Preact + JSX**: React-compatible UI framework with TSX
 - **TypeScript**: Type-safe component development
 - **Fuse.js**: Fuzzy search for extensions
-- **Hash-based routing**: `#/` for home, `#/search` for search page
+- **preact-iso**: File-based routing with `/` for home, `/search` for search page
 
 **Frontend Structure**:
 - `src/App.tsx` - Main application component with routing
@@ -121,6 +121,7 @@ The frontend:
 Configured via `wrangler.toml` and `.github/workflows/update.yml`:
 
 1. **Cloudflare Workers**: Serves static assets from `dist/` via Workers Assets
+   - Entry point: `scripts/worker.ts` - Simple fetch handler that proxies to Workers Assets binding
 2. **GitHub Pages**: Deploys `dist/` to the default GitHub Pages site
 3. **Orphan branch**: Pushes `dist/` to `repo` branch with `force_orphan` for direct access
 4. **GitLab Mirror**: Syncs entire repository to GitLab using SSH

@@ -1,6 +1,7 @@
 import Fuse from "fuse.js";
 import { FunctionComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { useSearchParams, Link } from "react-router-dom";
 import { ExtensionRow } from "../components/ExtensionRow";
 
 interface Extension {
@@ -21,7 +22,6 @@ interface ExtensionRepo {
 }
 
 interface SearchViewProps {
-    path?: string;
     data: {
         extensions: {
             [category: string]: ExtensionRepo[];
@@ -30,10 +30,19 @@ interface SearchViewProps {
 }
 
 export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
-    const [query, setQuery] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialQuery = searchParams.get("q") || "";
+
+    const [query, setQuery] = useState(initialQuery);
     const [extensions, setExtensions] = useState<Extension[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const updateQueryParam = (newQuery: string) => {
+        setQuery(newQuery);
+        if (newQuery) setSearchParams({ q: newQuery });
+        else setSearchParams({});
+    };
 
     useEffect(() => {
         async function fetchExtensions() {
@@ -94,9 +103,9 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
         <div class="container">
             <div class="page-header">
                 <h1>Search Extensions</h1>
-                <a href="/" class="btn btn-secondary header-btn">
+                <Link to="/" class="btn btn-secondary header-btn">
                     Home
-                </a>
+                </Link>
             </div>
             <div class="search-container">
                 <input
@@ -104,7 +113,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
                     class="search-input"
                     placeholder="Search by name or package..."
                     value={query}
-                    onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+                    onInput={(e) => updateQueryParam((e.target as HTMLInputElement).value)}
                 />
             </div>
             <div class="table-container">
