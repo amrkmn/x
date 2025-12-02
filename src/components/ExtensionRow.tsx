@@ -6,6 +6,7 @@ interface Extension {
     version: string;
     lang: string;
     apk: string;
+    nsfw: number;
     sourceName?: string;
 }
 
@@ -33,7 +34,10 @@ export const ExtensionRow: FunctionComponent<ExtensionRowProps> = ({ extension, 
                 />
             </td>
             <td class="info-cell">
-                <div class="extension-name">{extension.name}</div>
+                <div class="extension-name">
+                    {extension.name}
+                    {extension.nsfw === 1 && <span class="nsfw-badge">NSFW</span>}
+                </div>
                 <div class="extension-pkg">{extension.pkg}</div>
                 {extension.sourceName && <div class="extension-source">Source: {extension.sourceName}</div>}
             </td>

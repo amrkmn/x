@@ -1,7 +1,7 @@
 import Fuse from "fuse.js";
 import { FunctionComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { useSearchParams, Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 import { ExtensionRow } from "../components/ExtensionRow";
 
 interface Extension {
@@ -10,6 +10,7 @@ interface Extension {
     version: string;
     lang: string;
     apk: string;
+    nsfw: number;
     repoUrl: string;
     sourceName: string;
 }
@@ -29,11 +30,14 @@ interface SearchViewProps {
     };
 }
 
+const formatSourceName = (sourceName: string) => {
+    return sourceName.toLowerCase().replace(/\s+/g, ".");
+};
+
 export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const initialQuery = searchParams.get("q") || "";
 
-    const [query, setQuery] = useState(initialQuery);
+    const [query, setQuery] = useState(searchParams.get("q") ?? "");
     const [extensions, setExtensions] = useState<Extension[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -127,8 +131,12 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {results.slice(0, 100).map((ext) => (
-                            <ExtensionRow extension={ext} repoUrl={ext.repoUrl} />
+                        {results.slice(0, 50).map((ext) => (
+                            <ExtensionRow
+                                key={`${formatSourceName(ext.sourceName)};${ext.pkg}`}
+                                extension={ext}
+                                repoUrl={ext.repoUrl}
+                            />
                         ))}
                     </tbody>
                 </table>

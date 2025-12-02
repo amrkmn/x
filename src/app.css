@@ -188,6 +188,21 @@ h2 {
     font-weight: bold;
     color: #a0d1ff;
     font-size: 0.95em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nsfw-badge {
+    display: inline-block;
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .extension-pkg {
