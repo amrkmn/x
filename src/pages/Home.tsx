@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { ExtensionCategory } from "../components/ExtensionCategory";
 import { MirrorSelector } from "../components/MirrorSelector";
 

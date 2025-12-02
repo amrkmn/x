@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router";
 import { Footer } from "./components/Footer";
 import { Home } from "./pages/Home";
 import { SearchView } from "./pages/SearchView";
@@ -47,16 +47,16 @@ export const App: FunctionComponent = () => {
     return (
         <HashRouter>
             <Routes>
-                <Route 
-                    path="/" 
+                <Route
+                    path="/"
                     element={
-                        <Home 
-                            extensions={extensions} 
-                            domains={domains} 
-                            selectedDomain={selectedDomain} 
-                            setSelectedDomain={setSelectedDomain} 
+                        <Home
+                            extensions={extensions}
+                            domains={domains}
+                            selectedDomain={selectedDomain}
+                            setSelectedDomain={setSelectedDomain}
                         />
-                    } 
+                    }
                 />
                 <Route path="/search" element={<SearchView data={data} />} />
             </Routes>
