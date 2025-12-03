@@ -434,7 +434,8 @@ footer a:hover {
     .header-btn,
     .page-header .btn {
         position: static;
-        width: 100%;
+        width: auto;
+        min-width: 120px;
     }
 
     .page-header h1 {
