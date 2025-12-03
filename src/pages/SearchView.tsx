@@ -65,38 +65,34 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
     useEffect(() => {
         async function fetchExtensions() {
             try {
-                let pendingCount = 0;
+                const promises = [];
 
                 for (const category in data.extensions) {
                     for (const repo of data.extensions[category]) {
-                        pendingCount++;
-                        fetch(`.${repo.path}`)
+                        const promise = fetch(`.${repo.path}`)
                             .then((res) => res.json())
                             .then((extList: Extension[]) => {
                                 const repoFolder = repo.path.substring(0, repo.path.lastIndexOf("/"));
-                                const repoExtensions = extList.map((ext) => ({
+                                return extList.map((ext) => ({
                                     ...ext,
                                     repoUrl: `.${repoFolder}`,
                                     sourceName: repo.name,
                                 }));
-                                setExtensions((prev) => [...prev, ...repoExtensions]);
                             })
-                            .catch((err) => console.error(`Failed to load extensions from ${repo.name}`, err))
-                            .finally(() => {
-                                pendingCount--;
-                                if (pendingCount === 0) {
-                                    setLoading(false);
-                                }
+                            .catch((err) => {
+                                console.error(`Failed to load extensions from ${repo.name}`, err);
+                                return [];
                             });
+                        promises.push(promise);
                     }
                 }
 
-                if (pendingCount === 0) {
-                    setLoading(false);
-                }
+                const results = await Promise.all(promises);
+                setExtensions(results.flat());
             } catch (e) {
                 console.error(e);
                 setError("Failed to load extension data.");
+            } finally {
                 setLoading(false);
             }
         }
