@@ -25,7 +25,7 @@
         "@preact/preset-vite": "^2.10.2",
         "@types/bun": "latest",
         "vite": "^7.2.6",
-        "wrangler": "^4.51.0"
+        "wrangler": "^4.52.1"
     },
     "peerDependencies": {
         "typescript": "^5.9.3"
@@ -33,6 +33,6 @@
     "dependencies": {
         "fuse.js": "^7.1.0",
         "preact": "^10.28.0",
-        "react-router": "^7.10.0"
+        "react-router": "^7.10.1"
     }
 }
