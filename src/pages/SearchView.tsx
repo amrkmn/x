@@ -13,6 +13,7 @@ interface Extension {
     nsfw: number;
     repoUrl: string;
     sourceName: string;
+    formattedSourceName?: string;
 }
 
 interface ExtensionRepo {
@@ -77,6 +78,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
                                     ...ext,
                                     repoUrl: `.${repoFolder}`,
                                     sourceName: repo.name,
+                                    formattedSourceName: formatSourceName(repo.name),
                                 }));
                             })
                             .catch((err) => {
@@ -211,7 +213,7 @@ export const SearchView: FunctionComponent<SearchViewProps> = ({ data }) => {
                     <tbody>
                         {results.slice(0, 50).map((ext) => (
                             <ExtensionRow
-                                key={`${formatSourceName(ext.sourceName)};${ext.pkg}`}
+                                key={`${ext.formattedSourceName};${ext.pkg}`} //
                                 extension={ext}
                                 repoUrl={ext.repoUrl}
                             />
