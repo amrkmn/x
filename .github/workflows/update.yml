@@ -25,7 +25,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
             - name: Install bun
               uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -36,7 +36,7 @@ jobs:
               run: bun install --frozen-lockfile
 
             - name: Restore extensions cache
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
               with:
                   path: extensions
                   key: extensions-${{ hashFiles('extensions.json') }}
@@ -92,7 +92,7 @@ jobs:
         if: needs.build-and-deploy.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
         steps:
             - name: Checkout repository
-              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
               with:
                   ref: main
                   fetch-depth: 0
