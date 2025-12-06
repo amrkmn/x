@@ -1,5 +1,26 @@
-# dependencies (bun install)
 node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
 # output
 out
@@ -15,13 +36,6 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
 # caches
 .eslintcache
 .cache
@@ -30,13 +44,13 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # IntelliJ based IDEs
 .idea
 
-# Finder (MacOS) folder config
-.DS_Store
-
-# SpecStory
-.specstory/ai_rules_backups
-
-# Extensions
 # Extensions
 tmp/
 extensions/
+
+# Generated static files
+static/extensions.json
+static/data.json
+static/keiyoushi/
+static/yuzono/
+static/kohi-den/

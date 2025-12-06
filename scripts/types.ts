@@ -3,7 +3,7 @@ export interface ExtensionConfig {
     source: string;
     name: string;
     path: string;
-    category: "mihon" | "aniyomi";
+    category: 'mihon' | 'aniyomi';
     commit?: string;
 }
 

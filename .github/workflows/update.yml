@@ -2,7 +2,7 @@ name: Update and Deploy
 
 on:
     schedule:
-        - cron: "0 */4 * * *"
+        - cron: '0 */4 * * *'
     workflow_dispatch:
 
 permissions:
@@ -38,7 +38,11 @@ jobs:
             - name: Restore extensions cache
               uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
               with:
-                  path: extensions
+                  path: |
+                      static/keiyoushi
+                      static/kohi-den
+                      static/yuzono
+                      static/data.json
                   key: extensions-${{ hashFiles('extensions.json') }}
                   restore-keys: extensions-
 
