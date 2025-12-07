@@ -8,10 +8,7 @@ const config = {
         adapter: adapter({
             pages: 'dist',
             assets: 'dist'
-        }),
-        prerender: {
-            handleHttpError: 'warn'
-        }
+        })
     }
 };
 
