@@ -45,16 +45,3 @@
         <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> Download </a>
     </td>
 </tr>
-
-<style>
-    .info-cell {
-        max-width: 200px;
-    }
-
-    .extension-name,
-    .extension-pkg,
-    .extension-source {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-</style>

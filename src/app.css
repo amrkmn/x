@@ -177,6 +177,10 @@ h2 {
     background-color: #253646;
 }
 
+.info-cell {
+    max-width: 200px;
+}
+
 .extension-icon-small {
     width: 32px;
     height: 32px;
@@ -193,6 +197,8 @@ h2 {
     display: flex;
     align-items: center;
     gap: 8px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .nsfw-badge {
@@ -212,6 +218,8 @@ h2 {
     color: #6c8b9f;
     font-family: monospace;
     margin-top: 2px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .extension-source {
@@ -219,6 +227,8 @@ h2 {
     color: #8a9ba8;
     margin-top: 3px;
     font-style: italic;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .meta-cell {
