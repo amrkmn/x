@@ -8,7 +8,8 @@ This is a Mihon & Aniyomi extensions repository aggregator that:
 
 - Fetches and mirrors extension repositories from multiple sources
 - Builds a static website to browse and add extensions
-- Deploys to GitHub Pages and Cloudflare Workers
+- Uses R2 cache for fast extension data restoration
+- Mirrors repository to GitLab for backup
 - Automatically updates extensions every 4 hours via GitHub Actions
 
 ## Development Commands
@@ -46,10 +47,12 @@ The build process uses Vite with SvelteKit and custom scripts:
    - Fetches extensions from upstream git repositories
    - Reads `extensions.json` configuration at project root
    - Checks remote git commit hashes for updates
+   - Restores `static/` directory from R2 cache using distributed locking
    - Clones repositories to `tmp/` and copies configured files to `static/`
    - Updates `extensions.json` with new commit hashes
+   - Uploads updated `static/` directory to R2 cache
    - Generates `static/data.json` with extension metadata
-   - Supports `--generate-only` flag to regenerate `data.json` without fetching updates
+   - Supports `--generate-only` flag to regenerate `data.json` without fetching updates or cache operations
    - Sets `updated` output for CI/CD workflows
 
 2. **Build order**: `update --generate-only → vite build`
@@ -141,27 +144,41 @@ Extensions fetched from upstream repositories contain:
 - `apk`: APK filename
 - `nsfw`: Integer flag (1 = NSFW content, 0 = safe)
 
+### Caching System
+
+The project uses Cloudflare R2 for distributed caching of extension data:
+
+- **R2 Bucket**: Stores compressed `static/` directory as `cache.tar.zst`
+- **Distributed Locking**: Uses R2 metadata and conditional writes to coordinate updates across concurrent workflow runs
+- **Cache Scripts**: Located in `scripts/cache/`
+  - `restore.ts`: Downloads and extracts cache from R2
+  - `upload.ts`: Compresses and uploads `static/` to R2
+  - `lock.ts`: Implements distributed lock using R2 metadata
+
+**Cache Flow**:
+1. Check if lock exists on R2 object (another workflow is updating)
+2. If unlocked, download and extract `cache.tar.zst` to `static/`
+3. After updates, acquire lock and upload new cache
+4. Lock prevents race conditions in concurrent workflows
+
 ### Deployment
 
-Configured via `wrangler.toml` and `.github/workflows/update.yml`:
+The workflow is configured in `.github/workflows/update.yml`:
 
-1. **Cloudflare Workers**: Serves static assets from `dist/` via Workers Assets
-   - Entry point: `scripts/worker.ts` - Simple fetch handler that proxies to Workers Assets binding
-2. **GitHub Pages**: Deploys `dist/` to the default GitHub Pages site
-3. **Orphan branch**: Pushes `dist/` to `repo` branch with `force_orphan` for direct access
-4. **GitLab Mirror**: Syncs entire repository to GitLab using SSH
+- **GitHub Pages**: Deploys the static site from `dist/` directory
+- **GitLab Mirror**: Syncs entire repository to GitLab using SSH for backup and redundancy
 
 The workflow runs on:
 - Schedule: Every 4 hours (`0 */4 * * *`)
 - Manual: `workflow_dispatch`
 
-Deployments only occur if:
+The workflow has two jobs:
+- `build-and-deploy`: Updates extensions using R2 cache, builds, commits changes, and deploys to GitHub Pages
+- `sync-repos`: Mirrors repository to GitLab (runs after build-and-deploy)
+
+Deployments and mirroring run when:
 - Extensions have updates (`updated=true` from `update.ts`)
 - Workflow is manually triggered (`workflow_dispatch`)
-
-The workflow has two jobs:
-- `build-and-deploy`: Updates extensions, builds, and deploys to all platforms
-- `sync-repos`: Mirrors to GitLab (depends on build-and-deploy)
 
 ## Important Patterns
 
