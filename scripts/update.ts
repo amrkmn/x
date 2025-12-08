@@ -2,6 +2,7 @@ import { $ } from 'bun';
 import { existsSync } from 'fs';
 import { appendFile, cp } from 'fs/promises';
 import { join } from 'path';
+import { restoreCache, saveCache } from './cache';
 import { config } from './config';
 import type { ExtensionConfig } from './types';
 
@@ -14,6 +15,9 @@ const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bu
     'extensions.json'
 ).json();
 const { owner, repo } = config.github;
+
+// Try to restore from R2 cache
+await restoreCache();
 
 async function generateData() {
     console.log('Generating data.json...');
@@ -105,10 +109,20 @@ const updates = (
     )
 ).filter((u): u is NonNullable<typeof u> => u !== null);
 
-// 2. Filter for CI
-const isCI = process.env.CI === 'true' && process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch';
-if (updates.length === 0 || isCI) {
-    console.log(updates.length ? 'Skipping updates (CI)' : 'No updates found');
+// 2. Check if we should proceed
+if (updates.length === 0) {
+    console.log('No updates found');
+    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
+    process.exit(0);
+}
+
+// Skip updates in CI unless it's a scheduled run or manual trigger
+const isCI = process.env.CI === 'true';
+const allowedEvents = ['schedule', 'workflow_dispatch'];
+const shouldSkip = isCI && !allowedEvents.includes(process.env.GITHUB_EVENT_NAME || '');
+
+if (shouldSkip) {
+    console.log('Skipping updates (CI)');
     if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
     process.exit(0);
 }
@@ -148,6 +162,7 @@ if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
     await generateData();
+    await saveCache();
 }
 
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `updated=${changed}\n`);
