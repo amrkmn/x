@@ -1,189 +1,154 @@
 import { $ } from 'bun';
 import { existsSync } from 'fs';
-import { appendFile, cp, mkdir, rm } from 'fs/promises';
+import { appendFile, cp } from 'fs/promises';
 import { join } from 'path';
 import { config } from './config';
 import type { ExtensionConfig } from './types';
 
-// Load extensions configuration
+const EXT_DIR = join(process.cwd(), 'static');
+const DATA_FILE = join(EXT_DIR, 'data.json');
+const TEMP_DIR = join(process.cwd(), 'tmp');
+
+// Load Config
 const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bun.file(
     'extensions.json'
 ).json();
+const { owner, repo } = config.github;
 
-const extensionsDir = join(process.cwd(), 'static');
-const dataJsonPath = join(extensionsDir, 'data.json');
-
-// Load synced state from data.json if it exists
-const syncedCommits = new Map<string, string>();
-try {
-    const dataJson = await Bun.file(dataJsonPath).json();
-    if (dataJson.extensions) {
-        Object.values(dataJson.extensions)
-            .flat()
-            .forEach((ext: any) => {
-                if (ext?.path && ext?.commit) syncedCommits.set(ext.path, ext.commit);
-            });
-    }
-} catch (e) {
-    // Ignore missing or invalid data.json
-}
-
-console.log('Checking for updates...');
-
-let hasUpdates = false;
-const extensionsToUpdate: Array<{ category: string; key: string; newHash: string }> = [];
-
-// Check each extension for updates
-for (const [category, extensions] of Object.entries(extensionsData)) {
-    for (const [key, ext] of Object.entries(extensions)) {
-        try {
-            const extDestDir = join(extensionsDir, key);
-            const isMissing = !existsSync(extDestDir);
-
-            // Get the synced hash from data.json map
-            const syncedHash = syncedCommits.get(ext.path);
-            const configHash = ext.commit;
-
-            // Check if config and synced are out of sync (failed previous update or manual change)
-            const isOutOfSync = syncedHash !== configHash;
-
-            // Fetch remote hash
-            const output = await $`git ls-remote ${ext.source} HEAD`.text();
-            const remoteHash = output.split('\t')[0];
-
-            // Determine if we need to update
-            if (remoteHash !== syncedHash) {
-                // Remote has new changes compared to what we have synced
-                console.log(
-                    `Update detected for ${ext.name}: ${syncedHash?.substring(0, 7) || 'none'} -> ${remoteHash.substring(0, 7)}`
-                );
-                hasUpdates = true;
-                extensionsToUpdate.push({ category, key, newHash: remoteHash });
-            } else if (isOutOfSync || isMissing) {
-                // Config says we have a hash but files are missing or synced hash differs
-                console.log(`Re-sync needed for ${ext.name} (missing files or out of sync)`);
-                extensionsToUpdate.push({ category, key, newHash: remoteHash });
-            } else {
-                console.log(`No update for ${ext.name} (Hash: ${remoteHash.substring(0, 7)})`);
-            }
-        } catch (e) {
-            console.error(`Failed to check updates for ${ext.name}`, e);
-            // If check fails and files are missing, try to update anyway
-            const extDestDir = join(extensionsDir, key);
-            if (!existsSync(extDestDir) && ext.commit) {
-                extensionsToUpdate.push({ category, key, newHash: ext.commit });
-            }
+async function generateData() {
+    console.log('Generating data.json...');
+    try {
+        const extensions: Record<string, any[]> = {};
+        for (const [cat, exts] of Object.entries(extensionsData)) {
+            extensions[cat] = Object.values(exts).map((e) => ({
+                source: e.source,
+                name: e.name,
+                path: e.path,
+                commit: e.commit
+            }));
         }
+
+        const commit = (await $`git rev-parse HEAD`.text()).trim();
+        const source = `https://github.com/${owner}/${repo}`;
+
+        await Bun.write(
+            DATA_FILE,
+            JSON.stringify({
+                extensions,
+                domains: config.domains,
+                source,
+                commitLink: `${source}/commit/${commit}`,
+                latestCommitHash: commit.substring(0, 7)
+            })
+        );
+        console.log(`Generated data.json (${commit.substring(0, 7)})`);
+    } catch (error) {
+        console.error('Failed to generate data.json:', error);
+        process.exit(1);
     }
 }
 
-// Determine if we should proceed with download
-const isCI = process.env.CI === 'true';
-const isManual = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch';
-const shouldDownload = hasUpdates || !isCI || isManual;
-
-if (extensionsToUpdate.length === 0 || !shouldDownload) {
-    console.log(
-        extensionsToUpdate.length === 0
-            ? 'No updates found.'
-            : 'No updates found (CI). Skipping download.'
-    );
-    if (process.env.GITHUB_OUTPUT) {
-        await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
-    }
+if (process.argv.includes('--generate-only')) {
+    await generateData();
     process.exit(0);
 }
 
-const tempDir = join(process.cwd(), 'tmp');
-const tempExtensionsDir = join(tempDir, 'extensions');
+// 1. Identify updates
+console.log('Checking for updates...');
+const synced = new Map<string, string>();
+try {
+    const data = await Bun.file(DATA_FILE).json();
+    Object.values(data.extensions || {})
+        .flat()
+        .forEach((e: any) => {
+            if (e?.path && e?.commit) synced.set(e.path, e.commit);
+        });
+} catch {}
 
-// Clean temp dir
-if (existsSync(tempDir)) {
-    await rm(tempDir, { recursive: true, force: true });
+const tasks = Object.entries(extensionsData).flatMap(([category, group]) =>
+    Object.entries(group).map(([key, ext]) => ({ category, key, ext }))
+);
+
+const updates = (
+    await Promise.all(
+        tasks.map(async ({ category, key, ext }) => {
+            try {
+                const dest = join(EXT_DIR, key);
+                const syncedHash = synced.get(ext.path);
+
+                // If missing on disk, we must update
+                if (!existsSync(dest))
+                    return {
+                        category,
+                        key,
+                        ext,
+                        hash: ext.commit || 'HEAD'
+                    };
+
+                // Fetch remote
+                const remoteHash = (
+                    await $`git ls-remote ${ext.source} HEAD | cut -f1`.text()
+                ).trim();
+
+                // Update if remote differs from synced, or if config differs from synced
+                if (remoteHash !== syncedHash || ext.commit !== syncedHash) {
+                    console.log(
+                        `[${ext.name}] Update: ${syncedHash?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                    );
+                    return { category, key, ext, hash: remoteHash };
+                }
+            } catch (e) {
+                console.error(`Check failed: ${ext.name}`);
+            }
+            return null;
+        })
+    )
+).filter((u): u is NonNullable<typeof u> => u !== null);
+
+// 2. Filter for CI
+const isCI = process.env.CI === 'true' && process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch';
+if (updates.length === 0 || isCI) {
+    console.log(updates.length ? 'Skipping updates (CI)' : 'No updates found');
+    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
+    process.exit(0);
 }
-await mkdir(tempExtensionsDir, { recursive: true });
 
-// Ensure extensions directory exists
-if (!existsSync(extensionsDir)) {
-    await mkdir(extensionsDir, { recursive: true });
-}
+// 3. Perform Updates
+console.log(`Updating ${updates.length} extensions...`);
+await $`rm -rf ${TEMP_DIR}`;
 
-console.log('Starting extension update...');
-
-let successCount = 0;
-const successfulUpdates: Array<{ category: string; key: string; newHash: string }> = [];
-
-for (const { category, key, newHash } of extensionsToUpdate) {
-    const ext = extensionsData[category][key];
-    console.log(`Processing ${ext.name} (${key})...`);
-
-    const extTempDir = join(tempExtensionsDir, key);
-    const extDestDir = join(extensionsDir, key);
+let changed = false;
+for (const { key, ext, hash, category } of updates) {
+    console.log(`Processing ${ext.name}...`);
+    const temp = join(TEMP_DIR, key);
+    const dest = join(EXT_DIR, key);
 
     try {
-        console.log(`  Cloning ${ext.source}...`);
-        await $`git clone --depth 1 ${ext.source} ${extTempDir}`.quiet();
+        await $`git clone --depth 1 ${ext.source} ${temp}`.quiet();
+        await $`rm -rf ${dest} && mkdir -p ${dest}`;
 
-        // Clean destination and recreate
-        if (existsSync(extDestDir)) {
-            await rm(extDestDir, { recursive: true, force: true });
-        }
-        await mkdir(extDestDir, { recursive: true });
-
-        // Copy each configured file/directory
         for (const file of config.filesToCopy) {
-            const srcPath = join(extTempDir, file);
-            const destPath = join(extDestDir, file);
-
+            const srcPath = join(temp, file);
             if (existsSync(srcPath)) {
-                await cp(srcPath, destPath, { recursive: true });
-                console.log(`  Copied ${file}`);
+                await cp(srcPath, join(dest, file), { recursive: true });
             }
         }
 
-        // Only mark as successful after files are copied
-        successCount++;
-        successfulUpdates.push({ category, key, newHash });
-        console.log(`  Successfully updated ${ext.name}`);
-    } catch (error) {
-        console.error(`  Failed to update ${ext.name}:`, error);
-        // Don't update the hash for failed extensions
+        extensionsData[category][key].commit = hash;
+        changed = true;
+        console.log(`  Updated ${ext.name}`);
+    } catch (e) {
+        console.error(`  Update failed: ${ext.name}`, e);
     }
 }
 
-console.log('Cleaning up...');
-await rm(tempDir, { recursive: true, force: true });
-
-// Check if we have actual new updates by comparing against the ORIGINAL extensionsData
-// (the root extensions.json that will be committed). If the newHash matches what's
-// already in extensionsData, there's no actual change to commit.
-const hasActualUpdates = successfulUpdates.some(({ category, key, newHash }) => {
-    const originalConfigHash = extensionsData[category]?.[key]?.commit;
-    return originalConfigHash !== newHash;
-});
-
-// Only update configs if we had successful updates
-if (successfulUpdates.length > 0) {
-    // Update extensionsData with successful hashes only
-    for (const { category, key, newHash } of successfulUpdates) {
-        extensionsData[category][key].commit = newHash;
-    }
-
-    // Only write root extensions.json if there are actual hash changes
-    if (hasActualUpdates) {
-        await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
-        console.log('Updated extensions.json');
-    }
-
-    // Regenerate data.json to reflect new state
-    console.log('Regenerating data.json...');
-    await $`bun scripts/index.ts`;
+// 4. Cleanup & Save
+await $`rm -rf ${TEMP_DIR}`;
+if (changed) {
+    await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
+    console.log('Updated extensions.json');
+    await generateData();
 }
 
-if (process.env.GITHUB_OUTPUT) {
-    await appendFile(process.env.GITHUB_OUTPUT, `updated=${hasActualUpdates}\n`);
-}
-
-console.log(
-    `Update complete! ${successCount}/${extensionsToUpdate.length} extensions updated successfully.`
-);
+if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `updated=${changed}\n`);
+console.log('Done.');
