@@ -16,9 +16,6 @@ const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bu
 ).json();
 const { owner, repo } = config.github;
 
-// Try to restore from R2 cache
-await restoreCache();
-
 async function generateData() {
     console.log('Generating data.json...');
     try {
@@ -56,6 +53,9 @@ if (process.argv.includes('--generate-only')) {
     await generateData();
     process.exit(0);
 }
+
+// Try to restore from R2 cache
+await restoreCache();
 
 // 1. Identify updates
 console.log('Checking for updates...');
