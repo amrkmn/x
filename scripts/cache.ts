@@ -9,7 +9,7 @@ const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
 export async function restoreCache(): Promise<boolean> {
     if (!ENABLED) {
-        console.log('R2 Cache disabled: Missing environment variables');
+        console.log('R2 Cache disabled');
         return false;
     }
 
@@ -17,60 +17,48 @@ export async function restoreCache(): Promise<boolean> {
     if (!s3) return false;
 
     try {
-        // Load metadata to check if cache is still valid
-        const metadata = await loadMetadata(s3);
-        if (metadata) {
-            console.log(
-                `Found metadata: ${metadata.key} (${new Date(metadata.timestamp).toISOString()})`
-            );
-
-            // Validate local cache
-            if (await validateCache(metadata)) {
-                console.log('Local cache is valid. Skipping download.');
-                await updateAccessTime(s3, metadata);
-                return true;
-            }
-
-            console.log('Local cache validation failed. Downloading fresh cache...');
-        }
-
         const exactKey = await getCacheKey();
-        console.log('Checking R2 cache...');
 
         let downloadKey = exactKey;
         const exactFile = s3.file(exactKey);
 
         if (await exactFile.exists()) {
-            console.log(`Cache hit (Exact): ${exactKey}`);
+            // Load metadata to check if local cache is still valid
+            const metadata = await loadMetadata(s3, exactKey);
+            if (metadata && (await validateCache(metadata))) {
+                console.log('Local cache valid');
+                await updateAccessTime(s3, exactKey, metadata);
+                return true;
+            }
         } else {
-            console.log(`Cache miss (Exact): ${exactKey}`);
-            console.log('Searching for fallback cache...');
-
             const fallbackKey = await findLatestCache(s3);
             if (!fallbackKey) {
-                console.log('No cache found.');
+                console.log('No cache found');
                 return false;
             }
 
-            console.log(`Fallback found: ${fallbackKey}`);
+            console.log(`Using fallback: ${fallbackKey}`);
             downloadKey = fallbackKey;
         }
 
         await ensureDir(TMP_DIR);
         await ensureDir(STATIC_DIR);
 
-        console.log(`Downloading ${downloadKey}...`);
+        console.log(`Downloading cache...`);
         const s3File = s3.file(downloadKey);
         const arrayBuffer = await s3File.arrayBuffer();
         await Bun.write(CACHE_FILE_PATH, new Uint8Array(arrayBuffer));
 
-        console.log('Extracting cache...');
         await extractZip(CACHE_FILE_PATH);
-
-        console.log('Cleaning up tmp directory...');
         await cleanupDir(TMP_DIR);
 
-        console.log('Cache restored successfully.');
+        // Update access time after successful restore
+        const metadata = await loadMetadata(s3, downloadKey);
+        if (metadata) {
+            await updateAccessTime(s3, downloadKey, metadata);
+        }
+
+        console.log('Cache restored');
         return true;
     } catch (e) {
         console.error('Failed to restore cache:', e);
@@ -89,30 +77,23 @@ export async function saveCache(): Promise<void> {
     try {
         // Acquire lock
         if (!(await acquireLock(s3, instanceId))) {
-            console.error('Failed to acquire lock. Another instance may be updating the cache.');
+            console.error('Failed to acquire lock');
             return;
         }
 
-        // Load previous metadata to preserve access history
-        const previousMetadata = await loadMetadata(s3);
-
         const key = await getCacheKey();
-        console.log(`Saving R2 cache: ${key}`);
+        console.log(`Saving cache: ${key}`);
 
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
         const files = await compressToZip(STATIC_DIR, CACHE_FILE_PATH);
 
-        console.log('Uploading to R2...');
         await Bun.write(s3.file(key), Bun.file(CACHE_FILE_PATH));
-
-        console.log('Saving metadata...');
-        await saveMetadata(s3, key, files, previousMetadata);
-
-        console.log('Cleaning up tmp directory...');
+        await saveMetadata(s3, key, files);
         await cleanupDir(TMP_DIR);
-        console.log('Cache saved successfully.');
+
+        console.log('Cache saved');
 
         await cleanupOldCaches(s3);
     } catch (e) {

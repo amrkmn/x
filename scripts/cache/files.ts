@@ -34,11 +34,6 @@ export async function calculateDirectoryChecksums(
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
-    console.log('Validating cache integrity...');
-    console.log(`  Cache created: ${new Date(metadata.timestamp).toISOString()}`);
-    console.log(`  Last accessed: ${new Date(metadata.lastAccessed).toISOString()}`);
-    console.log(`  Total accesses: ${metadata.totalAccesses}`);
-
     let valid = 0;
     let invalid = 0;
     let missing = 0;
@@ -57,18 +52,11 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
                 valid++;
             } else {
                 invalid++;
-                console.warn(`  Checksum mismatch: ${filePath}`);
             }
         } catch (e) {
             invalid++;
-            console.error(`  Failed to validate: ${filePath}`, e);
         }
     }
-
-    const totalFiles = Object.keys(metadata.files).length;
-    console.log(
-        `  Validation: ${valid}/${totalFiles} valid, ${invalid} invalid, ${missing} missing`
-    );
 
     return invalid === 0 && missing === 0;
 }
@@ -114,11 +102,7 @@ export async function compressToZip(
     dir: string,
     outputPath: string
 ): Promise<Record<string, FileMetadata>> {
-    console.log('Calculating file checksums...');
     const checksums = await calculateDirectoryChecksums(dir);
-    console.log(`Calculated checksums for ${Object.keys(checksums).length} files`);
-
-    console.log('Compressing directory...');
     const files = await collectFiles(dir);
     const zipped = zipSync(files, { level: 6 });
     await writeFile(outputPath, zipped);

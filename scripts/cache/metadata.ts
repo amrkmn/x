@@ -1,12 +1,15 @@
 import type { S3Client } from 'bun';
 import type { CacheMetadata, FileMetadata } from './types';
-import { METADATA_KEY, METADATA_VERSION } from './constants';
+import { METADATA_VERSION } from './constants';
+
+function getMetadataKey(cacheKey: string): string {
+    return `${cacheKey}.meta.json`;
+}
 
 export async function saveMetadata(
     s3: S3Client,
     key: string,
-    files: Record<string, FileMetadata>,
-    previousMetadata?: CacheMetadata | null
+    files: Record<string, FileMetadata>
 ): Promise<void> {
     const content = await Bun.file('extensions.json').arrayBuffer();
     const hash = new Bun.CryptoHasher('sha256').update(content).digest('hex');
@@ -16,21 +19,20 @@ export async function saveMetadata(
         hash,
         timestamp: Date.now(),
         lastAccessed: Date.now(),
-        totalAccesses: previousMetadata ? previousMetadata.totalAccesses + 1 : 1,
+        totalAccesses: 0,
         files,
         version: METADATA_VERSION
     };
 
-    await Bun.write(s3.file(METADATA_KEY), JSON.stringify(metadata, null, 2));
+    const metadataKey = getMetadataKey(key);
+    await Bun.write(s3.file(metadataKey), JSON.stringify(metadata, null, 2));
 
-    console.log('Metadata saved to R2');
-    console.log(`  Cache key: ${key}`);
-    console.log(`  Total accesses: ${metadata.totalAccesses}`);
-    console.log(`  Files tracked: ${Object.keys(metadata.files).length}`);
+    console.log(`Metadata saved: ${metadataKey}`);
 }
 
-export async function loadMetadata(s3: S3Client): Promise<CacheMetadata | null> {
-    const metadataFile = s3.file(METADATA_KEY);
+export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<CacheMetadata | null> {
+    const metadataKey = getMetadataKey(cacheKey);
+    const metadataFile = s3.file(metadataKey);
 
     try {
         if (!(await metadataFile.exists())) {
@@ -40,13 +42,11 @@ export async function loadMetadata(s3: S3Client): Promise<CacheMetadata | null> 
         const metadata: any = JSON.parse(await metadataFile.text());
 
         if (metadata.version !== METADATA_VERSION) {
-            console.log('Metadata version mismatch. Ignoring.');
             return null;
         }
 
         // Migrate old metadata format (checksums -> files)
         if (metadata.checksums && !metadata.files) {
-            console.log('Migrating old metadata format...');
             metadata.files = {};
             for (const [path, checksum] of Object.entries(
                 metadata.checksums as Record<string, string>
@@ -74,9 +74,27 @@ export async function loadMetadata(s3: S3Client): Promise<CacheMetadata | null> 
     }
 }
 
-export async function updateAccessTime(s3: S3Client, metadata: CacheMetadata): Promise<void> {
+export async function updateAccessTime(
+    s3: S3Client,
+    cacheKey: string,
+    metadata: CacheMetadata
+): Promise<void> {
     metadata.lastAccessed = Date.now();
     metadata.totalAccesses++;
-    await Bun.write(s3.file(METADATA_KEY), JSON.stringify(metadata, null, 2));
-    console.log('Updated access time in metadata');
+
+    const metadataKey = getMetadataKey(cacheKey);
+    await Bun.write(s3.file(metadataKey), JSON.stringify(metadata, null, 2));
+}
+
+export async function deleteMetadata(s3: S3Client, cacheKey: string): Promise<void> {
+    const metadataKey = getMetadataKey(cacheKey);
+    const metadataFile = s3.file(metadataKey);
+
+    try {
+        if (await metadataFile.exists()) {
+            await metadataFile.delete();
+        }
+    } catch (e) {
+        console.error(`Failed to delete metadata: ${e}`);
+    }
 }

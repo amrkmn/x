@@ -1,6 +1,7 @@
 import { S3Client } from 'bun';
 import type { S3ListObject } from './types';
 import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './constants';
+import { deleteMetadata } from './metadata';
 
 const ENV = {
     ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
@@ -52,13 +53,8 @@ export async function findLatestCache(s3: S3Client): Promise<string | null> {
 }
 
 export async function cleanupOldCaches(s3: S3Client): Promise<void> {
-    console.log('Running cache cleanup...');
-
     const response = await s3.list({ prefix: 'extensions-' });
-    if (!response.contents) {
-        console.log('Nothing to clean.');
-        return;
-    }
+    if (!response.contents) return;
 
     const files = response.contents
         .filter((entry) => entry.key?.endsWith('.zip') && entry.lastModified)
@@ -76,12 +72,9 @@ export async function cleanupOldCaches(s3: S3Client): Promise<void> {
         const age = now - new Date(entry.lastModified!).getTime();
         const shouldDelete = i >= MAX_CACHE_FILES || age > maxAge;
 
-        if (shouldDelete) {
-            const reason = i >= MAX_CACHE_FILES ? `Limit ${MAX_CACHE_FILES}` : '>7 days';
-            console.log(`Deleting old cache (${reason}): ${entry.key}`);
+        if (shouldDelete && entry.key) {
             await s3.file(entry.key).delete();
+            await deleteMetadata(s3, entry.key);
         }
     }
-
-    console.log('Cleanup complete.');
 }

@@ -22,14 +22,9 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<boo
                 const lockAge = Date.now() - existingLock.timestamp;
 
                 if (lockAge < existingLock.ttl) {
-                    console.log(
-                        `Cache locked by ${existingLock.instance}. Waiting ${LOCK_RETRY_MS / 1000}s... (Attempt ${attempt + 1}/${LOCK_MAX_RETRIES})`
-                    );
                     await Bun.sleep(LOCK_RETRY_MS);
                     continue;
                 }
-
-                console.log(`Stale lock detected (age: ${Math.round(lockAge / 1000)}s). Taking over...`);
             }
 
             // Acquire lock
@@ -47,19 +42,17 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<boo
             const verifyLock: CacheLock = JSON.parse(await lockFile.text());
 
             if (verifyLock.instance !== instanceId) {
-                console.log(`Lost race condition to ${verifyLock.instance}. Retrying...`);
                 await Bun.sleep(LOCK_RETRY_MS);
                 continue;
             }
 
-            console.log(`Lock acquired: ${instanceId}`);
             return true;
         } catch (e) {
-            console.error(`Failed to acquire lock (attempt ${attempt + 1}):`, e);
+            console.error(`Lock error: ${e}`);
         }
     }
 
-    console.error('Failed to acquire lock after maximum retries');
+    console.error('Failed to acquire lock');
     return false;
 }
 
@@ -72,9 +65,6 @@ export async function releaseLock(s3: S3Client, instanceId: string): Promise<voi
 
             if (lock.instance === instanceId) {
                 await lockFile.delete();
-                console.log(`Lock released: ${instanceId}`);
-            } else {
-                console.warn(`Lock owned by different instance (${lock.instance}). Not releasing.`);
             }
         }
     } catch (e) {
