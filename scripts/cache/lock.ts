@@ -1,5 +1,4 @@
 import type { S3Client } from 'bun';
-import type { CacheLock } from './types';
 import {
     LOCK_KEY,
     LOCK_MAX_RETRIES,
@@ -7,6 +6,7 @@ import {
     LOCK_TIMEOUT_MS,
     LOCK_VERIFY_DELAY_MS
 } from './constants';
+import type { CacheLock } from './types';
 
 export function generateInstanceId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

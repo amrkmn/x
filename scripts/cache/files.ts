@@ -1,7 +1,7 @@
+import { unzipSync, zipSync } from 'fflate';
 import { existsSync, readdirSync, statSync } from 'fs';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join, relative, sep } from 'path';
-import { unzipSync, zipSync } from 'fflate';
 import type { CacheMetadata, FileMetadata } from './types';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {

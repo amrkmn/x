@@ -1,6 +1,6 @@
 import type { S3Client } from 'bun';
-import type { CacheMetadata, FileMetadata } from './types';
 import { METADATA_VERSION } from './constants';
+import type { CacheMetadata, FileMetadata } from './types';
 
 function getMetadataKey(cacheKey: string): string {
     return `${cacheKey}.meta.json`;

@@ -1,7 +1,7 @@
 import { S3Client } from 'bun';
-import type { S3ListObject } from './types';
 import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './constants';
 import { deleteMetadata } from './metadata';
+import type { S3ListObject } from './types';
 
 const ENV = {
     ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
@@ -26,7 +26,7 @@ export function getClient(): S3Client | null {
     return client;
 }
 
-export async function findMatchingCache(
+export async function resolveCacheKey(
     s3: S3Client,
     key: string,
     restoreKeys?: string[]
