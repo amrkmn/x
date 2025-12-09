@@ -3,6 +3,7 @@ import { existsSync } from 'fs';
 import { appendFile, cp } from 'fs/promises';
 import { join } from 'path';
 import { restoreCache, saveCache } from './cache';
+import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/constants';
 import { config } from './config';
 import type { ExtensionConfig } from './types';
 
@@ -55,7 +56,9 @@ if (process.argv.includes('--generate-only')) {
 }
 
 // Try to restore from R2 cache
-await restoreCache();
+const cacheKey = await generateCacheKey();
+
+await restoreCache(CACHE_PATHS, cacheKey, CACHE_RESTORE_KEYS);
 
 // 1. Identify updates
 console.log('Checking for updates...');
@@ -162,7 +165,10 @@ if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
     await generateData();
-    await saveCache();
+
+    // Save cache with new key based on updated extensions.json
+    const newCacheKey = await generateCacheKey();
+    await saveCache(CACHE_PATHS, newCacheKey);
 }
 
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `updated=${changed}\n`);

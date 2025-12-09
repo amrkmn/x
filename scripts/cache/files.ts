@@ -10,7 +10,7 @@ export async function calculateFileChecksum(filePath: string): Promise<string> {
 }
 
 export async function calculateDirectoryChecksums(
-    dir: string
+    paths: string[]
 ): Promise<Record<string, FileMetadata>> {
     const files: Record<string, FileMetadata> = {};
 
@@ -29,7 +29,19 @@ export async function calculateDirectoryChecksums(
         }
     }
 
-    await walk(dir);
+    for (const path of paths) {
+        if (existsSync(path)) {
+            const stat = statSync(path);
+            if (stat.isDirectory()) {
+                await walk(path);
+            } else if (stat.isFile()) {
+                const relativePath = relative('.', path).split(sep).join('/');
+                const checksum = await calculateFileChecksum(path);
+                files[relativePath] = { checksum, size: stat.size };
+            }
+        }
+    }
+
     return files;
 }
 
@@ -76,7 +88,7 @@ export async function extractZip(zipPath: string): Promise<void> {
     }
 }
 
-export async function collectFiles(dir: string): Promise<Record<string, Uint8Array>> {
+export async function collectFiles(paths: string[]): Promise<Record<string, Uint8Array>> {
     const files: Record<string, Uint8Array> = {};
 
     async function walk(currentDir: string) {
@@ -94,16 +106,28 @@ export async function collectFiles(dir: string): Promise<Record<string, Uint8Arr
         }
     }
 
-    await walk(dir);
+    for (const path of paths) {
+        if (existsSync(path)) {
+            const stat = statSync(path);
+            if (stat.isDirectory()) {
+                await walk(path);
+            } else if (stat.isFile()) {
+                const relativePath = relative('.', path).split(sep).join('/');
+                const content = new Uint8Array(await Bun.file(path).arrayBuffer());
+                files[relativePath] = content;
+            }
+        }
+    }
+
     return files;
 }
 
 export async function compressToZip(
-    dir: string,
+    paths: string[],
     outputPath: string
 ): Promise<Record<string, FileMetadata>> {
-    const checksums = await calculateDirectoryChecksums(dir);
-    const files = await collectFiles(dir);
+    const checksums = await calculateDirectoryChecksums(paths);
+    const files = await collectFiles(paths);
     const zipped = zipSync(files, { level: 6 });
     await writeFile(outputPath, zipped);
 

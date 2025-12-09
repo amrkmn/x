@@ -1,51 +1,52 @@
 import { join } from 'path';
-import { CACHE_FILE_NAME, STATIC_DIR, TMP_DIR } from './cache/constants';
+import { CACHE_FILE_NAME, TMP_DIR } from './cache/constants';
 import { cleanupDir, compressToZip, ensureDir, extractZip, validateCache } from './cache/files';
 import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
 import { loadMetadata, saveMetadata, updateAccessTime } from './cache/metadata';
-import { cleanupOldCaches, ENABLED, findLatestCache, getCacheKey, getClient } from './cache/s3';
+import { cleanupOldCaches, ENABLED, findMatchingCache, getClient } from './cache/s3';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
-export async function restoreCache(): Promise<boolean> {
+let cacheIdCounter = Date.now();
+
+export async function restoreCache(
+    paths: string[],
+    key: string,
+    restoreKeys?: string[]
+): Promise<string | undefined> {
     if (!ENABLED) {
         console.log('R2 Cache disabled');
-        return false;
+        return undefined;
     }
 
     const s3 = getClient();
-    if (!s3) return false;
+    if (!s3) return undefined;
 
     try {
-        const exactKey = await getCacheKey();
+        // Find matching cache (exact or prefix match)
+        const matchedKey = await findMatchingCache(s3, key, restoreKeys);
+        if (!matchedKey) {
+            console.log('No cache found');
+            return undefined;
+        }
 
-        let downloadKey = exactKey;
-        const exactFile = s3.file(exactKey);
-
-        if (await exactFile.exists()) {
-            // Load metadata to check if local cache is still valid
-            const metadata = await loadMetadata(s3, exactKey);
-            if (metadata && (await validateCache(metadata))) {
-                console.log('Local cache valid');
-                await updateAccessTime(s3, exactKey, metadata);
-                return true;
-            }
-        } else {
-            const fallbackKey = await findLatestCache(s3);
-            if (!fallbackKey) {
-                console.log('No cache found');
-                return false;
-            }
-
-            console.log(`Using fallback: ${fallbackKey}`);
-            downloadKey = fallbackKey;
+        // Check if local cache is still valid
+        const metadata = await loadMetadata(s3, matchedKey);
+        if (metadata && (await validateCache(metadata))) {
+            console.log('Local cache valid');
+            await updateAccessTime(s3, matchedKey, metadata);
+            return matchedKey;
         }
 
         await ensureDir(TMP_DIR);
-        await ensureDir(STATIC_DIR);
+
+        // Ensure all target paths exist
+        for (const path of paths) {
+            await ensureDir(path);
+        }
 
         console.log(`Downloading cache...`);
-        const s3File = s3.file(downloadKey);
+        const s3File = s3.file(matchedKey);
         const arrayBuffer = await s3File.arrayBuffer();
         await Bun.write(CACHE_FILE_PATH, new Uint8Array(arrayBuffer));
 
@@ -53,24 +54,24 @@ export async function restoreCache(): Promise<boolean> {
         await cleanupDir(TMP_DIR);
 
         // Update access time after successful restore
-        const metadata = await loadMetadata(s3, downloadKey);
-        if (metadata) {
-            await updateAccessTime(s3, downloadKey, metadata);
+        const newMetadata = await loadMetadata(s3, matchedKey);
+        if (newMetadata) {
+            await updateAccessTime(s3, matchedKey, newMetadata);
         }
 
         console.log('Cache restored');
-        return true;
+        return matchedKey;
     } catch (e) {
         console.error('Failed to restore cache:', e);
-        return false;
+        return undefined;
     }
 }
 
-export async function saveCache(): Promise<void> {
-    if (!ENABLED) return;
+export async function saveCache(paths: string[], key: string): Promise<number | undefined> {
+    if (!ENABLED) return undefined;
 
     const s3 = getClient();
-    if (!s3) return;
+    if (!s3) return undefined;
 
     const instanceId = generateInstanceId();
 
@@ -78,16 +79,15 @@ export async function saveCache(): Promise<void> {
         // Acquire lock
         if (!(await acquireLock(s3, instanceId))) {
             console.error('Failed to acquire lock');
-            return;
+            return undefined;
         }
 
-        const key = await getCacheKey();
         console.log(`Saving cache: ${key}`);
 
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
-        const files = await compressToZip(STATIC_DIR, CACHE_FILE_PATH);
+        const files = await compressToZip(paths, CACHE_FILE_PATH);
 
         await Bun.write(s3.file(key), Bun.file(CACHE_FILE_PATH));
         await saveMetadata(s3, key, files);
@@ -95,9 +95,14 @@ export async function saveCache(): Promise<void> {
 
         console.log('Cache saved');
 
-        await cleanupOldCaches(s3);
+        // Extract prefix for cleanup (e.g., "extensions-abc.zip" -> "extensions-")
+        const prefix = key.split('-')[0] + '-';
+        await cleanupOldCaches(s3, prefix);
+
+        return ++cacheIdCounter;
     } catch (e) {
         console.error('Failed to save cache:', e);
+        return undefined;
     } finally {
         // Always release lock
         await releaseLock(s3, instanceId);

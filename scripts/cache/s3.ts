@@ -26,34 +26,47 @@ export function getClient(): S3Client | null {
     return client;
 }
 
-export async function getCacheKey(): Promise<string> {
-    const content = await Bun.file('extensions.json').arrayBuffer();
-    const hash = new Bun.CryptoHasher('sha256').update(content).digest('hex');
-    return `extensions-${hash}.zip`;
-}
+export async function findMatchingCache(
+    s3: S3Client,
+    key: string,
+    restoreKeys?: string[]
+): Promise<string | null> {
+    // Try exact match first
+    if (await s3.file(key).exists()) {
+        return key;
+    }
 
-export async function findLatestCache(s3: S3Client): Promise<string | null> {
-    const response = await s3.list({ prefix: 'extensions-' });
-    if (!response.contents) return null;
+    // Try restore keys in order (prefix matching)
+    if (restoreKeys && restoreKeys.length > 0) {
+        for (const prefix of restoreKeys) {
+            const response = await s3.list({ prefix });
+            if (!response.contents) continue;
 
-    let latest = null as S3ListObject | null;
+            // Find latest cache matching this prefix
+            let latest = null as S3ListObject | null;
 
-    for (const entry of response.contents || []) {
-        if (!entry.key?.endsWith('.zip') || !entry.lastModified) continue;
+            for (const entry of response.contents) {
+                if (!entry.key?.endsWith('.zip') || !entry.lastModified) continue;
 
-        const entryTime = new Date(entry.lastModified).getTime();
-        const latestTime = latest ? new Date(latest.lastModified!).getTime() : 0;
+                const entryTime = new Date(entry.lastModified).getTime();
+                const latestTime = latest ? new Date(latest.lastModified!).getTime() : 0;
 
-        if (!latest || entryTime > latestTime) {
-            latest = entry;
+                if (!latest || entryTime > latestTime) {
+                    latest = entry;
+                }
+            }
+
+            if (latest?.key) {
+                return latest.key;
+            }
         }
     }
 
-    return latest?.key || null;
+    return null;
 }
 
-export async function cleanupOldCaches(s3: S3Client): Promise<void> {
-    const response = await s3.list({ prefix: 'extensions-' });
+export async function cleanupOldCaches(s3: S3Client, prefix: string): Promise<void> {
+    const response = await s3.list({ prefix });
     if (!response.contents) return;
 
     const files = response.contents
