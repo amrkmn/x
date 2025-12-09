@@ -46,9 +46,12 @@ export async function calculateDirectoryChecksums(
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
+    console.log('Validating cache...');
     let valid = 0;
     let invalid = 0;
     let missing = 0;
+
+    const totalFiles = Object.keys(metadata.files).length;
 
     for (const [filePath, fileInfo] of Object.entries(metadata.files)) {
         const fullPath = join('.', filePath);
@@ -70,7 +73,15 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
         }
     }
 
-    return invalid === 0 && missing === 0;
+    const isValid = invalid === 0 && missing === 0;
+
+    if (isValid) {
+        console.log(`Cache is valid: ${valid} files matched`);
+    } else {
+        console.log(`Cache validation failed: ${valid} valid, ${invalid} invalid, ${missing} missing (total: ${totalFiles})`);
+    }
+
+    return isValid;
 }
 
 export async function extractZip(zipPath: string): Promise<void> {

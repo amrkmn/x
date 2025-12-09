@@ -113,7 +113,6 @@ export async function restoreCache(
         // Check if local cache is still valid
         const metadata = await loadMetadata(s3, matchedKey);
         if (metadata && (await validateCache(metadata))) {
-            console.log(`Cache restored from key: ${matchedKey}`);
             await updateAccessTime(s3, matchedKey, metadata);
             return matchedKey;
         }
