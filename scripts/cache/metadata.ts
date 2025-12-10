@@ -9,9 +9,10 @@ function getMetadataKey(cacheKey: string): string {
 export async function saveMetadata(
     s3: S3Client,
     key: string,
-    files: Record<string, FileMetadata>
+    files: Record<string, FileMetadata>,
+    cacheFilePath: string
 ): Promise<void> {
-    const content = await Bun.file('extensions.json').arrayBuffer();
+    const content = await Bun.file(cacheFilePath).arrayBuffer();
     const hash = new Bun.CryptoHasher('sha256').update(content).digest('hex');
 
     const metadata: CacheMetadata = {

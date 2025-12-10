@@ -3,8 +3,10 @@ import { join } from 'path';
 import { CACHE_FILE_NAME, TMP_DIR } from './cache/constants';
 import { cleanupDir, compressToZip, ensureDir, extractZip, validateCache } from './cache/files';
 import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
+import { addCacheEntry, updateCacheAccess } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateAccessTime } from './cache/metadata';
 import { cleanupOldCaches, ENABLED, getClient, resolveCacheKey } from './cache/s3';
+import { log } from './cache/logger';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
@@ -15,31 +17,17 @@ async function downloadCache(s3: S3Client, key: string, targetPath: string): Pro
     const stream = s3File.stream();
     const writer = Bun.file(targetPath).writer();
 
+    const transfer = log.transfer('Received');
     let downloadedBytes = 0;
-    let lastLogTime = Date.now();
-    const startTime = lastLogTime;
 
     for await (const chunk of stream) {
         writer.write(chunk);
         downloadedBytes += chunk.length;
-
-        const now = Date.now();
-        if (now - lastLogTime >= 1000) {
-            const elapsed = (now - startTime) / 1000;
-            const speedMBps = ((downloadedBytes / (1024 * 1024)) / elapsed).toFixed(2);
-            const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(2);
-            process.stdout.write(`\rReceived ${downloadedMB} MB... (${speedMBps} MB/s)`);
-            lastLogTime = now;
-        }
+        transfer.progress(downloadedBytes);
     }
     await writer.end();
 
-    if (downloadedBytes > 0) {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const speedMBps = ((downloadedBytes / (1024 * 1024)) / elapsed).toFixed(2);
-        const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(2);
-        process.stdout.write(`\r\x1b[KReceived ${downloadedMB} MB (${speedMBps} MB/s)\n`);
-    }
+    transfer.complete(downloadedBytes);
 
     return downloadedBytes;
 }
@@ -48,31 +36,17 @@ async function uploadCache(s3: S3Client, key: string, sourcePath: string): Promi
     const cacheFile = Bun.file(sourcePath);
     const stream = cacheFile.stream();
 
+    const transfer = log.transfer('Uploaded');
     let uploadedBytes = 0;
     const chunks: Uint8Array[] = [];
-    let lastLogTime = Date.now();
-    const startTime = lastLogTime;
 
     for await (const chunk of stream) {
         chunks.push(chunk);
         uploadedBytes += chunk.length;
-
-        const now = Date.now();
-        if (now - lastLogTime >= 1000) {
-            const elapsed = (now - startTime) / 1000;
-            const speedMBps = ((uploadedBytes / (1024 * 1024)) / elapsed).toFixed(2);
-            const uploadedMB = (uploadedBytes / (1024 * 1024)).toFixed(2);
-            process.stdout.write(`\rUploaded ${uploadedMB} MB... (${speedMBps} MB/s)`);
-            lastLogTime = now;
-        }
+        transfer.progress(uploadedBytes);
     }
 
-    if (uploadedBytes > 0) {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const speedMBps = ((uploadedBytes / (1024 * 1024)) / elapsed).toFixed(2);
-        const uploadedMB = (uploadedBytes / (1024 * 1024)).toFixed(2);
-        process.stdout.write(`\r\x1b[KUploaded ${uploadedMB} MB (${speedMBps} MB/s)\n`);
-    }
+    transfer.complete(uploadedBytes);
 
     // Combine chunks and upload
     const totalSize = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
@@ -114,6 +88,7 @@ export async function restoreCache(
         const metadata = await loadMetadata(s3, matchedKey);
         if (metadata && (await validateCache(metadata))) {
             await updateAccessTime(s3, matchedKey, metadata);
+            await updateCacheAccess(s3, matchedKey);
             return matchedKey;
         }
 
@@ -143,6 +118,7 @@ export async function restoreCache(
         if (newMetadata) {
             await updateAccessTime(s3, matchedKey, newMetadata);
         }
+        await updateCacheAccess(s3, matchedKey);
 
         console.log(`Cache restored successfully`);
         return matchedKey;
@@ -186,8 +162,17 @@ export async function saveCache(paths: string[], key: string): Promise<number | 
         const uploadTime = Date.now() - startTime;
         console.log(`Cache uploaded in ${(uploadTime / 1000).toFixed(2)}s`);
 
-        await saveMetadata(s3, key, files);
+        const timestamp = Date.now();
+
+        // Save metadata
+        await saveMetadata(s3, key, files, CACHE_FILE_PATH);
         await cleanupDir(TMP_DIR);
+
+        // Add entry to manifest
+        const metadata = await loadMetadata(s3, key);
+        if (metadata) {
+            await addCacheEntry(s3, key, metadata.hash, timestamp);
+        }
 
         console.log(`Cache saved successfully`);
 
