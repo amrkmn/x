@@ -1,12 +1,6 @@
 import type { S3Client } from 'bun';
-import {
-    LOCK_KEY,
-    LOCK_MAX_RETRIES,
-    LOCK_RETRY_MS,
-    LOCK_TIMEOUT_MS,
-    LOCK_VERIFY_DELAY_MS
-} from './constants';
-import type { CacheLock } from './types';
+import { LOCK_KEY, LOCK_MAX_RETRIES, LOCK_RETRY_MS, LOCK_TIMEOUT_MS, writeJsonToS3 } from './utils';
+import type { CacheLock } from './utils';
 
 export function generateInstanceId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -35,17 +29,7 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<boo
                 ttl: LOCK_TIMEOUT_MS
             };
 
-            await Bun.write(lockFile, JSON.stringify(newLock, null, 2));
-
-            // Verify we got the lock (handle race condition)
-            await Bun.sleep(LOCK_VERIFY_DELAY_MS);
-            const verifyLock: CacheLock = JSON.parse(await lockFile.text());
-
-            if (verifyLock.instance !== instanceId) {
-                await Bun.sleep(LOCK_RETRY_MS);
-                continue;
-            }
-
+            await writeJsonToS3(s3, LOCK_KEY, newLock);
             return true;
         } catch (e) {
             console.error(`Lock error: ${e}`);

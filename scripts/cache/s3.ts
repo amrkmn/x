@@ -1,5 +1,5 @@
 import { S3Client } from 'bun';
-import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './constants';
+import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './utils';
 import { findCacheByKey, findCacheByPrefix, loadManifest, removeCacheEntry } from './manifest';
 import { deleteMetadata } from './metadata';
 

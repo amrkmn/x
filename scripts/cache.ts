@@ -1,16 +1,17 @@
 import type { S3Client } from 'bun';
 import { join } from 'path';
-import { CACHE_FILE_NAME, TMP_DIR } from './cache/constants';
+import { CACHE_FILE_NAME, TMP_DIR, log } from './cache/utils';
 import { cleanupDir, compressToZip, ensureDir, extractZip, validateCache } from './cache/files';
 import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
-import { addCacheEntry, updateCacheAccess } from './cache/manifest';
-import { loadMetadata, saveMetadata, updateAccessTime } from './cache/metadata';
+import { addCacheEntry } from './cache/manifest';
+import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
 import { cleanupOldCaches, ENABLED, getClient, resolveCacheKey } from './cache/s3';
-import { log } from './cache/logger';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
-let cacheIdCounter = Date.now();
+function formatBytes(bytes: number): string {
+    return (bytes / (1024 * 1024)).toFixed(2);
+}
 
 async function downloadCache(s3: S3Client, key: string, targetPath: string): Promise<number> {
     const s3File = s3.file(key);
@@ -87,8 +88,7 @@ export async function restoreCache(
         // Check if local cache is still valid
         const metadata = await loadMetadata(s3, matchedKey);
         if (metadata && (await validateCache(metadata))) {
-            await updateAccessTime(s3, matchedKey, metadata);
-            await updateCacheAccess(s3, matchedKey);
+            await updateBothAccessTimes(s3, matchedKey, metadata);
             return matchedKey;
         }
 
@@ -105,20 +105,24 @@ export async function restoreCache(
         const downloadedBytes = await downloadCache(s3, matchedKey, CACHE_FILE_PATH);
 
         const downloadTime = Date.now() - startTime;
-        const sizeInMB = (downloadedBytes / (1024 * 1024)).toFixed(2);
+        const sizeInMB = formatBytes(downloadedBytes);
 
         console.log(`Cache Size: ~${sizeInMB} MB (${downloadedBytes} B)`);
         console.log(`Cache downloaded in ${(downloadTime / 1000).toFixed(2)}s`);
 
+        console.log('Extracting cache...');
+        const extractStartTime = Date.now();
         await extractZip(CACHE_FILE_PATH);
+        const extractTime = Date.now() - extractStartTime;
+        console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
+
         await cleanupDir(TMP_DIR);
 
         // Update access time after successful restore
         const newMetadata = await loadMetadata(s3, matchedKey);
         if (newMetadata) {
-            await updateAccessTime(s3, matchedKey, newMetadata);
+            await updateBothAccessTimes(s3, matchedKey, newMetadata);
         }
-        await updateCacheAccess(s3, matchedKey);
 
         console.log(`Cache restored successfully`);
         return matchedKey;
@@ -128,7 +132,7 @@ export async function restoreCache(
     }
 }
 
-export async function saveCache(paths: string[], key: string): Promise<number | undefined> {
+export async function saveCache(paths: string[], key: string): Promise<void> {
     if (!ENABLED) return undefined;
 
     const s3 = getClient();
@@ -140,17 +144,21 @@ export async function saveCache(paths: string[], key: string): Promise<number | 
         // Acquire lock
         if (!(await acquireLock(s3, instanceId))) {
             console.error('Failed to acquire lock');
-            return undefined;
+            return;
         }
 
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
+        console.log('Compressing cache...');
+        const compressStartTime = Date.now();
         const files = await compressToZip(paths, CACHE_FILE_PATH);
+        const compressTime = Date.now() - compressStartTime;
+        console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
 
         const cacheFile = Bun.file(CACHE_FILE_PATH);
         const sizeInBytes = cacheFile.size;
-        const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+        const sizeInMB = formatBytes(sizeInBytes);
 
         console.log(`Cache Size: ~${sizeInMB} MB (${sizeInBytes} B)`);
         console.log(`Uploading cache to key: ${key}`);
@@ -164,26 +172,20 @@ export async function saveCache(paths: string[], key: string): Promise<number | 
 
         const timestamp = Date.now();
 
-        // Save metadata
-        await saveMetadata(s3, key, files, CACHE_FILE_PATH);
+        // Save metadata and get hash
+        const hash = await saveMetadata(s3, key, files, CACHE_FILE_PATH);
         await cleanupDir(TMP_DIR);
 
         // Add entry to manifest
-        const metadata = await loadMetadata(s3, key);
-        if (metadata) {
-            await addCacheEntry(s3, key, metadata.hash, timestamp);
-        }
+        await addCacheEntry(s3, key, hash, timestamp);
 
         console.log(`Cache saved successfully`);
 
         // Extract prefix for cleanup (e.g., "extensions-abc.zip" -> "extensions-")
         const prefix = key.split('-')[0] + '-';
         await cleanupOldCaches(s3, prefix);
-
-        return ++cacheIdCounter;
     } catch (e) {
         console.error('Failed to save cache:', e);
-        return undefined;
     } finally {
         // Always release lock
         await releaseLock(s3, instanceId);

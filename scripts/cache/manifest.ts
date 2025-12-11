@@ -1,5 +1,6 @@
 import type { S3Client } from 'bun';
-import type { CacheEntry, CacheManifest } from './types';
+import type { CacheEntry, CacheManifest } from './utils';
+import { writeJsonToS3 } from './utils';
 
 const MANIFEST_KEY = 'manifest.json';
 const MANIFEST_VERSION = 1;
@@ -28,8 +29,7 @@ export async function loadManifest(s3: S3Client): Promise<CacheManifest> {
 }
 
 export async function saveManifest(s3: S3Client, manifest: CacheManifest): Promise<void> {
-    const manifestFile = s3.file(MANIFEST_KEY);
-    await Bun.write(manifestFile, JSON.stringify(manifest, null, 2));
+    await writeJsonToS3(s3, MANIFEST_KEY, manifest);
 }
 
 export async function addCacheEntry(
@@ -58,16 +58,6 @@ export async function removeCacheEntry(s3: S3Client, key: string): Promise<void>
     const manifest = await loadManifest(s3);
     manifest.caches = manifest.caches.filter((entry) => entry.key !== key);
     await saveManifest(s3, manifest);
-}
-
-export async function updateCacheAccess(s3: S3Client, key: string): Promise<void> {
-    const manifest = await loadManifest(s3);
-    const entry = manifest.caches.find((e) => e.key === key);
-
-    if (entry) {
-        entry.lastAccessed = Date.now();
-        await saveManifest(s3, manifest);
-    }
 }
 
 export function findCacheByKey(manifest: CacheManifest, key: string): CacheEntry | null {

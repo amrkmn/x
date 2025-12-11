@@ -2,7 +2,7 @@ import { unzipSync, zipSync } from 'fflate';
 import { existsSync, readdirSync, statSync } from 'fs';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join, relative, sep } from 'path';
-import type { CacheMetadata, FileMetadata } from './types';
+import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
     const content = await Bun.file(filePath).arrayBuffer();
@@ -78,7 +78,9 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     if (isValid) {
         console.log(`Cache is valid: ${valid} files matched`);
     } else {
-        console.log(`Cache validation failed: ${valid} valid, ${invalid} invalid, ${missing} missing (total: ${totalFiles})`);
+        console.log(
+            `Cache validation failed: ${valid} valid, ${invalid} invalid, ${missing} missing (total: ${totalFiles})`
+        );
     }
 
     return isValid;

@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import { appendFile, cp } from 'fs/promises';
 import { join } from 'path';
 import { restoreCache, saveCache } from './cache';
-import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/constants';
+import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import { config } from './config';
 import type { ExtensionConfig } from './types';
 
