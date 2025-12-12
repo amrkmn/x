@@ -37,29 +37,24 @@ async function uploadCache(s3: S3Client, key: string, sourcePath: string): Promi
     const cacheFile = Bun.file(sourcePath);
     const stream = cacheFile.stream();
 
+    const s3File = s3.file(key);
+    const writer = s3File.writer({
+        partSize: 10 * 1024 * 1024, // 10 MB
+        queueSize: 4,
+        retry: 3
+    });
+
     const transfer = log.transfer('Uploaded');
     let uploadedBytes = 0;
-    const chunks: Uint8Array[] = [];
 
     for await (const chunk of stream) {
-        chunks.push(chunk);
+        writer.write(chunk);
         uploadedBytes += chunk.length;
         transfer.progress(uploadedBytes);
     }
 
+    await writer.end();
     transfer.complete(uploadedBytes);
-
-    // Combine chunks and upload
-    const totalSize = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-    const combined = new Uint8Array(totalSize);
-    let offset = 0;
-    for (const chunk of chunks) {
-        combined.set(chunk, offset);
-        offset += chunk.length;
-    }
-
-    const s3FileWriter = s3.file(key);
-    await Bun.write(s3FileWriter, combined);
 
     return uploadedBytes;
 }
