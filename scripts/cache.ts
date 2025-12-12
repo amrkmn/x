@@ -1,7 +1,7 @@
 import type { S3Client } from 'bun';
 import { join } from 'path';
 import { CACHE_FILE_NAME, TMP_DIR, log } from './cache/utils';
-import { cleanupDir, compressToZip, ensureDir, extractZip, validateCache } from './cache/files';
+import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
 import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
@@ -107,7 +107,7 @@ export async function restoreCache(
 
         console.log('Extracting cache...');
         const extractStartTime = Date.now();
-        await extractZip(CACHE_FILE_PATH);
+        await extractTar(CACHE_FILE_PATH);
         const extractTime = Date.now() - extractStartTime;
         console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
 
@@ -147,7 +147,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         // Compress and calculate checksums
         console.log('Compressing cache...');
         const compressStartTime = Date.now();
-        const files = await compressToZip(paths, CACHE_FILE_PATH);
+        const files = await compressToTar(paths, CACHE_FILE_PATH);
         const compressTime = Date.now() - compressStartTime;
         console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
 
@@ -176,7 +176,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
 
         console.log(`Cache saved successfully`);
 
-        // Extract prefix for cleanup (e.g., "extensions-abc.zip" -> "extensions-")
+        // Extract prefix for cleanup (e.g., "extensions-abc.tgz" -> "extensions-")
         const prefix = key.split('-')[0] + '-';
         await cleanupOldCaches(s3, prefix);
     } catch (e) {

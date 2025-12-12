@@ -1,6 +1,6 @@
-import { unzipSync, zipSync } from 'fflate';
+import { create, extract } from 'tar';
 import { existsSync, readdirSync, statSync } from 'fs';
-import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { mkdir, rm } from 'fs/promises';
 import { join, relative, sep } from 'path';
 import type { CacheMetadata, FileMetadata } from './utils';
 
@@ -86,63 +86,27 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     return isValid;
 }
 
-export async function extractZip(zipPath: string): Promise<void> {
-    const zipData = await readFile(zipPath);
-    const unzipped = unzipSync(new Uint8Array(zipData));
-
-    for (const [filePath, content] of Object.entries(unzipped)) {
-        const fullPath = join('.', filePath);
-        const dir = join(fullPath, '..');
-
-        if (!existsSync(dir)) {
-            await mkdir(dir, { recursive: true });
-        }
-        await writeFile(fullPath, content);
-    }
+export async function extractTar(tarPath: string): Promise<void> {
+    await extract({
+        file: tarPath,
+        cwd: '.'
+    });
 }
 
-export async function collectFiles(paths: string[]): Promise<Record<string, Uint8Array>> {
-    const files: Record<string, Uint8Array> = {};
-
-    async function walk(currentDir: string) {
-        for (const entry of readdirSync(currentDir)) {
-            const fullPath = join(currentDir, entry);
-            const stat = statSync(fullPath);
-
-            if (stat.isDirectory()) {
-                await walk(fullPath);
-            } else if (stat.isFile()) {
-                const relativePath = relative('.', fullPath).split(sep).join('/');
-                const content = new Uint8Array(await Bun.file(fullPath).arrayBuffer());
-                files[relativePath] = content;
-            }
-        }
-    }
-
-    for (const path of paths) {
-        if (existsSync(path)) {
-            const stat = statSync(path);
-            if (stat.isDirectory()) {
-                await walk(path);
-            } else if (stat.isFile()) {
-                const relativePath = relative('.', path).split(sep).join('/');
-                const content = new Uint8Array(await Bun.file(path).arrayBuffer());
-                files[relativePath] = content;
-            }
-        }
-    }
-
-    return files;
-}
-
-export async function compressToZip(
+export async function compressToTar(
     paths: string[],
     outputPath: string
 ): Promise<Record<string, FileMetadata>> {
     const checksums = await calculateDirectoryChecksums(paths);
-    const files = await collectFiles(paths);
-    const zipped = zipSync(files, { level: 6 });
-    await writeFile(outputPath, zipped);
+
+    await create(
+        {
+            gzip: true,
+            file: outputPath,
+            cwd: '.'
+        },
+        paths
+    );
 
     return checksums;
 }
