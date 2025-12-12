@@ -26,6 +26,18 @@ export function getClient(): S3Client | null {
     return client;
 }
 
+const cacheExists = async (s3: S3Client, key: string) =>
+    await s3
+        .file(key)
+        .exists()
+        .catch(() => false);
+
+const cleanupStaleCache = async (s3: S3Client, key: string): Promise<void> => {
+    console.log(`Cleaning stale cache from manifest (cache missing): ${key}`);
+    await deleteMetadata(s3, key);
+    await removeCacheEntry(s3, key);
+};
+
 export async function resolveCacheKey(
     s3: S3Client,
     key: string,
@@ -36,15 +48,21 @@ export async function resolveCacheKey(
     // Try exact match first
     const exactMatch = findCacheByKey(manifest, key);
     if (exactMatch) {
-        return exactMatch.key;
+        if (await cacheExists(s3, exactMatch.key)) {
+            return exactMatch.key;
+        }
+        await cleanupStaleCache(s3, exactMatch.key);
     }
 
-    // Try restore keys in order (prefix matching)
+    // Try restore keys in order (prefix matching), preferring most recent
     if (restoreKeys && restoreKeys.length > 0) {
         for (const prefix of restoreKeys) {
             const match = findCacheByPrefix(manifest, prefix);
             if (match) {
-                return match.key;
+                if (await cacheExists(s3, match.key)) {
+                    return match.key;
+                }
+                await cleanupStaleCache(s3, match.key);
             }
         }
     }
