@@ -59,7 +59,7 @@ export const MAX_CACHE_AGE_DAYS = 7;
 
 export const TMP_DIR = 'tmp';
 export const STATIC_DIR = 'static';
-export const CACHE_FILE_NAME = 'extensions-cache.tar.zst';
+export const CACHE_FILE_NAME = 'extensions-cache.tzst';
 
 // Cache configuration
 export const CACHE_PATHS = ['static'];
@@ -71,7 +71,7 @@ export const EXTENSIONS_CONFIG_FILE = 'extensions.json';
 export async function generateCacheKey(): Promise<string> {
     const content = await Bun.file(EXTENSIONS_CONFIG_FILE).arrayBuffer();
     const hash = new Bun.CryptoHasher('sha256').update(content).digest('hex');
-    return `${CACHE_KEY_PREFIX}${hash}.tar.zst`;
+    return `${CACHE_KEY_PREFIX}${hash}.tzst`;
 }
 
 // Helper to write JSON to S3 file

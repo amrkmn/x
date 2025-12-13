@@ -126,8 +126,6 @@ const eventName = process.env.GITHUB_EVENT_NAME;
 const allowedEvents = ['schedule', 'workflow_dispatch'];
 const shouldSkip = isCI && eventName && !allowedEvents.includes(eventName);
 
-console.log(`CI Mode: ${isCI}, Event: ${eventName || 'none'}, Should Skip: ${shouldSkip}`);
-
 if (shouldSkip) {
     console.log('Skipping updates (CI)');
     if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
