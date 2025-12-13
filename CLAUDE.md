@@ -153,17 +153,18 @@ Extensions fetched from upstream repositories contain:
 
 The project uses Cloudflare R2 for distributed caching of extension data:
 
-- **R2 Bucket**: Stores compressed `static/` directory as `cache.tar.zst`
+- **R2 Bucket**: Stores compressed `static/` directory as `extensions-cache.tar.zst` using zstd compression
+- **Compression**: Uses Bun's native `Bun.zstdCompressSync()` and `Bun.zstdDecompressSync()` for fast compression
 - **Distributed Locking**: Uses R2 metadata and conditional writes to coordinate updates across concurrent workflow runs
 - **Cache Scripts**: Located in `scripts/cache/`
-    - `restore.ts`: Downloads and extracts cache from R2
-    - `upload.ts`: Compresses and uploads `static/` to R2
+    - `cache.ts`: Main cache orchestration (restore and save operations)
+    - `files.ts`: Tar archive creation and extraction with zstd compression
     - `lock.ts`: Implements distributed lock using R2 metadata
 
 **Cache Flow**:
 
 1. Check if lock exists on R2 object (another workflow is updating)
-2. If unlocked, download and extract `cache.tar.zst` to `static/`
+2. If unlocked, download and extract `extensions-cache.tar.zst` to `static/`
 3. After updates, acquire lock and upload new cache
 4. Lock prevents race conditions in concurrent workflows
 

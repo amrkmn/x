@@ -63,11 +63,8 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
 
         try {
             const actualChecksum = await calculateFileChecksum(fullPath);
-            if (actualChecksum === fileInfo.checksum) {
-                valid++;
-            } else {
-                invalid++;
-            }
+            if (actualChecksum === fileInfo.checksum) valid++;
+            else invalid++;
         } catch (e) {
             invalid++;
         }
@@ -87,10 +84,16 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
 }
 
 export async function extractTar(tarPath: string): Promise<void> {
-    await extract({
-        file: tarPath,
-        cwd: '.'
-    });
+    const compressedData = await Bun.file(tarPath).arrayBuffer();
+    const decompressed = Bun.zstdDecompressSync(new Uint8Array(compressedData));
+
+    // Write decompressed tar to temp file
+    const tempTarPath = tarPath + '.tmp';
+    await Bun.write(tempTarPath, decompressed);
+
+    await extract({ file: tempTarPath, cwd: '.' }).finally(
+        async () => await rm(tempTarPath).catch(() => {})
+    );
 }
 
 export async function compressToTar(
@@ -99,14 +102,17 @@ export async function compressToTar(
 ): Promise<Record<string, FileMetadata>> {
     const checksums = await calculateDirectoryChecksums(paths);
 
-    await create(
-        {
-            gzip: true,
-            file: outputPath,
-            cwd: '.'
-        },
-        paths
-    );
+    // Create uncompressed tar to temp file
+    const tempTarPath = outputPath + '.tmp';
+    await create({ file: tempTarPath, cwd: '.' }, paths);
+
+    try {
+        const tarData = await Bun.file(tempTarPath).arrayBuffer();
+        const compressed = Bun.zstdCompressSync(new Uint8Array(tarData));
+        await Bun.write(outputPath, compressed);
+    } finally {
+        await rm(tempTarPath).catch(() => {});
+    }
 
     return checksums;
 }
