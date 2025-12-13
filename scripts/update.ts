@@ -120,9 +120,13 @@ if (updates.length === 0) {
 }
 
 // Skip updates in CI unless it's a scheduled run or manual trigger
+// If GITHUB_EVENT_NAME is not set (local run), allow updates
 const isCI = process.env.CI === 'true';
+const eventName = process.env.GITHUB_EVENT_NAME;
 const allowedEvents = ['schedule', 'workflow_dispatch'];
-const shouldSkip = isCI && !allowedEvents.includes(process.env.GITHUB_EVENT_NAME || '');
+const shouldSkip = isCI && eventName && !allowedEvents.includes(eventName);
+
+console.log(`CI Mode: ${isCI}, Event: ${eventName || 'none'}, Should Skip: ${shouldSkip}`);
 
 if (shouldSkip) {
     console.log('Skipping updates (CI)');
