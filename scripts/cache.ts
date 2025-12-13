@@ -1,11 +1,12 @@
 import type { S3Client } from 'bun';
 import { join } from 'path';
-import { CACHE_FILE_NAME, TMP_DIR, log } from './cache/utils';
 import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
 import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
+import { log } from './cache/logger';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
 import { cleanupOldCaches, ENABLED, getClient, resolveCacheKey } from './cache/s3';
+import { CACHE_FILE_NAME, TMP_DIR } from './cache/utils';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
@@ -44,19 +45,26 @@ async function uploadCache(s3: S3Client, key: string, sourcePath: string): Promi
         retry: 3
     });
 
-    const transfer = log.transfer('Uploaded');
+    const timer = log.timer('Uploading cache');
     let uploadedBytes = 0;
 
-    for await (const chunk of stream) {
-        writer.write(chunk);
-        uploadedBytes += chunk.length;
-        transfer.progress(uploadedBytes);
+    // Start a timer to log progress every second
+    const progressInterval = setInterval(() => {
+        timer.progress();
+    }, 1000);
+
+    try {
+        for await (const chunk of stream) {
+            writer.write(chunk);
+            uploadedBytes += chunk.length;
+        }
+
+        await writer.end();
+        return uploadedBytes;
+    } finally {
+        clearInterval(progressInterval);
+        timer.complete();
     }
-
-    await writer.end();
-    transfer.complete(uploadedBytes);
-
-    return uploadedBytes;
 }
 
 export async function restoreCache(
