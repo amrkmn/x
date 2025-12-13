@@ -4,7 +4,7 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "3a7b4c3940215a03856c1c8a0bf5191485ebc5f3"
+            "commit": "83457b65727d53eeb9dcbe8fb1ad734a1665d39d"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
