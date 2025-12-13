@@ -55,10 +55,14 @@ if (process.argv.includes('--generate-only')) {
     process.exit(0);
 }
 
-// Try to restore from R2 cache
-const cacheKey = await generateCacheKey();
-
-await restoreCache(CACHE_PATHS, cacheKey, CACHE_RESTORE_KEYS);
+// Try to restore from R2 cache (unless --no-cache is specified)
+const useCache = !process.argv.includes('--no-cache');
+if (useCache) {
+    const cacheKey = await generateCacheKey();
+    await restoreCache(CACHE_PATHS, cacheKey, CACHE_RESTORE_KEYS);
+} else {
+    console.log('Cache disabled via --no-cache flag');
+}
 
 // 1. Identify updates
 console.log('Checking for updates...');
@@ -168,9 +172,11 @@ if (changed) {
     console.log('Updated extensions.json');
     await generateData();
 
-    // Save cache with new key based on updated extensions.json
-    const newCacheKey = await generateCacheKey();
-    await saveCache(CACHE_PATHS, newCacheKey);
+    // Save cache with new key based on updated extensions.json (unless --no-cache)
+    if (useCache) {
+        const newCacheKey = await generateCacheKey();
+        await saveCache(CACHE_PATHS, newCacheKey);
+    }
 }
 
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `updated=${changed}\n`);
