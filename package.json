@@ -35,8 +35,5 @@
         "lint": "prettier --check .",
         "update": "bun run scripts/update.ts"
     },
-    "type": "module",
-    "dependencies": {
-        "tar": "^7.5.2"
-    }
+    "type": "module"
 }
