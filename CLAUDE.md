@@ -151,19 +151,31 @@ Extensions fetched from upstream repositories contain:
 
 ### Caching System
 
-The project uses Cloudflare R2 for distributed caching of extension data:
+The project uses S3-compatible storage (Cloudflare R2, Backblaze B2, AWS S3, etc.) for distributed caching of extension data:
 
-- **R2 Bucket**: Stores compressed `static/` directory as `extensions-cache.tar.zst` using zstd compression
+- **S3 Bucket**: Stores compressed `static/` directory as `extensions-cache.tar.zst` using zstd compression
 - **Compression**: Uses Bun's native `Bun.zstdCompressSync()` and `Bun.zstdDecompressSync()` for fast compression
-- **Distributed Locking**: Uses R2 metadata and conditional writes to coordinate updates across concurrent workflow runs
+- **Distributed Locking**: Uses S3 metadata and conditional writes to coordinate updates across concurrent workflow runs
 - **Cache Scripts**: Located in `scripts/cache/`
     - `cache.ts`: Main cache orchestration (restore and save operations)
     - `files.ts`: Tar archive creation and extraction with zstd compression
-    - `lock.ts`: Implements distributed lock using R2 metadata
+    - `lock.ts`: Implements distributed lock using S3 metadata
+
+**S3 Configuration**:
+
+Required environment variables in `.env`:
+- `S3_ENDPOINT`: S3 endpoint URL
+    - Cloudflare R2: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
+    - Backblaze B2: `https://s3.<REGION>.backblazeb2.com`
+    - AWS S3: `https://s3.<REGION>.amazonaws.com`
+- `S3_ACCESS_KEY_ID`: Access key ID
+- `S3_SECRET_ACCESS_KEY`: Secret access key
+- `S3_BUCKET_NAME`: Bucket name
+- `S3_REGION`: Region (optional, use "auto" for R2)
 
 **Cache Flow**:
 
-1. Check if lock exists on R2 object (another workflow is updating)
+1. Check if lock exists on S3 object (another workflow is updating)
 2. If unlocked, download and extract `extensions-cache.tar.zst` to `static/`
 3. After updates, acquire lock and upload new cache
 4. Lock prevents race conditions in concurrent workflows

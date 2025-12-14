@@ -1,7 +1,7 @@
+import { $ } from 'bun';
 import { existsSync } from 'fs';
 import { mkdir, readdir, rm } from 'fs/promises';
 import { join, relative, sep } from 'path';
-import { create, extract } from 'tar';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
@@ -93,9 +93,9 @@ export async function extractTar(tarPath: string): Promise<void> {
     const tempTarPath = tarPath + '.tmp';
     await Bun.write(tempTarPath, decompressed);
 
-    await extract({ file: tempTarPath, cwd: '.' }).finally(
-        async () => await rm(tempTarPath).catch(() => {})
-    );
+    await $`tar -xf ${tempTarPath}`.quiet().finally(async () => {
+        await rm(tempTarPath).catch(() => {});
+    });
 }
 
 export async function compressToTar(
@@ -104,9 +104,8 @@ export async function compressToTar(
 ): Promise<Record<string, FileMetadata>> {
     const checksums = await calculateDirectoryChecksums(paths);
 
-    // Create uncompressed tar to temp file
     const tempTarPath = outputPath + '.tmp';
-    await create({ file: tempTarPath, cwd: '.' }, paths);
+    await $`tar -cf ${tempTarPath} ${paths}`.quiet();
 
     try {
         const tarData = await Bun.file(tempTarPath).arrayBuffer();
@@ -129,7 +128,6 @@ export async function cleanupDir(dir: string): Promise<void> {
     try {
         await rm(dir, { recursive: true, force: true });
     } catch (e: any) {
-        // Ignore EBUSY errors on Windows - directory will be cleaned up eventually
         if (e.code !== 'EBUSY' && e.code !== 'ENOTEMPTY') {
             throw e;
         }

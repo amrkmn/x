@@ -3,14 +3,19 @@ import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './utils';
 import { findCacheByKey, findCacheByPrefix, loadManifest, removeCacheEntry } from './manifest';
 import { deleteMetadata } from './metadata';
 
-const ENV = {
-    ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
-    ACCESS_KEY_ID: process.env.CLOUDFLARE_ACCESS_KEY_ID,
-    SECRET_ACCESS_KEY: process.env.CLOUDFLARE_SECRET_ACCESS_KEY,
-    BUCKET_NAME: process.env.CLOUDFLARE_BUCKET_NAME
+const s3Config = {
+    ENDPOINT: process.env.S3_ENDPOINT,
+    ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
+    SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
+    BUCKET_NAME: process.env.S3_BUCKET_NAME,
+    REGION: process.env.S3_REGION
 };
 
-export const ENABLED = Object.values(ENV).every((v) => !!v);
+export const ENABLED =
+    !!s3Config.ENDPOINT &&
+    !!s3Config.ACCESS_KEY_ID &&
+    !!s3Config.SECRET_ACCESS_KEY &&
+    !!s3Config.BUCKET_NAME;
 
 let client: S3Client | null = null;
 
@@ -18,10 +23,11 @@ export function getClient(): S3Client | null {
     if (!ENABLED || client) return client;
 
     client = new S3Client({
-        endpoint: `https://${ENV.ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        accessKeyId: ENV.ACCESS_KEY_ID,
-        secretAccessKey: ENV.SECRET_ACCESS_KEY,
-        bucket: ENV.BUCKET_NAME
+        endpoint: s3Config.ENDPOINT,
+        accessKeyId: s3Config.ACCESS_KEY_ID,
+        secretAccessKey: s3Config.SECRET_ACCESS_KEY,
+        bucket: s3Config.BUCKET_NAME,
+        region: s3Config.REGION
     });
     return client;
 }
