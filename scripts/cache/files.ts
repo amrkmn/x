@@ -1,12 +1,21 @@
-import { create, extract } from 'tar';
-import { existsSync, readdirSync, statSync } from 'fs';
-import { mkdir, rm } from 'fs/promises';
+import { existsSync } from 'fs';
+import { mkdir, readdir, rm } from 'fs/promises';
 import { join, relative, sep } from 'path';
+import { create, extract } from 'tar';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
-    const content = await Bun.file(filePath).arrayBuffer();
-    return new Bun.CryptoHasher('sha256').update(content).digest('hex');
+    const fileBlob = Bun.file(filePath);
+    const size = fileBlob.size;
+
+    const hasher = new Bun.CryptoHasher('sha256');
+    if (size <= 10 * 1024 * 1024 /** 10MB */)
+        return hasher.update(await fileBlob.arrayBuffer()).digest('hex');
+
+    const stream = fileBlob.stream();
+    for await (const chunk of stream) hasher.update(chunk);
+
+    return hasher.digest('hex');
 }
 
 export async function calculateDirectoryChecksums(
@@ -14,32 +23,25 @@ export async function calculateDirectoryChecksums(
 ): Promise<Record<string, FileMetadata>> {
     const files: Record<string, FileMetadata> = {};
 
-    async function walk(currentDir: string) {
-        for (const entry of readdirSync(currentDir)) {
-            const fullPath = join(currentDir, entry);
-            const stat = statSync(fullPath);
-
-            if (stat.isDirectory()) {
-                await walk(fullPath);
-            } else if (stat.isFile()) {
-                const relativePath = relative('.', fullPath).split(sep).join('/');
-                const checksum = await calculateFileChecksum(fullPath);
-                files[relativePath] = { checksum, size: stat.size };
-            }
-        }
-    }
-
     for (const path of paths) {
-        if (existsSync(path)) {
-            const stat = statSync(path);
-            if (stat.isDirectory()) {
-                await walk(path);
-            } else if (stat.isFile()) {
-                const relativePath = relative('.', path).split(sep).join('/');
-                const checksum = await calculateFileChecksum(path);
-                files[relativePath] = { checksum, size: stat.size };
-            }
-        }
+        const entries = await readdir(path, {
+            recursive: true,
+            withFileTypes: true
+        });
+
+        await Promise.all(
+            entries
+                .filter((entry) => entry.isFile())
+                .map(async (entry) => {
+                    const fullPath = join(entry.parentPath, entry.name);
+                    const relativePath = relative('.', fullPath).split(sep).join('/');
+
+                    const size = Bun.file(fullPath).size;
+                    const checksum = await calculateFileChecksum(fullPath);
+
+                    files[relativePath] = { checksum, size };
+                })
+        );
     }
 
     return files;
