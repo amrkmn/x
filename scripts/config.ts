@@ -7,7 +7,6 @@ export const config = {
     domains: [
         'https://x.noz.one', //
         'https://x.ujol.dev',
-        'https://x.amar.kim',
         'https://x.ujol.workers.dev'
     ],
     filesToCopy: [

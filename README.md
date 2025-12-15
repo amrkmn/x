@@ -6,7 +6,6 @@ A repository aggregator for Mihon and Aniyomi extensions that automatically sync
 
 - [x.noz.one](https://x.noz.one)
 - [x.ujol.dev](https://x.ujol.dev)
-- [x.amar.kim](https://x.amar.kim)
 - [x.ujol.workers.dev](https://x.ujol.workers.dev)
 
 ## Features
