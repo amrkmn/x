@@ -171,7 +171,10 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         await uploadCache(s3, key, CACHE_FILE_PATH);
 
         const uploadTime = Date.now() - startTime;
-        console.log(`Cache uploaded in ${(uploadTime / 1000).toFixed(2)}s`);
+        const uploadSpeed = sizeInBytes / (1024 * 1024) / (uploadTime / 1000);
+        console.log(
+            `Cache uploaded in ${(uploadTime / 1000).toFixed(2)}s (${uploadSpeed.toFixed(2)} MB/s)`
+        );
 
         const timestamp = Date.now();
 
