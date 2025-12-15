@@ -1,4 +1,4 @@
-name: Update and Deploy
+name: Update Extensions
 
 on:
     schedule:
@@ -10,20 +10,15 @@ on:
 
 permissions:
     contents: write
-    pages: write
-    id-token: write
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: false
 
 jobs:
-    build-and-deploy:
+    update:
         runs-on: ubuntu-latest
         if: github.event_name != 'push' || github.event.head_commit.author.name != 'github-actions[bot]'
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
         outputs:
             updated: ${{ steps.update.outputs.updated }}
 
@@ -39,15 +34,9 @@ jobs:
             - name: Install dependencies
               run: bun install --frozen-lockfile
 
-            - name: Update extensions
+            - name: Update extensions (quick)
               id: update
-              run: bun run update
-              env:
-                  S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-                  S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-                  S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-                  S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-                  S3_REGION: ${{ secrets.S3_REGION }}
+              run: bun run update --quick
 
             - name: Commit and push changes
               if: steps.update.outputs.updated == 'true'
@@ -58,25 +47,10 @@ jobs:
                   git diff-index --quiet HEAD || git commit -m "chore: update extensions.json"
                   git push
 
-            - name: Build project
-              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              run: bun run build
-
-            - name: Upload Pages artifact
-              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
-              with:
-                  path: dist
-
-            - name: Deploy to GitHub Pages
-              if: steps.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
-              id: deployment
-              uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
-
     sync-to-gitlab:
         runs-on: ubuntu-latest
-        needs: build-and-deploy
-        if: needs.build-and-deploy.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
+        needs: update
+        if: needs.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch'
 
         steps:
             - name: Checkout repository
@@ -90,3 +64,4 @@ jobs:
               with:
                   target_repo_url: ${{ secrets.GITLAB_REPO }}
                   ssh_private_key: ${{ secrets.GITLAB_SSH }}
+

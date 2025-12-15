@@ -11,26 +11,30 @@ const EXT_DIR = join(process.cwd(), 'static');
 const DATA_FILE = join(EXT_DIR, 'data.json');
 const TEMP_DIR = join(process.cwd(), 'tmp');
 
-// Load Config
 const extensionsData: Record<string, Record<string, ExtensionConfig>> = await Bun.file(
     'extensions.json'
 ).json();
-const { owner, repo } = config.github;
+
+const setOutput = async (key: string, value: string) =>
+    process.env.GITHUB_OUTPUT && (await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`));
 
 async function generateData() {
     console.log('Generating data.json...');
     try {
-        const extensions: Record<string, any[]> = {};
-        for (const [cat, exts] of Object.entries(extensionsData)) {
-            extensions[cat] = Object.values(exts).map((e) => ({
-                source: e.source,
-                name: e.name,
-                path: e.path,
-                commit: e.commit
-            }));
-        }
+        const extensions = Object.fromEntries(
+            Object.entries(extensionsData).map(([category, exts]) => [
+                category,
+                Object.values(exts).map(({ source, name, path, commit }) => ({
+                    source,
+                    name,
+                    path,
+                    commit
+                }))
+            ])
+        );
 
         const commit = (await $`git rev-parse HEAD`.text()).trim();
+        const { owner, repo } = config.github;
         const source = `https://github.com/${owner}/${repo}`;
 
         await Bun.write(
@@ -55,88 +59,78 @@ if (process.argv.includes('--generate-only')) {
     process.exit(0);
 }
 
-// Try to restore from R2 cache (unless --no-cache is specified)
-const useCache = !process.argv.includes('--no-cache');
-if (useCache) {
-    const cacheKey = await generateCacheKey();
-    await restoreCache(CACHE_PATHS, cacheKey, CACHE_RESTORE_KEYS);
-} else {
-    console.log('Cache disabled via --no-cache flag');
-}
+const quickMode = process.argv.includes('--quick');
+const useCache = !process.argv.includes('--no-cache') && !quickMode;
 
-// 1. Identify updates
+if (useCache) await restoreCache(CACHE_PATHS, await generateCacheKey(), CACHE_RESTORE_KEYS);
+else console.log(quickMode ? 'Cache disabled for quick mode' : 'Cache disabled via --no-cache flag');
+
 console.log('Checking for updates...');
 const synced = new Map<string, string>();
-try {
-    const data = await Bun.file(DATA_FILE).json();
-    Object.values(data.extensions || {})
-        .flat()
-        .forEach((e: any) => {
-            if (e?.path && e?.commit) synced.set(e.path, e.commit);
-        });
-} catch {}
-
-const tasks = Object.entries(extensionsData).flatMap(([category, group]) =>
-    Object.entries(group).map(([key, ext]) => ({ category, key, ext }))
-);
+if (!quickMode) {
+    try {
+        Object.values((await Bun.file(DATA_FILE).json()).extensions || {})
+            .flat()
+            .forEach((e: any) => e?.path && e?.commit && synced.set(e.path, e.commit));
+    } catch {}
+}
 
 const updates = (
     await Promise.all(
-        tasks.map(async ({ category, key, ext }) => {
-            try {
-                const dest = join(EXT_DIR, key);
-                const syncedHash = synced.get(ext.path);
+        Object.entries(extensionsData).flatMap(([category, group]) =>
+            Object.entries(group).map(async ([key, ext]) => {
+                try {
+                    const dest = join(EXT_DIR, key);
+                    const syncedHash = synced.get(ext.path);
 
-                // If missing on disk, we must update
-                if (!existsSync(dest))
-                    return {
-                        category,
-                        key,
-                        ext,
-                        hash: ext.commit || 'HEAD'
-                    };
+                    if (!quickMode && !existsSync(dest))
+                        return { category, key, ext, hash: ext.commit || 'HEAD' };
 
-                // Fetch remote
-                const remoteHash = (
-                    await $`git ls-remote ${ext.source} HEAD | cut -f1`.text()
-                ).trim();
+                    const remoteHash = (await $`git ls-remote ${ext.source} HEAD | cut -f1`.text()).trim();
 
-                // Update if remote differs from synced, or if config differs from synced
-                if (remoteHash !== syncedHash || ext.commit !== syncedHash) {
-                    console.log(
-                        `[${ext.name}] Update: ${syncedHash?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
-                    );
-                    return { category, key, ext, hash: remoteHash };
+                    if (quickMode && remoteHash !== ext.commit) {
+                        console.log(
+                            `[${ext.name}] Update available: ${ext.commit?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                        );
+                        return { category, key, ext, hash: remoteHash };
+                    }
+
+                    if (!quickMode && (remoteHash !== syncedHash || ext.commit !== syncedHash)) {
+                        console.log(
+                            `[${ext.name}] Update: ${syncedHash?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                        );
+                        return { category, key, ext, hash: remoteHash };
+                    }
+                } catch {
+                    console.error(`Check failed: ${ext.name}`);
                 }
-            } catch (e) {
-                console.error(`Check failed: ${ext.name}`);
-            }
-            return null;
-        })
+                return null;
+            })
+        )
     )
 ).filter((u): u is NonNullable<typeof u> => u !== null);
 
-// 2. Check if we should proceed
 if (updates.length === 0) {
     console.log('No updates found');
-    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
+    await setOutput('updated', 'false');
     process.exit(0);
 }
 
-// Skip updates in CI unless it's a scheduled run or manual trigger
-// If GITHUB_EVENT_NAME is not set (local run), allow updates
-const isCI = process.env.CI === 'true';
-const eventName = process.env.GITHUB_EVENT_NAME;
-const allowedEvents = ['schedule', 'workflow_dispatch'];
-const shouldSkip = isCI && eventName && !allowedEvents.includes(eventName);
+if (quickMode) {
+    console.log(`Found ${updates.length} updates. Updating extensions.json...`);
+    updates.forEach(({ category, key, hash }) => (extensionsData[category][key].commit = hash));
+    await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
+    await setOutput('updated', 'true');
+    process.exit(0);
+}
 
-if (shouldSkip) {
+const { CI, GITHUB_EVENT_NAME } = process.env;
+if (CI === 'true' && GITHUB_EVENT_NAME && !['schedule', 'workflow_dispatch'].includes(GITHUB_EVENT_NAME)) {
     console.log('Skipping updates (CI)');
-    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'updated=false\n');
+    await setOutput('updated', 'false');
     process.exit(0);
 }
 
-// 3. Perform Updates
 console.log(`Updating ${updates.length} extensions...`);
 await $`rm -rf ${TEMP_DIR}`;
 
@@ -152,9 +146,7 @@ for (const { key, ext, hash, category } of updates) {
 
         for (const file of config.filesToCopy) {
             const srcPath = join(temp, file);
-            if (existsSync(srcPath)) {
-                await cp(srcPath, join(dest, file), { recursive: true });
-            }
+            if (existsSync(srcPath)) await cp(srcPath, join(dest, file), { recursive: true });
         }
 
         extensionsData[category][key].commit = hash;
@@ -165,19 +157,12 @@ for (const { key, ext, hash, category } of updates) {
     }
 }
 
-// 4. Cleanup & Save
 await $`rm -rf ${TEMP_DIR}`;
 if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
     await generateData();
-
-    // Save cache with new key based on updated extensions.json (unless --no-cache)
-    if (useCache) {
-        const newCacheKey = await generateCacheKey();
-        await saveCache(CACHE_PATHS, newCacheKey);
-    }
+    if (useCache) await saveCache(CACHE_PATHS, await generateCacheKey());
 }
 
-if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `updated=${changed}\n`);
-console.log('Done.');
+await setOutput('updated', String(changed));
