@@ -47,13 +47,20 @@ The build process uses Vite with SvelteKit and custom scripts:
     - Fetches extensions from upstream git repositories
     - Reads `extensions.json` configuration at project root
     - Checks remote git commit hashes for updates
-    - Restores `static/` directory from R2 cache using distributed locking
-    - Clones repositories to `tmp/` and copies configured files to `static/`
-    - Updates `extensions.json` with new commit hashes
-    - Uploads updated `static/` directory to R2 cache
+    - Supports multiple modes:
+        - `--generate-only`: Regenerate `data.json` without fetching updates or cache operations
+        - `--quick`: Fast mode that only updates `extensions.json` with new hashes (used in CI)
+        - `--no-cache`: Disable cache operations
+        - Default mode: Full update with cache operations
+    - Cache behavior:
+        - Restores `static/` directory from S3 cache (only in full mode)
+        - Uses manifest-based cache resolution with fallback prefixes
+        - Clones repositories to `tmp/` and copies configured files to `static/`
+        - Updates `extensions.json` with new commit hashes only after successful clone/copy
+        - Uploads updated `static/` directory to S3 cache
+        - Cleans up old cache entries (keeps most recent 10, max age 30 days)
     - Generates `static/data.json` with extension metadata
-    - Supports `--generate-only` flag to regenerate `data.json` without fetching updates or cache operations
-    - Sets `updated` output for CI/CD workflows
+    - Sets `updated` output for CI/CD workflows (only when changes occur)
 
 2. **Build order**: `update --generate-only → vite build`
     - First, `data.json` is regenerated from current extension state
@@ -151,15 +158,23 @@ Extensions fetched from upstream repositories contain:
 
 ### Caching System
 
-The project uses S3-compatible storage (Cloudflare R2, Backblaze B2, AWS S3, etc.) for distributed caching of extension data:
+The project uses S3-compatible storage (Cloudflare R2, Backblaze B2, AWS S3, etc.) for distributed caching of extension data with a sophisticated manifest-based system:
 
-- **S3 Bucket**: Stores compressed `static/` directory as `extensions-cache.tar.zst` using zstd compression
-- **Compression**: Uses Bun's native `Bun.zstdCompressSync()` and `Bun.zstdDecompressSync()` for fast compression
-- **Distributed Locking**: Uses S3 metadata and conditional writes to coordinate updates across concurrent workflow runs
-- **Cache Scripts**: Located in `scripts/cache/`
-    - `cache.ts`: Main cache orchestration (restore and save operations)
-    - `files.ts`: Tar archive creation and extraction with zstd compression
-    - `lock.ts`: Implements distributed lock using S3 metadata
+- **Cache Storage**: Compressed tar.zst files stored in S3 bucket
+- **Compression**: Uses tar with zstd compression for fast compression/decompression
+- **Manifest System**: JSON manifest tracks all cache entries with metadata for resolution
+- **Distributed Locking**: Uses S3 metadata and conditional writes with instance IDs to coordinate updates
+- **Cache Validation**: Validates cache integrity using file checksums before restoration
+- **Automatic Cleanup**: Keeps most recent 10 caches, removes entries older than 30 days
+- **Cache Scripts**: Located in `scripts/`
+    - `cache.ts`: Main cache orchestration (restore and save operations with locking)
+    - `cache/files.ts`: Tar archive creation/extraction with zstd compression and checksum validation
+    - `cache/lock.ts`: Distributed lock implementation using S3 metadata and instance IDs
+    - `cache/manifest.ts`: Cache manifest management for tracking and resolving cache entries
+    - `cache/metadata.ts`: Cache metadata storage (checksums, timestamps) for validation
+    - `cache/s3.ts`: S3 client wrapper, cache resolution, and cleanup logic
+    - `cache/utils.ts`: Shared utilities and constants
+    - `cache/logger.ts`: Logging utilities for transfers and progress
 
 **S3 Configuration**:
 
@@ -175,10 +190,21 @@ Required environment variables in `.env`:
 
 **Cache Flow**:
 
-1. Check if lock exists on S3 object (another workflow is updating)
-2. If unlocked, download and extract `extensions-cache.tar.zst` to `static/`
-3. After updates, acquire lock and upload new cache
-4. Lock prevents race conditions in concurrent workflows
+**Restore**:
+1. Resolve cache key using manifest (exact match or prefix fallback)
+2. Validate local cache using checksums (skip download if valid)
+3. Download tar.zst file from S3
+4. Extract to `static/` directory
+5. Update access timestamps in manifest
+
+**Save**:
+1. Acquire distributed lock using instance ID
+2. Compress `static/` directory to tar.zst with checksums
+3. Upload to S3 with streaming multipart upload
+4. Save metadata (checksums, file list) to S3
+5. Update manifest with new cache entry
+6. Clean up old cache entries (keep 10 most recent, max age 30 days)
+7. Release lock
 
 ### Deployment
 
