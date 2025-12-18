@@ -23,6 +23,9 @@ export interface CacheLock {
     timestamp: number;
     instance: string;
     ttl: number;
+    renewedAt?: number;
+    pid: number;
+    hostname: string;
 }
 
 export interface S3ListObject {
@@ -46,9 +49,11 @@ export interface CacheManifest {
 // Constants
 // ============================================================================
 
-export const LOCK_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-export const LOCK_RETRY_MS = 5000; // 5 seconds
-export const LOCK_MAX_RETRIES = 3;
+export const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes (matches Restic)
+export const LOCK_RETRY_START_MS = 5000; // 5 seconds (initial retry delay)
+export const LOCK_RETRY_MAX_MS = 60000; // 60 seconds (max retry delay)
+export const LOCK_MAX_RETRIES = 6; // With exponential backoff: 5s, 10s, 20s, 40s, 60s, 60s
+export const LOCK_DOUBLE_CHECK_MS = 200; // 200ms delay for double-check pattern (matches Restic)
 
 export const METADATA_VERSION = 1;
 export const METADATA_KEY = 'metadata.json';

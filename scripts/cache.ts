@@ -1,7 +1,7 @@
 import type { S3Client } from 'bun';
 import { join } from 'path';
 import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
-import { acquireLock, generateInstanceId, releaseLock } from './cache/lock';
+import { withLock } from './cache/lock';
 import { log } from './cache/logger';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
@@ -141,15 +141,8 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
     const s3 = getClient();
     if (!s3) return undefined;
 
-    const instanceId = generateInstanceId();
-
-    try {
-        // Acquire lock
-        if (!(await acquireLock(s3, instanceId))) {
-            console.error('Failed to acquire lock');
-            return;
-        }
-
+    // Use withLock for automatic lock management with renewal
+    const result = await withLock(s3, async (instanceId) => {
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
@@ -190,10 +183,11 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         // Extract prefix for cleanup (e.g., "extensions-abc.tgz" -> "extensions-")
         const prefix = key.split('-')[0] + '-';
         await cleanupOldCaches(s3, prefix);
-    } catch (e) {
-        console.error('Failed to save cache:', e);
-    } finally {
-        // Always release lock
-        await releaseLock(s3, instanceId);
+
+        return true;
+    });
+
+    if (!result) {
+        console.error('Failed to acquire lock for cache save');
     }
 }
