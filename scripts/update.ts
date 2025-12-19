@@ -5,6 +5,7 @@ import { join } from 'path';
 import { restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import { config } from './config';
+import { updateMeilisearch } from './meilisearch';
 import type { ExtensionConfig } from './types';
 
 const EXT_DIR = join(process.cwd(), 'static');
@@ -56,6 +57,12 @@ async function generateData() {
 
 if (process.argv.includes('--generate-only')) {
     await generateData();
+    process.exit(0);
+}
+
+if (process.argv.includes('--update-search')) {
+    console.log('Updating search index only...');
+    await updateMeilisearch();
     process.exit(0);
 }
 
@@ -162,6 +169,7 @@ if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
     await generateData();
+    await updateMeilisearch();
     if (useCache) await saveCache(CACHE_PATHS, await generateCacheKey());
 }
 

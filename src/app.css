@@ -276,47 +276,52 @@ h2 {
 }
 
 .filter-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 15px;
     margin-bottom: 20px;
     padding: 15px;
     background-color: #1c2a39;
     border: 1px solid #2c3e50;
     border-radius: 4px;
-    flex-wrap: wrap;
     align-items: center;
 }
 
 .filter-group {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
 }
 
 .filter-group label {
     color: #a0d1ff;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
     white-space: nowrap;
 }
 
 .filter-group select {
-    padding: 6px 10px;
+    width: 100%;
+    padding: 8px 10px;
     background-color: #121212;
     color: #a0d1ff;
     border: 1px solid #66b2ff;
     border-radius: 3px;
     font-size: 14px;
     cursor: pointer;
-    min-width: 150px;
 }
 
 .filter-group select:focus {
     outline: none;
     border-color: #89cfff;
+    box-shadow: 0 0 0 2px rgba(102, 178, 255, 0.1);
 }
 
 .filter-checkbox {
-    margin-left: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 .filter-checkbox label {
@@ -481,24 +486,17 @@ footer a:hover {
     }
 
     .filter-bar {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 12px;
         padding: 12px;
     }
 
     .filter-group {
         width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-
-    .filter-group select {
-        width: 100%;
     }
 
     .filter-checkbox {
-        margin-left: 0;
+        justify-content: flex-start;
         width: 100%;
     }
 }

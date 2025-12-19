@@ -1,6 +1,5 @@
 import { $ } from 'bun';
-import { existsSync } from 'fs';
-import { mkdir, readdir, rm } from 'fs/promises';
+import { mkdir, readdir, rm, exists } from 'fs/promises';
 import { join, relative, sep } from 'path';
 import type { CacheMetadata, FileMetadata } from './utils';
 
@@ -58,7 +57,7 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     for (const [filePath, fileInfo] of Object.entries(metadata.files)) {
         const fullPath = join('.', filePath);
 
-        if (!existsSync(fullPath)) {
+        if (!await exists(fullPath)) {
             missing++;
             continue;
         }
@@ -119,7 +118,7 @@ export async function compressToTar(
 }
 
 export async function ensureDir(dir: string): Promise<void> {
-    if (!existsSync(dir)) {
+    if (!await exists(dir)) {
         await mkdir(dir, { recursive: true });
     }
 }

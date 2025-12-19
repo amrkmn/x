@@ -1,38 +1,42 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
-    import { browser } from '$app/environment';
-    import type { Extension } from '$lib/types';
     import { onMount } from 'svelte';
 
     import ExtensionRow from '$lib/components/ExtensionRow.svelte';
-    import Fuse from 'fuse.js';
+    import { debounce } from '$lib/search/debounce.js';
+    import {
+        getFilterOptions,
+        initMeilisearch,
+        searchExtensions,
+        transformMeilisearchHit
+    } from '$lib/search/meilisearch.js';
+    import type { EnrichedExtension } from '$lib/search/types.js';
+    import { findSourceByFormattedName, formatSourceName } from '$lib/search/utils.js';
 
-    interface EnrichedExtension extends Extension {
-        repoUrl: string;
-        sourceName: string;
-        formattedSourceName: string;
-    }
-
-    let { data } = $props();
-    let repoData = $derived(data.extensions);
-
-    let query = $derived(browser ? (page.url.searchParams.get('q') ?? '') : '');
-    let extensions = $state<EnrichedExtension[]>([]);
+    // Component state (must be declared before derived state that uses them)
     let loading = $state(true);
     let error = $state<string | null>(null);
+    let results = $state<EnrichedExtension[]>([]);
+    let sources = $state<string[]>(['all']);
+    let categories = $state<string[]>(['all']);
+    let languages = $state<string[]>(['all']);
 
-    const formatSourceName = (sourceName: string) => {
-        return sourceName.toLowerCase().replace(/\s+/g, '.');
-    };
+    // Derived state from URL parameters
+    let query = $derived(browser ? (page.url.searchParams.get('q') ?? '') : '');
+    let selectedSource = $derived(
+        browser
+            ? findSourceByFormattedName(page.url.searchParams.get('source') ?? 'all', sources)
+            : 'all'
+    );
+    let selectedCategory = $derived(
+        browser ? (page.url.searchParams.get('category') ?? 'all') : 'all'
+    );
+    let selectedLanguage = $derived(browser ? (page.url.searchParams.get('lang') ?? 'all') : 'all');
+    let showNSFW = $derived(browser ? page.url.searchParams.get('nsfw') !== '0' : true);
 
-    const findSourceByFormattedName = (formattedName: string, availableSources: string[]) => {
-        if (formattedName === 'all') return 'all';
-        return (
-            availableSources.find((source) => formatSourceName(source) === formattedName) ?? 'all'
-        );
-    };
-
+    // URL parameter management
     function updateParams(updates: Record<string, string | null>) {
         const params = new URLSearchParams(page.url.searchParams);
         for (const [key, value] of Object.entries(updates)) {
@@ -42,77 +46,70 @@
         goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true });
     }
 
+    // Initialize Meilisearch
     onMount(async () => {
         try {
-            const promises = [];
+            const meiliConfig = {
+                host: import.meta.env.VITE_MEILISEARCH_HOST || '',
+                apiKey: import.meta.env.VITE_MEILISEARCH_DEFAULT_SEARCH_KEY
+            };
 
-            for (const category in repoData) {
-                for (const repo of repoData[category]) {
-                    const promise = fetch(repo.path)
-                        .then((res) => res.json())
-                        .then((extList: Extension[]) => {
-                            const repoFolder = repo.path.substring(0, repo.path.lastIndexOf('/'));
-                            return extList.map((ext) => ({
-                                ...ext,
-                                repoUrl: repoFolder,
-                                sourceName: repo.name,
-                                formattedSourceName: formatSourceName(repo.name)
-                            }));
-                        })
-                        .catch((err) => {
-                            console.error(`Failed to load extensions from ${repo.name}`, err);
-                            return [];
-                        });
-                    promises.push(promise);
-                }
+            if (!meiliConfig.host) {
+                error = 'Meilisearch is not configured.';
+                return;
             }
 
-            const results = await Promise.all(promises);
-            extensions = results.flat();
+            initMeilisearch(meiliConfig);
         } catch (e) {
             console.error(e);
-            error = 'Failed to load extension data.';
+            error = 'Failed to initialize Meilisearch.';
         } finally {
             loading = false;
         }
     });
 
-    let fuse = $derived(
-        new Fuse(extensions, {
-            keys: ['name', 'pkg'],
-            threshold: 0.4
-        })
+    // Debounced search with 300ms delay
+    const debouncedSearch = debounce(
+        (query: string, source: string, category: string, lang: string, nsfw: boolean) => {
+            searchExtensions(
+                {
+                    query: query || undefined,
+                    source: source !== 'all' ? formatSourceName(source) : undefined,
+                    category: category !== 'all' ? category : undefined,
+                    lang: lang !== 'all' ? lang : undefined,
+                    nsfw: nsfw
+                },
+                50
+            )
+                .then((searchResults) => {
+                    results = searchResults.hits.map(transformMeilisearchHit);
+                })
+                .catch((err) => {
+                    console.error('Meilisearch error:', err);
+                    error = 'Search failed. Please try again.';
+                });
+        },
+        300
     );
 
-    let sources = $derived.by(() => {
-        const _sources = extensions.map((ext) => ext.sourceName);
-        return [...new Set(['all', ...Array.from(_sources).sort()])];
+    // Reactive search effect
+    $effect(() => {
+        if (!browser) return;
+        debouncedSearch(query, selectedSource, selectedCategory, selectedLanguage, showNSFW);
     });
 
-    let languages = $derived.by(() => {
-        const _langs = extensions.map((ext) => ext.lang);
-        return [...new Set(['all', ...Array.from(_langs).sort()])];
-    });
-
-    let selectedSource = $derived(
-        browser
-            ? findSourceByFormattedName(page.url.searchParams.get('source') ?? 'all', sources)
-            : 'all'
-    );
-    let selectedLanguage = $derived(browser ? (page.url.searchParams.get('lang') ?? 'all') : 'all');
-    let showNSFW = $derived(browser ? page.url.searchParams.get('nsfw') !== '0' : true);
-
-    let results = $derived.by(() => {
-        let filtered = extensions;
-
-        if (query) filtered = fuse.search(query).map((result) => result.item);
-        if (selectedSource !== 'all')
-            filtered = filtered.filter((ext) => ext.sourceName === selectedSource);
-        if (selectedLanguage !== 'all')
-            filtered = filtered.filter((ext) => ext.lang === selectedLanguage);
-        if (!showNSFW) filtered = filtered.filter((ext) => ext.nsfw !== 1);
-
-        return filtered;
+    // Load filter options from Meilisearch
+    $effect(() => {
+        if (!browser) return;
+        getFilterOptions()
+            .then((options) => {
+                sources = [...new Set(['all', ...options.sources.sort()])];
+                categories = [...new Set(['all', ...options.categories.sort()])];
+                languages = [...new Set(['all', ...options.languages.sort()])];
+            })
+            .catch((err) => {
+                console.error('Failed to load filter options:', err);
+            });
     });
 </script>
 
@@ -132,6 +129,23 @@
     </div>
     <div class="filter-bar">
         <div class="filter-group">
+            <label for="category-filter">Category:</label>
+            <select
+                id="category-filter"
+                value={selectedCategory}
+                onchange={(e) =>
+                    updateParams({
+                        category: e.currentTarget.value === 'all' ? null : e.currentTarget.value
+                    })}
+            >
+                {#each categories as category (category)}
+                    <option value={category}>
+                        {category}
+                    </option>
+                {/each}
+            </select>
+        </div>
+        <div class="filter-group">
             <label for="source-filter">Source:</label>
             <select
                 id="source-filter"
@@ -143,7 +157,7 @@
             >
                 {#each sources as source (source)}
                     <option value={source}>
-                        {source === 'all' ? 'All Sources' : source}
+                        {source}
                     </option>
                 {/each}
             </select>
@@ -160,7 +174,7 @@
             >
                 {#each languages as lang (lang)}
                     <option value={lang}>
-                        {lang === 'all' ? 'All Languages' : lang}
+                        {lang}
                     </option>
                 {/each}
             </select>
@@ -187,7 +201,7 @@
                 </tr>
             </thead>
             <tbody>
-                {#each results.slice(0, 50) as ext (ext.formattedSourceName + ';' + ext.pkg)}
+                {#each results as ext (ext.formattedSourceName + ';' + ext.pkg)}
                     <ExtensionRow extension={ext} repoUrl={ext.repoUrl} />
                 {/each}
             </tbody>
