@@ -136,13 +136,20 @@ export async function restoreCache(
 }
 
 export async function saveCache(paths: string[], key: string): Promise<void> {
-    if (!ENABLED) return undefined;
+    if (!ENABLED) return;
 
     const s3 = getClient();
-    if (!s3) return undefined;
+    if (!s3) return;
 
     // Use withLock for automatic lock management with renewal
-    const result = await withLock(s3, async (instanceId) => {
+    const result = await withLock(s3, async () => {
+        // Check if cache already exists before compressing
+        const cacheFile = s3.file(key);
+        if (await cacheFile.exists()) {
+            console.log(`Cache already exists: ${key}, skipping upload`);
+            return true;
+        }
+
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
@@ -152,8 +159,8 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         const compressTime = Date.now() - compressStartTime;
         console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
 
-        const cacheFile = Bun.file(CACHE_FILE_PATH);
-        const sizeInBytes = cacheFile.size;
+        const cache = Bun.file(CACHE_FILE_PATH);
+        const sizeInBytes = cache.size;
         const sizeInMB = formatBytes(sizeInBytes);
 
         console.log(`Cache Size: ~${sizeInMB} MB (${sizeInBytes} B)`);
