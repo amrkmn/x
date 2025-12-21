@@ -147,7 +147,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         const cacheFile = s3.file(key);
         if (await cacheFile.exists()) {
             console.log(`Cache already exists: ${key}, skipping upload`);
-            return true;
+            return;
         }
 
         await ensureDir(TMP_DIR);
@@ -191,10 +191,10 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         const prefix = key.split('-')[0] + '-';
         await cleanupOldCaches(s3, prefix);
 
-        return true;
+        return;
     });
 
-    if (!result) {
+    if (result === null) {
         console.error('Failed to acquire lock for cache save');
     }
 }
