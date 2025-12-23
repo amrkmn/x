@@ -106,13 +106,12 @@ h2 {
 }
 
 .extension-icon {
-    width: 64px;
-    height: 64px;
-    margin-right: 20px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     object-fit: cover;
-    background-color: #2c3e50;
-    flex-shrink: 0;
+    background-color: #1c2a39;
+    border: 1px solid #2c3e50;
 }
 
 .extension-details {
@@ -152,7 +151,7 @@ h2 {
 .extensions-table {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
+    margin-top: 20px;
 }
 
 .extensions-table th,
@@ -192,11 +191,9 @@ h2 {
 
 .extension-name {
     font-weight: bold;
-    color: #a0d1ff;
-    font-size: 0.95em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #66b2ff;
+    font-size: 16px;
+    margin-bottom: 2px;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -462,8 +459,10 @@ footer a:hover {
 
     .extensions-table th,
     .extensions-table td {
-        padding: 8px 5px;
-        font-size: 0.9em;
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #2c3e50;
+        vertical-align: middle;
     }
 
     .extension-pkg {
@@ -498,5 +497,67 @@ footer a:hover {
     .filter-checkbox {
         justify-content: flex-start;
         width: 100%;
+    }
+}
+
+.pagination-container {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #1c2a39;
+    border: 1px solid #2c3e50;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.pagination-info {
+    color: #a0d1ff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.pagination-controls .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-controls .btn:disabled:hover {
+    background-color: transparent;
+}
+
+@media (max-width: 600px) {
+    .pagination-container {
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .pagination-controls {
+        gap: 6px;
+    }
+
+    .page-numbers .btn {
+        min-width: 35px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .pagination-info {
+        font-size: 13px;
     }
 }

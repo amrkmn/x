@@ -22,6 +22,11 @@
     let sources = $state<string[]>(['all']);
     let categories = $state<string[]>(['all']);
     let languages = $state<string[]>(['all']);
+    let currentPage = $state(1);
+    let totalPages = $state(1);
+    let totalHits = $state(0);
+    let resultsPerPage = $state(10);
+    let hasSearched = $state(false);
 
     // Derived state from URL parameters
     let query = $derived(browser ? (page.url.searchParams.get('q') ?? '') : '');
@@ -35,10 +40,18 @@
     );
     let selectedLanguage = $derived(browser ? (page.url.searchParams.get('lang') ?? 'all') : 'all');
     let showNSFW = $derived(browser ? page.url.searchParams.get('nsfw') !== '0' : true);
+    let pageParam = $derived(browser ? parseInt(page.url.searchParams.get('page') ?? '1') : 1);
 
     // URL parameter management
     function updateParams(updates: Record<string, string | null>) {
         const params = new URLSearchParams(page.url.searchParams);
+
+        // Reset to page 1 if any search filter changed (not page parameter)
+        const filterChanges = Object.keys(updates).filter((key) => key !== 'page');
+        if (filterChanges.length > 0) {
+            params.set('page', '1');
+        }
+
         for (const [key, value] of Object.entries(updates)) {
             if (value === null) params.delete(key);
             else params.set(key, value);
@@ -70,23 +83,37 @@
 
     // Debounced search with 300ms delay
     const debouncedSearch = debounce(
-        (query: string, source: string, category: string, lang: string, nsfw: boolean) => {
-            searchExtensions(
-                {
-                    query: query || undefined,
-                    source: source !== 'all' ? formatSourceName(source) : undefined,
-                    category: category !== 'all' ? category : undefined,
-                    lang: lang !== 'all' ? lang : undefined,
-                    nsfw: nsfw
-                },
-                50
-            )
+        (
+            query: string,
+            source: string,
+            category: string,
+            lang: string,
+            nsfw: boolean,
+            page: number
+        ) => {
+            searchExtensions({
+                query: query || undefined,
+                source: source !== 'all' ? formatSourceName(source) : undefined,
+                category: category !== 'all' ? category : undefined,
+                lang: lang !== 'all' ? lang : undefined,
+                nsfw: nsfw,
+                page,
+                limit: resultsPerPage
+            })
                 .then((searchResults) => {
                     results = searchResults.hits.map(transformMeilisearchHit);
+                    totalHits = searchResults.estimatedTotalHits || searchResults.hits.length;
+                    totalPages = Math.ceil(totalHits / resultsPerPage);
+                    currentPage = page;
+                    hasSearched = true;
                 })
                 .catch((err) => {
                     console.error('Meilisearch error:', err);
                     error = 'Search failed. Please try again.';
+                    hasSearched = true;
+                })
+                .finally(() => {
+                    loading = false;
                 });
         },
         300
@@ -95,7 +122,19 @@
     // Reactive search effect
     $effect(() => {
         if (!browser) return;
-        debouncedSearch(query, selectedSource, selectedCategory, selectedLanguage, showNSFW);
+
+        currentPage = pageParam;
+
+        // Set loading immediately, then execute debounced search
+        loading = true;
+        debouncedSearch(
+            query,
+            selectedSource,
+            selectedCategory,
+            selectedLanguage,
+            showNSFW,
+            pageParam
+        );
     });
 
     // Load filter options from Meilisearch
@@ -207,11 +246,75 @@
             </tbody>
         </table>
     </div>
-    {#if results.length === 0 && !loading}
-        <div style="text-align: center; padding: 20px;">No results found.</div>
+    {#if totalPages > 1}
+        {@const startPage = Math.max(1, currentPage - 2)}
+        {@const endPage = Math.min(totalPages, startPage + 4)}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing {Math.min((currentPage - 1) * resultsPerPage + 1, totalHits)} to {Math.min(
+                    currentPage * resultsPerPage,
+                    totalHits
+                )} of {totalHits} results
+            </div>
+            <div class="pagination-controls">
+                <button
+                    class="btn btn-secondary btn-sm"
+                    disabled={currentPage === 1}
+                    onclick={() => updateParams({ page: '1' })}
+                    title="First page"
+                >
+                    First
+                </button>
+
+                <button
+                    class="btn btn-secondary btn-sm"
+                    disabled={currentPage === 1}
+                    onclick={() =>
+                        updateParams({
+                            page: currentPage === 1 ? null : (currentPage - 1).toString()
+                        })}
+                >
+                    Previous
+                </button>
+
+                <div class="page-numbers">
+                    {#each Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i) as pageNum}
+                        <button
+                            class="btn btn-sm {pageNum === currentPage
+                                ? 'btn-primary'
+                                : 'btn-secondary'}"
+                            onclick={() =>
+                                updateParams({ page: pageNum === 1 ? null : pageNum.toString() })}
+                        >
+                            {pageNum}
+                        </button>
+                    {/each}
+                </div>
+
+                <button
+                    class="btn btn-secondary btn-sm"
+                    disabled={currentPage === totalPages}
+                    onclick={() => updateParams({ page: (currentPage + 1).toString() })}
+                >
+                    Next
+                </button>
+
+                <button
+                    class="btn btn-secondary btn-sm"
+                    disabled={currentPage === totalPages}
+                    onclick={() => updateParams({ page: totalPages.toString() })}
+                    title="Last page"
+                >
+                    Last
+                </button>
+            </div>
+        </div>
     {/if}
+
     {#if loading}
         <div style="text-align: center; padding: 20px;">Loading extensions...</div>
+    {:else if results.length === 0 && hasSearched}
+        <div style="text-align: center; padding: 20px;">No results found.</div>
     {/if}
     {#if error}
         <div style="text-align: center; margin-top: 50px; color: red;">{error}</div>

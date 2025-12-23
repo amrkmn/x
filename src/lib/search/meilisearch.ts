@@ -9,6 +9,8 @@ export interface SearchFilters {
     category?: string;
     lang?: string;
     nsfw?: boolean;
+    page?: number;
+    limit?: number;
 }
 
 interface MeilisearchClient {
@@ -49,7 +51,7 @@ export function transformMeilisearchHit(hit: any) {
     };
 }
 
-export async function searchExtensions(filters: SearchFilters, limit: number = 50) {
+export async function searchExtensions(filters: SearchFilters) {
     if (!client) {
         throw new Error('Meilisearch client not initialized');
     }
@@ -63,9 +65,14 @@ export async function searchExtensions(filters: SearchFilters, limit: number = 5
     if (filters.lang && filters.lang !== 'all') filterConditions.push(`lang = "${filters.lang}"`);
     if (filters.nsfw === false) filterConditions.push('nsfw = 0');
 
+    const page = filters.page || 1;
+    const limit = filters.limit || 50;
+    const offset = (page - 1) * limit;
+
     const body: Record<string, any> = {
         q: filters.query || '',
-        limit
+        limit,
+        offset
     };
 
     if (filterConditions.length > 0) body.filter = filterConditions;
