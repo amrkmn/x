@@ -18,7 +18,7 @@
             "name": "Kohi-den",
             "source": "https://noz.one/mirror/kohi-den-extensions",
             "path": "/kohi-den/index.min.json",
-            "commit": "93205534338d786b1702bb7173a7861e37b70f15"
+            "commit": "23839da666cdb9f157aedfc0a9a2c7fd5c835667"
         },
         "yuzono/anime": {
             "name": "Yuzono Anime",
