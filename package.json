@@ -6,6 +6,7 @@
         "@sveltejs/kit": "^2.49.2",
         "@sveltejs/vite-plugin-svelte": "^6.2.1",
         "@types/bun": "^1.3.4",
+        "meilisearch": "^0.54.0",
         "prettier": "^3.7.4",
         "prettier-plugin-svelte": "^3.4.1",
         "svelte": "^5.46.0",
@@ -34,8 +35,5 @@
         "lint": "prettier --check .",
         "update": "bun run scripts/update.ts"
     },
-    "type": "module",
-    "dependencies": {
-        "meilisearch": "^0.54.0"
-    }
+    "type": "module"
 }
