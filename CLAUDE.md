@@ -117,7 +117,7 @@ The frontend is a SvelteKit static site built with Vite:
 - **SvelteKit**: Framework with static adapter (`@sveltejs/adapter-static`)
 - **Svelte 5**: Modern reactive UI framework
 - **TypeScript**: Type-safe component development
-- **Fuse.js**: Fuzzy search for extensions
+- **Meilisearch**: Advanced search with filtering and faceting
 - **Prerendering**: All pages are prerendered at build time (`prerender = true`)
 
 **Frontend Structure**:
@@ -133,6 +133,11 @@ The frontend is a SvelteKit static site built with Vite:
     - `Footer.svelte` - Page footer
 - `src/lib/stores/` - Svelte stores for state management
 - `src/lib/types.ts` - TypeScript type definitions
+- `src/lib/search/` - Search functionality with Meilisearch integration:
+    - `meilisearch.ts` - Meilisearch client and search operations
+    - `debounce.ts` - Search debouncing utilities
+    - `types.ts` - Search-specific type definitions
+    - `utils.ts` - Search helper functions
 - `src/app.css` - Global styles including NSFW badge styling
 - `src/app.html` - HTML template
 
@@ -142,7 +147,7 @@ The frontend:
 2. Displays extension repositories grouped by category (mihon/aniyomi)
 3. Provides mirror domain selection for extension URLs
 4. Offers "Add Repo" links using `tachiyomi://` or `aniyomi://` protocols
-5. Search page allows browsing all individual extensions from all repos
+5. Search page allows browsing all individual extensions from all repos with advanced filtering
 6. Shows NSFW badge for extensions with adult content (when `nsfw: 1`)
 
 ### Extension Data Structure
@@ -179,6 +184,7 @@ The project uses S3-compatible storage (Cloudflare R2, Backblaze B2, AWS S3, etc
 **S3 Configuration**:
 
 Required environment variables in `.env`:
+
 - `S3_ENDPOINT`: S3 endpoint URL
     - Cloudflare R2: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
     - Backblaze B2: `https://s3.<REGION>.backblazeb2.com`
@@ -191,6 +197,7 @@ Required environment variables in `.env`:
 **Cache Flow**:
 
 **Restore**:
+
 1. Resolve cache key using manifest (exact match or prefix fallback)
 2. Validate local cache using checksums (skip download if valid)
 3. Download tar.zst file from S3
@@ -198,6 +205,7 @@ Required environment variables in `.env`:
 5. Update access timestamps in manifest
 
 **Save**:
+
 1. Acquire distributed lock using instance ID
 2. Compress `static/` directory to tar.zst with checksums
 3. Upload to S3 with streaming multipart upload
@@ -210,18 +218,18 @@ Required environment variables in `.env`:
 
 The workflow is configured in `.github/workflows/update.yml`:
 
-- **GitHub Pages**: Deploys the static site from `dist/` directory
 - **GitLab Mirror**: Syncs entire repository to GitLab using SSH for backup and redundancy
 
 The workflow runs on:
 
 - Schedule: Every 4 hours (`0 */4 * * *`)
 - Manual: `workflow_dispatch`
+- Push to main branch (excluding bot commits)
 
 The workflow has two jobs:
 
-- `build-and-deploy`: Updates extensions using R2 cache, builds, commits changes, and deploys to GitHub Pages
-- `sync-repos`: Mirrors repository to GitLab (runs after build-and-deploy)
+- `update`: Updates extensions using quick mode, commits changes to `extensions.json`
+- `sync-to-gitlab`: Mirrors repository to GitLab (runs after update when changes occur)
 
 Deployments and mirroring run when:
 
@@ -258,7 +266,7 @@ CI behavior:
 Commits from the workflow use `[skip ci]` to prevent recursive builds:
 
 ```bash
-git commit -m "chore: update extensions.json [skip ci]"
+git commit -m "chore: update extensions.json"
 ```
 
 ### Code Standards

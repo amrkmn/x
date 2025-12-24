@@ -12,7 +12,6 @@ A repository aggregator for Mihon and Aniyomi extensions that automatically sync
 
 - Automatic updates every 4 hours from upstream extension repositories
 - Static website for browsing and adding extensions
-- Multiple deployment mirrors (GitHub Pages, Cloudflare Workers)
 - Built with SvelteKit and Vite
 - Search functionality for all extensions across repositories
 
