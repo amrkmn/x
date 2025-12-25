@@ -11,8 +11,12 @@ export async function calculateFileChecksum(filePath: string): Promise<string> {
     if (size <= 10 * 1024 * 1024 /** 10MB */)
         return hasher.update(await fileBlob.arrayBuffer()).digest('hex');
 
-    const stream = fileBlob.stream();
-    for await (const chunk of stream) hasher.update(chunk);
+    const reader = fileBlob.stream().getReader();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) hasher.update(value);
+    }
 
     return hasher.digest('hex');
 }
@@ -57,7 +61,7 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     for (const [filePath, fileInfo] of Object.entries(metadata.files)) {
         const fullPath = join('.', filePath);
 
-        if (!await exists(fullPath)) {
+        if (!(await exists(fullPath))) {
             missing++;
             continue;
         }
@@ -118,7 +122,7 @@ export async function compressToTar(
 }
 
 export async function ensureDir(dir: string): Promise<void> {
-    if (!await exists(dir)) {
+    if (!(await exists(dir))) {
         await mkdir(dir, { recursive: true });
     }
 }

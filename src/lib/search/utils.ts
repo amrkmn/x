@@ -13,7 +13,5 @@ export function findSourceByFormattedName(
     availableSources: string[]
 ): string {
     if (formattedName === 'all') return 'all';
-    return (
-        availableSources.find((source) => formatSourceName(source) === formattedName) ?? 'all'
-    );
+    return availableSources.find((source) => formatSourceName(source) === formattedName) ?? 'all';
 }

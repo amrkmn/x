@@ -64,4 +64,3 @@ jobs:
               with:
                   target_repo_url: ${{ secrets.GITLAB_REPO }}
                   ssh_private_key: ${{ secrets.GITLAB_SSH }}
-

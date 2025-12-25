@@ -70,7 +70,8 @@ const quickMode = process.argv.includes('--quick');
 const useCache = !process.argv.includes('--no-cache') && !quickMode;
 
 if (useCache) await restoreCache(CACHE_PATHS, await generateCacheKey(), CACHE_RESTORE_KEYS);
-else console.log(quickMode ? 'Cache disabled for quick mode' : 'Cache disabled via --no-cache flag');
+else
+    console.log(quickMode ? 'Cache disabled for quick mode' : 'Cache disabled via --no-cache flag');
 
 console.log('Checking for updates...');
 const synced = new Map<string, string>();
@@ -93,7 +94,9 @@ const updates = (
                     if (!quickMode && !existsSync(dest))
                         return { category, key, ext, hash: ext.commit || 'HEAD' };
 
-                    const remoteHash = (await $`git ls-remote ${ext.source} HEAD | cut -f1`.text()).trim();
+                    const remoteHash = (
+                        await $`git ls-remote ${ext.source} HEAD | cut -f1`.text()
+                    ).trim();
 
                     if (quickMode && remoteHash !== ext.commit) {
                         console.log(
@@ -132,7 +135,11 @@ if (quickMode) {
 }
 
 const { CI, GITHUB_EVENT_NAME } = process.env;
-if (CI === 'true' && GITHUB_EVENT_NAME && !['schedule', 'workflow_dispatch'].includes(GITHUB_EVENT_NAME)) {
+if (
+    CI === 'true' &&
+    GITHUB_EVENT_NAME &&
+    !['schedule', 'workflow_dispatch'].includes(GITHUB_EVENT_NAME)
+) {
     console.log('Skipping updates (CI)');
     await setOutput('updated', 'false');
     process.exit(0);

@@ -33,7 +33,8 @@
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "format": "prettier --write .",
         "lint": "prettier --check .",
-        "update": "bun run scripts/update.ts"
+        "update": "bun run scripts/update.ts",
+        "test": "bun test"
     },
     "type": "module"
 }
