@@ -1,184 +1,166 @@
 # Agent Instructions for Mihon/Aniyomi Extensions Aggregator
 
-This repository is a SvelteKit project managed with **Bun**. It aggregates extensions for Mihon and Aniyomi, serving them as a static site with an API-like structure in `static/`.
+SvelteKit static site that aggregates Mihon and Aniyomi extensions. Uses Bun runtime exclusively.
 
-## 1. Environment & Toolchain
+## Quick Reference
 
-- **Runtime**: `bun` (Do not use `npm` or `yarn` or `pnpm`).
-- **Framework**: SvelteKit (Svelte 5).
-- **Language**: TypeScript (Strict mode).
-- **Search**: Meilisearch (client-side integration).
+| Task                 | Command                           |
+| -------------------- | --------------------------------- |
+| Install dependencies | `bun install`                     |
+| Development server   | `bun run dev`                     |
+| Build static site    | `bun run build`                   |
+| Preview build        | `bun run preview`                 |
+| Type check           | `bun run check`                   |
+| Type check (watch)   | `bun run check:watch`             |
+| Format code          | `bun run format`                  |
+| Lint (check format)  | `bun run lint`                    |
+| Update extensions    | `bun run update`                  |
+| Run all tests        | `bun test`                        |
+| Run single test      | `bun test tests/debounce.test.ts` |
+| Watch tests          | `bun test --watch`                |
 
-## 2. Development Commands
+## Environment & Toolchain
 
-### Build & Run
+- **Runtime**: Bun only. Never use `npm`, `yarn`, or `pnpm`.
+- **Framework**: SvelteKit with Svelte 5 and static adapter.
+- **Language**: TypeScript with strict mode enabled.
+- **Search**: Meilisearch (client-side).
 
-- **Install dependencies**:
-    ```bash
-    bun install
-    ```
-- **Start dev server**:
-    ```bash
-    bun run dev
-    ```
-- **Build production output**:
-    ```bash
-    bun run build
-    ```
-    _Note: This runs `bun run update --generate-only` first to regenerate `static/data.json` before Vite builds._
+## Code Style (Prettier-enforced)
 
-### Linting & Verification
+- **Indentation**: 4 spaces (not tabs).
+- **Quotes**: Single quotes only.
+- **Trailing Commas**: None.
+- **Line Width**: 100 characters max.
+- **Line Endings**: LF (`\n`) on all platforms.
 
-- **Type Check**:
-    ```bash
-    bun run check
-    ```
-    _Always run this after making TypeScript or Svelte changes. There are no unit tests, so strict type checking is your primary safety net._
-- **Format Code**:
-    ```bash
-    bun run format
-    ```
-- **Verify Formatting**:
-    ```bash
-    bun run lint
-    ```
+## TypeScript Guidelines
 
-### Data Management
+- **Strict mode** is enabled. Avoid `any` unless absolutely necessary.
+- Use standard ESM imports with `$lib/` alias for `src/lib/`.
+- Define interfaces for all data structures in dedicated type files.
+- Prefer optional chaining (`?.`) and nullish coalescing (`??`) over non-null assertions (`!`).
 
-- **Update Extensions**:
-    ```bash
-    bun run update
-    ```
-    _Fetches upstream data. Use `--generate-only` to just rebuild `data.json` locally._
+```typescript
+// Good
+const value = data?.nested?.property ?? 'default';
+// Avoid
+const value = data!.nested!.property;
+```
 
-### Testing
+## Naming Conventions
 
-- **Run all tests**:
-    ```bash
-    bun test
-    ```
-- **Run a single test file**:
-    ```bash
-    bun test tests/debounce.test.ts
-    ```
-- **Run tests with watch mode**:
-    ```bash
-    bun test --watch
-    ```
+| Type                | Convention | Example                      |
+| ------------------- | ---------- | ---------------------------- |
+| Svelte components   | PascalCase | `ExtensionCard.svelte`       |
+| TS utilities        | camelCase  | `meilisearch.ts`             |
+| SvelteKit routes    | +prefix    | `+page.svelte`, `+layout.ts` |
+| Variables/Functions | camelCase  | `formatSourceName`           |
+| Types/Interfaces    | PascalCase | `ExtensionRepo`              |
 
-## 3. Testing Strategy
+## Project Structure
 
-**Test Framework**: Uses `bun:test` built-in test runner with TypeScript support.
+```
+src/lib/components/  # Reusable Svelte 5 components
+src/lib/search/      # Meilisearch integration
+src/lib/stores/      # Svelte stores
+src/lib/types.ts     # Core type definitions
+src/routes/          # SvelteKit pages
+scripts/update.ts    # Extension update entry point
+scripts/cache/       # S3/R2 caching system (read CLAUDE.md first)
+scripts/config.ts    # Domain and file configuration
+tests/               # Test files (*.test.ts)
+static/              # Generated extension data and assets
+```
 
-**Test Coverage**:
+## Testing
 
-- Utility functions in `src/lib/search/` (debouncing, source name formatting)
-- Logger utilities in `scripts/cache/` (transfer stats formatting)
-- Cache manifest operations in `scripts/cache/` (finding caches by key/prefix)
-- File operations in `scripts/cache/` (checksums, directory management)
-- Cache lock utilities (instance ID generation, staleness detection)
-- Cache metadata key generation
-- Cache utility functions (key generation, byte formatting)
+**Framework**: `bun:test` built-in test runner.
+**Test file pattern**: `tests/<module>.test.ts`
 
-**Agent Protocol for Verification**:
+```typescript
+import { expect, test } from 'bun:test';
+import { myFunction } from '../src/lib/path/to/module';
 
-1.  **Run Tests**: Execute `bun test` to verify existing functionality.
-2.  **Write Tests**: When adding utility functions, add corresponding test files in `tests/`.
-3.  **Type Check**: Always run `bun run check` after making changes.
-4.  **Build Verification**: Run `bun run build` to ensure static adapter and prerendering complete successfully.
+test('description of what it tests', async () => {
+    const result = myFunction('input');
+    expect(result).toBe('expected');
+});
 
-## 4. Code Style & Conventions
+// For async delays, use Bun.sleep (not setTimeout)
+await Bun.sleep(100);
+```
 
-### Formatting (Enforced by Prettier)
+**Current test coverage**: `src/lib/search/` utilities, `scripts/cache/` utilities.
 
-- **Indentation**: 4 spaces.
-- **Quotes**: Single quotes (`'`).
-- **Trailing Commas**: `none`.
-- **Line Width**: 100 characters.
-- **Line Endings**: LF (`\n`).
+## Error Handling
 
-### TypeScript
+**Scripts** (`scripts/`):
 
-- **Strict Mode**: Enabled. No `any` types unless absolutely necessary.
-- **Imports**: Use standard ESM imports.
-    - SvelteKit aliases: `$lib/` is mapped to `src/lib/`.
-- **Interfaces**: Define specific interfaces for data structures (see `src/lib/types.ts` or `src/lib/search/types.ts`).
+- Use try/catch in async functions.
+- Log errors explicitly via console or the `log` utility from `scripts/cache/logger.ts`.
 
-### Svelte Components (Svelte 5)
+**Frontend** (`src/`):
 
-- Use `<script lang="ts">`.
-- Components located in `src/lib/components`.
-- Pages in `src/routes`.
-- Use `app.css` for global styles; component-scoped styles are preferred for components.
+- Handle fetch failures gracefully (e.g., when `data.json` fails to load).
+- Never let errors crash the UI silently.
 
-### Naming Conventions
+```typescript
+try {
+    await someAsyncOperation();
+} catch (error) {
+    console.error('Failed to complete operation:', error);
+    throw error; // Re-throw if caller needs to handle
+}
+```
 
-- **Files**:
-    - Svelte components: `PascalCase.svelte` (e.g., `ExtensionCard.svelte`).
-    - TS utilities: `camelCase.ts` (e.g., `meilisearch.ts`).
-    - SvelteKit routes: `+page.svelte`, `+layout.svelte`, `+server.ts`.
-- **Variables/Functions**: `camelCase`.
-- **Types/Interfaces**: `PascalCase`.
+## Svelte 5 Components
 
-## 5. Architecture Overview
+- Always use `<script lang="ts">`.
+- Components go in `src/lib/components/`.
+- Prefer component-scoped styles over global CSS.
+- Use Svelte 5 runes syntax (`$state`, `$derived`, `$effect`).
 
-### Backend / Scripts (`scripts/`)
+## Verification Workflow
 
-Logic for fetching, updating, and caching extensions lives here, not in the SvelteKit app.
+After making changes, always run:
 
-- `update.ts`: Entry point for updates.
-- `cache/`: logic for S3/R2 caching mechanism.
-- `config.ts`: Configuration for domains and file paths.
+1. `bun run check` - Type checking (primary safety net).
+2. `bun test` - Run test suite.
+3. `bun run format` - Ensure consistent formatting.
+4. `bun run build` - Verify static build succeeds.
 
-### Frontend (`src/`)
+## Common Tasks
 
-- **Data Source**: The app fetches `data.json` (generated by scripts) via `fetch` in `+layout.ts`.
-- **Search**: Uses Meilisearch. Logic is in `src/lib/search/`.
-- **Routing**: Static routing. The "API" is just static JSON files hosted in the same directory structure.
+**Add a new component**:
 
-### Cache System
+1. Create `src/lib/components/Name.svelte` with Svelte 5 + TypeScript.
+2. Run `bun run format && bun run check`.
 
-- Uses `tar.zst` archives stored in S3-compatible storage (R2/B2).
-- **Do not modify** cache logic (`scripts/cache/`) without fully understanding the manifest and distributed locking system described in `CLAUDE.md`.
-
-## 6. Common Tasks
-
-**Adding a new Component**
-
-1. Create `src/lib/components/Name.svelte`.
-2. Add necessary props/state using Svelte 5 syntax.
-3. Run `bun run format` to ensure style.
-
-**Modifying Extension Logic**
+**Modify extension logic**:
 
 1. Edit `scripts/update.ts` or `scripts/config.ts`.
-2. Run `bun run check` to verify types.
-3. Test by running `bun run update --generate-only`.
+2. Test with `bun run update --generate-only`, then `bun run check`.
 
-**Updating Dependencies**
+**Add a new test**:
 
-1. Use `bun add <package>` or `bun add -d <package>`.
-2. Do not update `bun.lock` manually.
+1. Create `tests/<module>.test.ts` with `import { test, expect } from 'bun:test'`.
+2. Run `bun test tests/<module>.test.ts`.
 
-**Writing Tests**
+**Update dependencies**: `bun add <package>` or `bun add -d <package>`. Never edit `bun.lock` manually.
 
-1. Create test files in `tests/` with the pattern `<module>.test.ts`.
-2. Use `bun:test` test runner: `import { test, expect } from 'bun:test'`.
-3. Use `Bun.sleep(ms)` for async test delays.
-4. Run `bun test` to verify tests pass.
+## Important Notes
 
-## 7. Error Handling
+- **Cache system** (`scripts/cache/`): Complex distributed system with S3 storage, manifest tracking, and distributed locking. Read `CLAUDE.md` before modifying.
+- **CI**: GitHub Actions in `.github/workflows/update.yml`. Updates run every 4 hours.
+- **Environment**: Local dev requires `.env` file. See `.env.example` for S3 configuration.
 
-- **Scripts**: Use try/catch blocks in async functions. Log errors explicitly to console (see `scripts/cache/logger.ts`).
-- **Frontend**: Handle fetch failures gracefully (e.g., if `data.json` fails to load).
-- **Type Safety**: Avoid non-null assertions (`!`) if possible; use optional chaining (`?.`) and nullish coalescing (`??`).
+## Key Files Reference
 
-## 8. Deployment
-
-- **CI**: GitHub Actions (`.github/workflows/update.yml`) handles updates and mirroring.
-- **Environment Variables**: Local dev requires `.env`. See `.env.example`.
-    - `S3_*` variables are required for full update/cache operations.
-
----
-
-_Generated for AI Agents interacting with this codebase._
+| File                | Purpose                                         |
+| ------------------- | ----------------------------------------------- |
+| `extensions.json`   | Extension source configuration                  |
+| `static/data.json`  | Generated extension data (consumed by frontend) |
+| `src/lib/types.ts`  | Core TypeScript interfaces                      |
+| `scripts/config.ts` | Domains and file paths configuration            |
+| `CLAUDE.md`         | Detailed architecture documentation             |
