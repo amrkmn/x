@@ -1,166 +1,120 @@
 # Agent Instructions for Mihon/Aniyomi Extensions Aggregator
 
-SvelteKit static site that aggregates Mihon and Aniyomi extensions. Uses Bun runtime exclusively.
+This repository aggregates Mihon and Aniyomi extensions into a SvelteKit static site.
 
-## Quick Reference
+## ⚡ Quick Reference
 
-| Task                 | Command                           |
-| -------------------- | --------------------------------- |
-| Install dependencies | `bun install`                     |
-| Development server   | `bun run dev`                     |
-| Build static site    | `bun run build`                   |
-| Preview build        | `bun run preview`                 |
-| Type check           | `bun run check`                   |
-| Type check (watch)   | `bun run check:watch`             |
-| Format code          | `bun run format`                  |
-| Lint (check format)  | `bun run lint`                    |
-| Update extensions    | `bun run update`                  |
-| Run all tests        | `bun test`                        |
-| Run single test      | `bun test tests/debounce.test.ts` |
-| Watch tests          | `bun test --watch`                |
+| Task           | Command                                 |
+| :------------- | :-------------------------------------- |
+| **Install**    | `bun install` (Never use npm/yarn)      |
+| **Dev Server** | `bun run dev`                           |
+| **Build**      | `bun run build` (Generates static site) |
+| **Type Check** | `bun run check` (Primary safety net)    |
+| **Format**     | `bun run format` (Prettier)             |
+| **Lint**       | `bun run lint` (Check formatting)       |
+| **Test All**   | `bun test`                              |
+| **Test File**  | `bun test tests/debounce.test.ts`       |
+| **Update Ext** | `bun run update`                        |
 
-## Environment & Toolchain
+## 🛠 Environment & Stack
 
-- **Runtime**: Bun only. Never use `npm`, `yarn`, or `pnpm`.
-- **Framework**: SvelteKit with Svelte 5 and static adapter.
-- **Language**: TypeScript with strict mode enabled.
-- **Search**: Meilisearch (client-side).
+- **Runtime**: **Bun** exclusively.
+- **Framework**: SvelteKit with Svelte 5 (Runes) + `@sveltejs/adapter-static`.
+- **Language**: TypeScript (Strict mode).
+- **Search**: Meilisearch (Client-side integration).
+- **CI**: GitHub Actions (Updates extensions every 4h).
 
-## Code Style (Prettier-enforced)
+## 📝 Code Style & Conventions
 
-- **Indentation**: 4 spaces (not tabs).
-- **Quotes**: Single quotes only.
-- **Trailing Commas**: None.
-- **Line Width**: 100 characters max.
-- **Line Endings**: LF (`\n`) on all platforms.
+### General
 
-## TypeScript Guidelines
+- **Indentation**: 4 spaces.
+- **Quotes**: Single quotes.
+- **Line Width**: 100 chars.
+- **Line Endings**: LF (`\n`) everywhere.
+- **Imports**: Use standard ESM. Use `$lib/` alias for `src/lib/`.
 
-- **Strict mode** is enabled. Avoid `any` unless absolutely necessary.
-- Use standard ESM imports with `$lib/` alias for `src/lib/`.
-- Define interfaces for all data structures in dedicated type files.
-- Prefer optional chaining (`?.`) and nullish coalescing (`??`) over non-null assertions (`!`).
+### TypeScript
 
-```typescript
-// Good
-const value = data?.nested?.property ?? 'default';
-// Avoid
-const value = data!.nested!.property;
+- **Strict Mode**: Enabled. Avoid `any`.
+- **Null Safety**: Prefer `?.` and `??` over `!`.
+- **Types**: Define interfaces in dedicated `types.ts` files or `src/lib/types.ts`.
+
+### Bun Specifics
+
+- **File I/O**: Use `await Bun.file('path').json()` or `.text()`.
+- **Shell**: Use `import { $ } from 'bun'` for shell commands.
+- **Async**: Use `await Bun.sleep(ms)` instead of `setTimeout`.
+- **Tests**: Use `import { test, expect } from 'bun:test'`.
+
+### Naming
+
+| Entity           | Convention | Example                      |
+| :--------------- | :--------- | :--------------------------- |
+| Components       | PascalCase | `ExtensionCard.svelte`       |
+| Types/Interfaces | PascalCase | `ExtensionRepo`              |
+| Files (Svelte)   | PascalCase | `ExtensionCard.svelte`       |
+| Files (TS)       | camelCase  | `meilisearch.ts`             |
+| Functions/Vars   | camelCase  | `fetchData`                  |
+| Routes           | SvelteKit  | `+page.svelte`, `+layout.ts` |
+
+### Svelte 5
+
+- Always use `<script lang="ts">`.
+- Use **Runes**: `$state`, `$derived`, `$effect`, `$props`.
+- Store components in `src/lib/components/`.
+- Prefer component-scoped styles.
+
+## 📂 Project Structure
+
+```text
+src/
+  lib/
+    components/   # Reusable Svelte 5 components
+    search/       # Meilisearch integration
+    stores/       # Svelte stores
+    types.ts      # Core type definitions
+  routes/         # SvelteKit pages (+page.svelte)
+scripts/
+  cache/          # S3/R2 caching system (Distributed locking)
+  config.ts       # Domain and file configuration
+  update.ts       # Main extension update script
+static/           # Generated assets & data.json
+tests/            # Bun test files (*.test.ts)
+extensions.json   # Extension source configuration
 ```
 
-## Naming Conventions
+## 🧪 Testing & Verification
 
-| Type                | Convention | Example                      |
-| ------------------- | ---------- | ---------------------------- |
-| Svelte components   | PascalCase | `ExtensionCard.svelte`       |
-| TS utilities        | camelCase  | `meilisearch.ts`             |
-| SvelteKit routes    | +prefix    | `+page.svelte`, `+layout.ts` |
-| Variables/Functions | camelCase  | `formatSourceName`           |
-| Types/Interfaces    | PascalCase | `ExtensionRepo`              |
+**Framework**: `bun:test`
 
-## Project Structure
-
-```
-src/lib/components/  # Reusable Svelte 5 components
-src/lib/search/      # Meilisearch integration
-src/lib/stores/      # Svelte stores
-src/lib/types.ts     # Core type definitions
-src/routes/          # SvelteKit pages
-scripts/update.ts    # Extension update entry point
-scripts/cache/       # S3/R2 caching system (read CLAUDE.md first)
-scripts/config.ts    # Domain and file configuration
-tests/               # Test files (*.test.ts)
-static/              # Generated extension data and assets
-```
-
-## Testing
-
-**Framework**: `bun:test` built-in test runner.
-**Test file pattern**: `tests/<module>.test.ts`
+**Pattern**:
 
 ```typescript
 import { expect, test } from 'bun:test';
-import { myFunction } from '../src/lib/path/to/module';
+import { myFunc } from '../src/lib/utils';
 
-test('description of what it tests', async () => {
-    const result = myFunction('input');
-    expect(result).toBe('expected');
+test('feature works', async () => {
+    const res = myFunc();
+    expect(res).toBe(true);
 });
-
-// For async delays, use Bun.sleep (not setTimeout)
-await Bun.sleep(100);
 ```
 
-**Current test coverage**: `src/lib/search/` utilities, `scripts/cache/` utilities.
+**Verification Workflow**:
+Before submitting changes, run this sequence:
 
-## Error Handling
+1. `bun run check` (Fix all type errors)
+2. `bun test` (Ensure no regressions)
+3. `bun run format` (Apply standard formatting)
+4. `bun run build` (Verify static generation)
 
-**Scripts** (`scripts/`):
+## ⚠️ Error Handling
 
-- Use try/catch in async functions.
-- Log errors explicitly via console or the `log` utility from `scripts/cache/logger.ts`.
+- **Scripts**: Wrap async operations in `try/catch`. Log errors explicitly using `console.error` or `scripts/cache/logger.ts`.
+- **Frontend**: Handle fetch failures gracefully (e.g. `data.json` load failure). Never crash the UI.
 
-**Frontend** (`src/`):
+## 🔄 Extension Updates
 
-- Handle fetch failures gracefully (e.g., when `data.json` fails to load).
-- Never let errors crash the UI silently.
-
-```typescript
-try {
-    await someAsyncOperation();
-} catch (error) {
-    console.error('Failed to complete operation:', error);
-    throw error; // Re-throw if caller needs to handle
-}
-```
-
-## Svelte 5 Components
-
-- Always use `<script lang="ts">`.
-- Components go in `src/lib/components/`.
-- Prefer component-scoped styles over global CSS.
-- Use Svelte 5 runes syntax (`$state`, `$derived`, `$effect`).
-
-## Verification Workflow
-
-After making changes, always run:
-
-1. `bun run check` - Type checking (primary safety net).
-2. `bun test` - Run test suite.
-3. `bun run format` - Ensure consistent formatting.
-4. `bun run build` - Verify static build succeeds.
-
-## Common Tasks
-
-**Add a new component**:
-
-1. Create `src/lib/components/Name.svelte` with Svelte 5 + TypeScript.
-2. Run `bun run format && bun run check`.
-
-**Modify extension logic**:
-
-1. Edit `scripts/update.ts` or `scripts/config.ts`.
-2. Test with `bun run update --generate-only`, then `bun run check`.
-
-**Add a new test**:
-
-1. Create `tests/<module>.test.ts` with `import { test, expect } from 'bun:test'`.
-2. Run `bun test tests/<module>.test.ts`.
-
-**Update dependencies**: `bun add <package>` or `bun add -d <package>`. Never edit `bun.lock` manually.
-
-## Important Notes
-
-- **Cache system** (`scripts/cache/`): Complex distributed system with S3 storage, manifest tracking, and distributed locking. Read `CLAUDE.md` before modifying.
-- **CI**: GitHub Actions in `.github/workflows/update.yml`. Updates run every 4 hours.
-- **Environment**: Local dev requires `.env` file. See `.env.example` for S3 configuration.
-
-## Key Files Reference
-
-| File                | Purpose                                         |
-| ------------------- | ----------------------------------------------- |
-| `extensions.json`   | Extension source configuration                  |
-| `static/data.json`  | Generated extension data (consumed by frontend) |
-| `src/lib/types.ts`  | Core TypeScript interfaces                      |
-| `scripts/config.ts` | Domains and file paths configuration            |
-| `CLAUDE.md`         | Detailed architecture documentation             |
+- **Logic**: `scripts/update.ts` handles fetching, cloning, and updating `extensions.json`.
+- **Cache**: `scripts/cache/` manages S3 storage. Read `CLAUDE.md` before touching cache logic.
+- **Config**: Add new extensions to `extensions.json`.
