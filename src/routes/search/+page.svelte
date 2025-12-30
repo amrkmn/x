@@ -263,7 +263,7 @@
                     onclick={() => updateParams({ page: '1' })}
                     title="First page"
                 >
-                    First
+                    &lt;&lt;
                 </button>
 
                 <button
@@ -274,7 +274,7 @@
                             page: currentPage === 1 ? null : (currentPage - 1).toString()
                         })}
                 >
-                    Previous
+                    &lt;
                 </button>
 
                 <div class="page-numbers">
@@ -296,7 +296,7 @@
                     disabled={currentPage === totalPages}
                     onclick={() => updateParams({ page: (currentPage + 1).toString() })}
                 >
-                    Next
+                    &gt;
                 </button>
 
                 <button
@@ -305,7 +305,7 @@
                     onclick={() => updateParams({ page: totalPages.toString() })}
                     title="Last page"
                 >
-                    Last
+                    &gt;&gt;
                 </button>
             </div>
         </div>
