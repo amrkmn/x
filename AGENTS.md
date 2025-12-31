@@ -2,7 +2,7 @@
 
 This repository aggregates Mihon and Aniyomi extensions into a SvelteKit static site.
 
-## ⚡ Quick Reference
+## Quick Reference
 
 | Task           | Command                                 |
 | :------------- | :-------------------------------------- |
@@ -16,36 +16,37 @@ This repository aggregates Mihon and Aniyomi extensions into a SvelteKit static 
 | **Test File**  | `bun test tests/debounce.test.ts`       |
 | **Update Ext** | `bun run update`                        |
 
-## 🛠 Environment & Stack
+## Environment & Stack
 
-- **Runtime**: **Bun** exclusively.
-- **Framework**: SvelteKit with Svelte 5 (Runes) + `@sveltejs/adapter-static`.
-- **Language**: TypeScript (Strict mode).
-- **Search**: Meilisearch (Client-side integration).
-- **CI**: GitHub Actions (Updates extensions every 4h).
+- **Runtime**: Bun exclusively
+- **Framework**: SvelteKit with Svelte 5 (Runes) + `@sveltejs/adapter-static`
+- **Language**: TypeScript (Strict mode)
+- **Search**: Meilisearch (Client-side integration)
+- **CI**: GitHub Actions (Updates extensions every 4h)
 
-## 📝 Code Style & Conventions
+## Code Style & Conventions
 
 ### General
 
-- **Indentation**: 4 spaces.
-- **Quotes**: Single quotes.
-- **Line Width**: 100 chars.
-- **Line Endings**: LF (`\n`) everywhere.
-- **Imports**: Use standard ESM. Use `$lib/` alias for `src/lib/`.
+- **Indentation**: 4 spaces
+- **Quotes**: Single quotes
+- **Line Width**: 100 chars
+- **Line Endings**: LF (`\n`) everywhere
+- **Imports**: Use standard ESM. Use `$lib/` alias for `src/lib/`
+- **No Comments**: Avoid adding comments unless explicitly requested
 
 ### TypeScript
 
-- **Strict Mode**: Enabled. Avoid `any`.
-- **Null Safety**: Prefer `?.` and `??` over `!`.
-- **Types**: Define interfaces in dedicated `types.ts` files or `src/lib/types.ts`.
+- **Strict Mode**: Enabled. Avoid `any`
+- **Null Safety**: Prefer `?.` and `??` over `!`
+- **Types**: Define interfaces in dedicated `types.ts` files or `src/lib/types.ts`
 
 ### Bun Specifics
 
-- **File I/O**: Use `await Bun.file('path').json()` or `.text()`.
-- **Shell**: Use `import { $ } from 'bun'` for shell commands.
-- **Async**: Use `await Bun.sleep(ms)` instead of `setTimeout`.
-- **Tests**: Use `import { test, expect } from 'bun:test'`.
+- **File I/O**: Use `await Bun.file('path').json()` or `.text()`
+- **Shell**: Use `import { $ } from 'bun'` for shell commands
+- **Async**: Use `await Bun.sleep(ms)` instead of `setTimeout`
+- **Tests**: Use `import { test, expect } from 'bun:test'`
 
 ### Naming
 
@@ -60,14 +61,14 @@ This repository aggregates Mihon and Aniyomi extensions into a SvelteKit static 
 
 ### Svelte 5
 
-- Always use `<script lang="ts">`.
-- Use **Runes**: `$state`, `$derived`, `$effect`, `$props`.
-- Store components in `src/lib/components/`.
-- Prefer component-scoped styles.
+- Always use `<script lang="ts">`
+- Use **Runes**: `$state`, `$derived`, `$effect`, `$props`
+- Store components in `src/lib/components/`
+- Prefer component-scoped styles
 
-## 📂 Project Structure
+## Project Structure
 
-```text
+```
 src/
   lib/
     components/   # Reusable Svelte 5 components
@@ -84,7 +85,7 @@ tests/            # Bun test files (*.test.ts)
 extensions.json   # Extension source configuration
 ```
 
-## 🧪 Testing & Verification
+## Testing
 
 **Framework**: `bun:test`
 
@@ -100,21 +101,32 @@ test('feature works', async () => {
 });
 ```
 
-**Verification Workflow**:
+**Run single test**: `bun test tests/debounce.test.ts`
+
+## Verification Workflow
+
 Before submitting changes, run this sequence:
 
-1. `bun run check` (Fix all type errors)
-2. `bun test` (Ensure no regressions)
-3. `bun run format` (Apply standard formatting)
-4. `bun run build` (Verify static generation)
+1. `bun run check` - Fix all type errors
+2. `bun test` - Ensure no regressions
+3. `bun run format` - Apply standard formatting
+4. `bun run build` - Verify static generation
 
-## ⚠️ Error Handling
+## Error Handling
 
-- **Scripts**: Wrap async operations in `try/catch`. Log errors explicitly using `console.error` or `scripts/cache/logger.ts`.
-- **Frontend**: Handle fetch failures gracefully (e.g. `data.json` load failure). Never crash the UI.
+- **Scripts**: Wrap async operations in `try/catch`. Log errors explicitly using `console.error` or `scripts/cache/logger.ts`
+- **Frontend**: Handle fetch failures gracefully (e.g. `data.json` load failure). Never crash the UI
+- **Never** expose or log secrets/keys. Never commit credentials to the repository
 
-## 🔄 Extension Updates
+## Extension Updates
 
-- **Logic**: `scripts/update.ts` handles fetching, cloning, and updating `extensions.json`.
-- **Cache**: `scripts/cache/` manages S3 storage. Read `CLAUDE.md` before touching cache logic.
-- **Config**: Add new extensions to `extensions.json`.
+- **Logic**: `scripts/update.ts` handles fetching, cloning, and updating `extensions.json`
+- **Cache**: `scripts/cache/` manages S3 storage. Read `CLAUDE.md` before touching cache logic
+- **Config**: Add new extensions to `extensions.json`
+
+## Important Notes
+
+- Never commit changes unless explicitly asked. Only commit when requested
+- Before editing files, read the existing code to understand conventions
+- When adding dependencies, verify the package isn't already used elsewhere
+- Use `$lib/` import alias for `src/lib/` imports
