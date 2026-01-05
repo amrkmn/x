@@ -4,7 +4,7 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "0a7913ae8f5a0184c912a18f23fe056a7e7f49f8"
+            "commit": "ae95f70ef4c6f6afa9fd8d15b8905e96e8124fc8"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
@@ -18,7 +18,7 @@
             "name": "Kohi-den",
             "source": "https://noz.one/mirror/kohi-den-extensions",
             "path": "/kohi-den/index.min.json",
-            "commit": "3a4e2df1d68828acfe833cd64457a52fa8f4f174"
+            "commit": "4b4cb43eb91fa646a4f48566346c64def57a99e6"
         },
         "yuzono/anime": {
             "name": "Yuzono Anime",
