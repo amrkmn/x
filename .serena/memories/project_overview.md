@@ -18,32 +18,32 @@ A repository aggregator for Mihon and Aniyomi extensions that automatically sync
 ### Directory Structure
 
 - **`src/`:** SvelteKit frontend application
-  - `src/routes/+layout.ts` - Loads `data.json` and provides it to all pages
-  - `src/routes/+page.svelte` - Home page with extension categories
-  - `src/routes/search/+page.svelte` - Search page with all extensions
-  - `src/lib/components/` - Reusable UI components (ExtensionCard, ExtensionCategory, ExtensionRow, MirrorSelector, Footer)
-  - `src/lib/stores/` - Svelte stores for state management
-  - `src/lib/search/` - Meilisearch integration and search utilities
-  - `src/lib/types.ts` - TypeScript type definitions
+    - `src/routes/+layout.ts` - Loads `data.json` and provides it to all pages
+    - `src/routes/+page.svelte` - Home page with extension categories
+    - `src/routes/search/+page.svelte` - Search page with all extensions
+    - `src/lib/components/` - Reusable UI components (ExtensionCard, ExtensionCategory, ExtensionRow, MirrorSelector, Footer)
+    - `src/lib/stores/` - Svelte stores for state management
+    - `src/lib/search/` - Meilisearch integration and search utilities
+    - `src/lib/types.ts` - TypeScript type definitions
 
 - **`scripts/`:** Bun scripts for project maintenance
-  - `scripts/update.ts` - Main extension update and data generation script
-  - `scripts/cache.ts` - Cache orchestration (restore/save with locking)
-  - `scripts/cache/` - Cache subsystem modules:
-    - `files.ts` - Tar archive creation/extraction with zstd compression
-    - `lock.ts` - Distributed lock implementation using S3 metadata
-    - `manifest.ts` - Cache manifest management
-    - `metadata.ts` - Cache metadata storage (checksums, timestamps)
-    - `s3.ts` - S3 client wrapper and cache operations
-    - `logger.ts` - Logging utilities for transfers
-    - `utils.ts` - Shared utilities
-  - `scripts/config.ts` - Configuration (domains, files to copy, GitHub info)
-  - `scripts/meilisearch.ts` - Meilisearch indexing for search functionality
-  - `scripts/worker.ts` - Cloudflare Workers deployment script
+    - `scripts/update.ts` - Main extension update and data generation script
+    - `scripts/cache.ts` - Cache orchestration (restore/save with locking)
+    - `scripts/cache/` - Cache subsystem modules:
+        - `files.ts` - Tar archive creation/extraction with zstd compression
+        - `lock.ts` - Distributed lock implementation using S3 metadata
+        - `manifest.ts` - Cache manifest management
+        - `metadata.ts` - Cache metadata storage (checksums, timestamps)
+        - `s3.ts` - S3 client wrapper and cache operations
+        - `logger.ts` - Logging utilities for transfers
+        - `utils.ts` - Shared utilities
+    - `scripts/config.ts` - Configuration (domains, files to copy, GitHub info)
+    - `scripts/meilisearch.ts` - Meilisearch indexing for search functionality
+    - `scripts/worker.ts` - Cloudflare Workers deployment script
 
 - **`static/`:** Static assets and generated extension files
-  - `static/data.json` - Generated extension metadata for frontend
-  - `static/{repo-key}/` - Extension files (index.json, index.min.json, repo.json, apk/, icon/)
+    - `static/data.json` - Generated extension metadata for frontend
+    - `static/{repo-key}/` - Extension files (index.json, index.min.json, repo.json, apk/, icon/)
 
 - **`tmp/`:** Temporary directory for git clones during updates
 
@@ -83,6 +83,7 @@ Extensions are defined in `extensions.json` with nested structure by category:
 ### Files Copied from Extensions
 
 Defined in `scripts/config.ts` as `filesToCopy`:
+
 - `index.json` - Full extension index
 - `index.min.json` - Minified extension index
 - `repo.json` - Repository metadata
@@ -92,6 +93,7 @@ Defined in `scripts/config.ts` as `filesToCopy`:
 ### Data Types
 
 **AppData** (generated in `static/data.json`):
+
 - `extensions`: Record of extension categories (mihon/aniyomi) with repos
 - `domains`: List of mirror domains for URL selection
 - `source`: GitHub repository URL
@@ -99,12 +101,14 @@ Defined in `scripts/config.ts` as `filesToCopy`:
 - `commitLink`: Link to latest commit
 
 **ExtensionRepo**:
+
 - `name`: Display name
 - `source`: Git repository URL
 - `path`: URL path for extension index
 - `commit`: Tracked commit hash
 
 **Extension** (from upstream repos):
+
 - `name`: Display name (e.g., "Tachiyomi: MangaDex")
 - `pkg`: Package identifier
 - `version`: Version string
@@ -124,9 +128,9 @@ Defined in `scripts/config.ts` as `filesToCopy`:
 
 1. Read `extensions.json` (target state) and `static/data.json` (synced state)
 2. For each extension:
-   - Fetch remote commit hash from git repository
-   - Compare remote hash with synced hash (from `data.json`)
-   - If different, or if files are missing in `static/`, queue for update
+    - Fetch remote commit hash from git repository
+    - Compare remote hash with synced hash (from `data.json`)
+    - If different, or if files are missing in `static/`, queue for update
 3. Clone repositories to `tmp/` and copy configured files to `static/`
 4. **Only after successful clone/copy**, update `extensions.json` with new commit hash
 5. Generate new `static/data.json` with updated commit info
@@ -162,6 +166,7 @@ S3-compatible storage (Cloudflare R2, Backblaze B2, AWS S3) for distributed cach
 ### S3 Configuration
 
 Environment variables in `.env`:
+
 - `S3_ENDPOINT`: S3 endpoint URL (e.g., `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` for R2)
 - `S3_ACCESS_KEY_ID`: Access key ID
 - `S3_SECRET_ACCESS_KEY`: Secret access key
@@ -171,6 +176,7 @@ Environment variables in `.env`:
 ### Cache Flow
 
 **Restore**:
+
 1. Resolve cache key using manifest (exact match or prefix fallback)
 2. Validate local cache using checksums (skip download if valid)
 3. Download tar.zst file from S3
@@ -178,6 +184,7 @@ Environment variables in `.env`:
 5. Update access timestamps in manifest
 
 **Save**:
+
 1. Acquire distributed lock using instance ID
 2. Compress `static/` directory to tar.zst with checksums
 3. Upload to S3 with streaming multipart upload
@@ -203,6 +210,7 @@ Environment variables in `.env`:
 - **Prerendering**: All pages are prerendered at build time (`prerender = true`)
 
 Frontend flow:
+
 1. Fetches `data.json` on initial load via `+layout.ts`
 2. Displays extension repositories grouped by category (mihon/aniyomi)
 3. Provides mirror domain selection for extension URLs
@@ -217,49 +225,53 @@ Frontend flow:
 **Schedule**: Every 4 hours (`0 */4 * * *`)
 
 **Triggers**:
+
 - Schedule: Every 4 hours
 - Manual: `workflow_dispatch`
 - Push to main branch (excluding bot commits)
 
 **Jobs**:
+
 1. **`update`**: Updates extensions using quick mode (`--quick`), commits changes to `extensions.json`
-   - Uses `[skip ci]` pattern to prevent recursive builds
-   - Outputs `updated=true` when changes occur
+    - Uses `[skip ci]` pattern to prevent recursive builds
+    - Outputs `updated=true` when changes occur
 
 2. **`sync-to-gitlab`**: Mirrors repository to GitLab for backup
-   - Runs after update when `updated=true` or on manual dispatch
-   - Uses SSH for authentication
+    - Runs after update when `updated=true` or on manual dispatch
+    - Uses SSH for authentication
 
 **Deployment triggers**:
+
 - Extensions have updates (`updated=true` from `update.ts`)
 - Workflow is manually triggered
 
 ### Deployment Targets
 
 - **Domains** (defined in `scripts/config.ts`):
-  - https://x.noz.one
-  - https://x.ujol.dev
-  - https://x.amar.kim
-  - https://x.ujol.workers.dev
+    - https://x.noz.one
+    - https://x.ujol.dev
+    - https://x.amar.kim
+    - https://x.ujol.workers.dev
 
 ## Standards
 
 - **Line Endings**: LF (Line Feed) enforced via:
-  - `.gitattributes`: `* text=auto eol=lf`
-  - `.prettierrc`: `"endOfLine": "lf"`
-  - Ensures cross-platform consistency (Windows/Linux/CI)
+    - `.gitattributes`: `* text=auto eol=lf`
+    - `.prettierrc`: `"endOfLine": "lf"`
+    - Ensures cross-platform consistency (Windows/Linux/CI)
 
 - **Formatting**: Prettier with:
-  - 4 spaces for indentation
-  - Single quotes
-  - No trailing commas
-  - 100 character line width
+    - 4 spaces for indentation
+    - Single quotes
+    - No trailing commas
+    - 100 character line width
 
 ## Important Patterns
 
 ### CI Skip Pattern
 
 Commits from workflow use `[skip ci]` to prevent recursive builds:
+
 ```bash
 git commit -m "chore: update extensions.json"
 ```

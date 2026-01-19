@@ -28,13 +28,14 @@
         "dev": "vite dev",
         "build": "bun run update --generate-only && vite build",
         "preview": "vite preview",
-        "prepare": "svelte-kit sync || echo ''",
+        "prepare": "svelte-kit sync || echo '' && bun run setup-hooks",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "format": "prettier --write .",
         "lint": "prettier --check .",
         "update": "bun run scripts/update.ts",
-        "test": "bun test"
+        "test": "bun test",
+        "setup-hooks": "bun run scripts/setup-hooks.ts"
     },
     "type": "module"
 }

@@ -38,6 +38,10 @@ jobs:
               id: update
               run: bun run update --quick
 
+            - name: Format extensions.json
+              if: steps.update.outputs.updated == 'true'
+              run: bun run format
+
             - name: Commit and push changes
               if: steps.update.outputs.updated == 'true'
               run: |
