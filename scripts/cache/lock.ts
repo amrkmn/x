@@ -1,5 +1,5 @@
 import type { S3Client } from 'bun';
-import { hostname } from 'os';
+import { hostname } from 'node:os';
 import type { CacheLock } from './utils';
 import {
     LOCK_DOUBLE_CHECK_MS,

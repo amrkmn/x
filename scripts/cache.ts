@@ -1,5 +1,5 @@
 import type { S3Client } from 'bun';
-import { join } from 'path';
+import { join } from 'node:path';
 import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
 import { withLock } from './cache/lock';
 import { log } from './cache/logger';

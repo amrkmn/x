@@ -1,6 +1,6 @@
 import { $ } from 'bun';
-import { mkdir, readdir, rm, exists } from 'fs/promises';
-import { join, relative, sep } from 'path';
+import { mkdir, readdir, rm, exists } from 'node:fs/promises';
+import { join, relative, sep } from 'node:path';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {

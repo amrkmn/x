@@ -1,6 +1,6 @@
 import { MeiliSearch } from 'meilisearch';
-import { readdir } from 'fs/promises';
-import { join } from 'path';
+import { readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 
 interface Extension {
     name: string;
@@ -101,6 +101,7 @@ export async function updateMeilisearch() {
         }
 
         const allExtensions: EnrichedExtension[] = [];
+        const newIds = new Set<string>();
 
         for (const file of files) {
             try {
@@ -120,20 +121,32 @@ export async function updateMeilisearch() {
                 const formattedSourceName = sourceName.toLowerCase().replace(/\s+/g, '.');
                 const idSafeSourceName = formattedSourceName.replace(/\./g, '_');
 
-                allExtensions.push(
-                    ...extensions.map((ext) => ({
-                        ...ext,
-                        id: `${idSafeSourceName}-${ext.pkg.replace(/\./g, '_')}`,
-                        category,
-                        sourceName,
-                        formattedSourceName,
-                        repoUrl,
-                        nsfw: typeof ext.nsfw === 'number' ? ext.nsfw : ext.nsfw ? 1 : 0
-                    }))
-                );
+                const enrichedExtensions = extensions.map((ext) => ({
+                    ...ext,
+                    id: `${idSafeSourceName}-${ext.pkg.replace(/\./g, '_')}`,
+                    category,
+                    sourceName,
+                    formattedSourceName,
+                    repoUrl,
+                    nsfw: typeof ext.nsfw === 'number' ? ext.nsfw : ext.nsfw ? 1 : 0
+                }));
+
+                for (const ext of enrichedExtensions) {
+                    newIds.add(ext.id);
+                }
+                allExtensions.push(...enrichedExtensions);
             } catch (err) {
                 console.error(`Error processing ${file}:`, err);
             }
+        }
+
+        const existingDocs = await index.getDocuments({ fields: ['id'], limit: 10000 });
+        const existingIds = new Set(existingDocs.results.map((doc) => doc.id));
+        const idsToDelete = Array.from(existingIds).filter((id) => !newIds.has(id));
+
+        if (idsToDelete.length > 0) {
+            console.log(`Deleting ${idsToDelete.length} removed extensions from Meilisearch`);
+            await index.deleteDocuments(idsToDelete);
         }
 
         const task = await index.updateDocuments(allExtensions, { primaryKey: 'id' });

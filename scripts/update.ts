@@ -1,7 +1,7 @@
 import { $ } from 'bun';
-import { existsSync } from 'fs';
-import { appendFile, cp } from 'fs/promises';
-import { join } from 'path';
+import { existsSync } from 'node:fs';
+import { appendFile, cp } from 'node:fs/promises';
+import { join } from 'node:path';
 import { restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import { config } from './config';
