@@ -152,6 +152,15 @@
     });
 </script>
 
+<svelte:head>
+    <title>{query ? `Search results for "${query}"` : 'Search Extensions'} - Mihon & Aniyomi</title>
+    <meta
+        name="description"
+        content="Search and filter Mihon and Aniyomi extensions by name, source, language, and category. Find exactly what you need."
+    />
+    <link rel="canonical" href="https://x.noz.one/search" />
+</svelte:head>
+
 <div class="container">
     <div class="page-header">
         <h1>Search Extensions</h1>
