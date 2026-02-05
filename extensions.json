@@ -10,7 +10,7 @@
             "name": "Yuzono Manga",
             "source": "https://github.com/yuzono/manga-repo",
             "path": "/yuzono/manga/index.min.json",
-            "commit": "8f230ba1bb9655e33c97041025cece75141815df"
+            "commit": "529044a986e7f4553e50d5286c7d4ed1b65ef534"
         }
     },
     "aniyomi": {
@@ -18,7 +18,7 @@
             "name": "Kohi-den",
             "source": "https://noz.one/mirror/kohi-den-extensions",
             "path": "/kohi-den/index.min.json",
-            "commit": "f37aeef11dc823340ec1efda52d4684206ed6ced"
+            "commit": "6694ad432040c0400c528eb7ad2007ab6378d213"
         },
         "yuzono/anime": {
             "name": "Yuzono Anime",
