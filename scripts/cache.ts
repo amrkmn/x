@@ -69,16 +69,7 @@ export async function restoreCache(
 
         console.log('Extracting cache...');
         const extractStartTime = Date.now();
-        let lastExtractPhase = '';
-        await extractTar(CACHE_FILE_PATH, '.', (phase, percent) => {
-            if (phase !== lastExtractPhase) {
-                if (lastExtractPhase) process.stdout.write('\n');
-                lastExtractPhase = phase;
-            }
-            const phaseLabel = phase === 'decompress' ? 'Decompressing' : 'Extracting';
-            process.stdout.write(`\r${phaseLabel}: ${percent}%`);
-        });
-        process.stdout.write('\n');
+        await extractTar(CACHE_FILE_PATH, '.');
         const extractTime = Date.now() - extractStartTime;
         console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
 
@@ -117,21 +108,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         // Compress and calculate checksums
         console.log('Compressing cache...');
         const compressStartTime = Date.now();
-        let lastPhase = '';
-        const files = await compressToTar(paths, CACHE_FILE_PATH, (phase, percent) => {
-            if (phase !== lastPhase) {
-                if (lastPhase) process.stdout.write('\n');
-                lastPhase = phase;
-            }
-            const phaseLabel =
-                phase === 'read'
-                    ? 'Reading files'
-                    : phase === 'archive'
-                      ? 'Creating archive'
-                      : 'Compressing';
-            process.stdout.write(`\r${phaseLabel}: ${percent}%`);
-        });
-        process.stdout.write('\n');
+        const files = await compressToTar(paths, CACHE_FILE_PATH);
         const compressTime = Date.now() - compressStartTime;
         console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
 

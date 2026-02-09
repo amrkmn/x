@@ -59,71 +59,44 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     return isValid;
 }
 
-export async function extractTar(
-    tarPath: string,
-    destPath = '.',
-    onProgress?: (phase: 'decompress' | 'extract', percent: number) => void
-): Promise<void> {
-    onProgress?.('decompress', 0);
+export async function extractTar(tarPath: string, destPath = '.'): Promise<void> {
     const compressedData = await Bun.file(tarPath).arrayBuffer();
     const decompressed = Bun.zstdDecompressSync(new Uint8Array(compressedData));
-    onProgress?.('decompress', 100);
-
-    onProgress?.('extract', 0);
     const archive = new Bun.Archive(decompressed);
     await archive.extract(destPath);
-    onProgress?.('extract', 100);
 }
 
 export async function compressToTar(
     paths: string[],
-    outputPath: string,
-    onProgress?: (phase: 'read' | 'archive' | 'compress', percent: number) => void
+    outputPath: string
 ): Promise<Record<string, FileMetadata>> {
     const checksums: Record<string, FileMetadata> = {};
     const files: Record<string, Uint8Array> = {};
 
-    onProgress?.('read', 0);
-    const allEntries: Array<{ path: string; entry: any }> = [];
     for (const path of paths) {
         const entries = await readdir(path, {
             recursive: true,
             withFileTypes: true
         });
+
         for (const entry of entries) {
             if (entry.isFile()) {
-                allEntries.push({ path, entry });
+                const fullPath = join(entry.parentPath, entry.name);
+                const relativePath = posix.relative('.', fullPath);
+
+                const fileBlob = Bun.file(fullPath);
+                const size = fileBlob.size;
+                const fileData = await fileBlob.arrayBuffer();
+
+                const checksum = await calculateFileChecksum(fullPath);
+                checksums[relativePath] = { checksum, size };
+                files[relativePath] = new Uint8Array(fileData);
             }
         }
     }
 
-    const totalFiles = allEntries.length;
-    let processedFiles = 0;
-
-    for (const { entry } of allEntries) {
-        const fullPath = join(entry.parentPath, entry.name);
-        const relativePath = posix.relative('.', fullPath);
-
-        const fileBlob = Bun.file(fullPath);
-        const size = fileBlob.size;
-        const fileData = await fileBlob.arrayBuffer();
-
-        const checksum = await calculateFileChecksum(fullPath);
-        checksums[relativePath] = { checksum, size };
-        files[relativePath] = new Uint8Array(fileData);
-
-        processedFiles++;
-        onProgress?.('read', Math.floor((processedFiles / totalFiles) * 100));
-    }
-
-    onProgress?.('archive', 0);
     const archive = new Bun.Archive(files);
-    const tarData = await archive.bytes();
-    onProgress?.('archive', 100);
-
-    onProgress?.('compress', 0);
-    await Bun.write(outputPath, Bun.zstdCompressSync(tarData));
-    onProgress?.('compress', 100);
+    await Bun.write(outputPath, Bun.zstdCompressSync(await archive.bytes()));
 
     return checksums;
 }
