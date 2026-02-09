@@ -45,67 +45,28 @@ function formatTransferStats(bytes: number, elapsedSeconds: number): string {
     return `${sizeMB} MB (${speedMBps} MB/s)`;
 }
 
-class TimerLogger {
-    private isInteractive: boolean;
-    private startTime: number;
-    private lastLogTime: number;
-    private prefix: string;
-
-    constructor(prefix: string) {
-        this.isInteractive = isInteractiveTerminal();
-        this.startTime = Date.now();
-        this.lastLogTime = this.startTime;
-        this.prefix = prefix;
-    }
-
-    /**
-     * Logs timer progress at regular intervals (throttled to 1 second).
-     */
-    progress(): this {
-        const now = Date.now();
-        if (now - this.lastLogTime >= 1000) {
-            const elapsed = (now - this.startTime) / 1000;
-            const message = `${this.prefix} (${elapsed.toFixed(0)}s)...`;
-
-            if (this.isInteractive) process.stdout.write(`\r${message}`);
-            else console.log(message);
-
-            this.lastLogTime = now;
-        }
-        return this;
-    }
-
-    /**
-     * Logs final timer completion message.
-     */
-    complete(): void {
-        const elapsed = (Date.now() - this.startTime) / 1000;
-        const message = `${this.prefix} (${elapsed.toFixed(0)}s)`;
-
-        if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}\n`);
-        else console.log(message);
-    }
-}
-
 class TransferLogger {
     private isInteractive: boolean;
     private startTime: number;
     private lastLogTime: number;
     private prefix: string;
+    private throttleMs: number;
 
     constructor(prefix: string) {
         this.isInteractive = isInteractiveTerminal();
         this.startTime = Date.now();
         this.lastLogTime = this.startTime;
         this.prefix = prefix;
+        this.throttleMs = this.isInteractive ? 200 : 1000;
     }
 
     /**
-     * Logs transfer progress at regular intervals (throttled to 1 second).
+     * Logs transfer progress at regular intervals.
+     * Throttled to 200ms for TTY, 1 second for non-TTY.
      */
     progress(bytes: number): this {
         const now = Date.now();
-        if (now - this.lastLogTime >= 1000) {
+        if (now - this.lastLogTime >= this.throttleMs) {
             const elapsed = (now - this.startTime) / 1000;
             const message = `${this.prefix} ${formatTransferStats(bytes, elapsed)}...`;
 
@@ -132,14 +93,6 @@ class TransferLogger {
 }
 
 class Logger {
-    /**
-     * Creates a timer progress logger.
-     * Usage: log.timer('Uploading cache').progress().complete()
-     */
-    timer(prefix: string): TimerLogger {
-        return new TimerLogger(prefix);
-    }
-
     /**
      * Creates a transfer progress logger.
      * Usage: log.transfer('Received').progress(bytes).complete(bytes)

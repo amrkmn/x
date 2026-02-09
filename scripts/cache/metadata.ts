@@ -1,6 +1,7 @@
-import type { S3Client } from 'bun';
-import { METADATA_VERSION, writeJsonToS3 } from './utils';
+import type { S3Client } from '@aws-sdk/client-s3';
+import { deleteObject, fileExists, getObject } from './s3';
 import type { CacheMetadata, FileMetadata } from './utils';
+import { METADATA_VERSION, writeJsonToS3 } from './utils';
 
 function getMetadataKey(cacheKey: string): string {
     return `${cacheKey}.meta.json`;
@@ -33,14 +34,14 @@ export async function saveMetadata(
 
 export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<CacheMetadata | null> {
     const metadataKey = getMetadataKey(cacheKey);
-    const metadataFile = s3.file(metadataKey);
 
     try {
-        if (!(await metadataFile.exists())) {
+        if (!(await fileExists(s3, metadataKey))) {
             return null;
         }
 
-        const metadata: CacheMetadata = JSON.parse(await metadataFile.text());
+        const data = await getObject(s3, metadataKey);
+        const metadata: CacheMetadata = JSON.parse(new TextDecoder().decode(data));
 
         if (metadata.version !== METADATA_VERSION) {
             return null;
@@ -84,11 +85,10 @@ export async function updateBothAccessTimes(
 
 export async function deleteMetadata(s3: S3Client, cacheKey: string): Promise<void> {
     const metadataKey = getMetadataKey(cacheKey);
-    const metadataFile = s3.file(metadataKey);
 
     try {
-        if (await metadataFile.exists()) {
-            await metadataFile.delete();
+        if (await fileExists(s3, metadataKey)) {
+            await deleteObject(s3, metadataKey);
         }
     } catch (e) {
         console.error(`Failed to delete metadata: ${e}`);

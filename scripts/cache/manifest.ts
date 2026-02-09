@@ -1,4 +1,5 @@
-import type { S3Client } from 'bun';
+import type { S3Client } from '@aws-sdk/client-s3';
+import { fileExists, getObject } from './s3';
 import type { CacheEntry, CacheManifest } from './utils';
 import { writeJsonToS3 } from './utils';
 
@@ -6,12 +7,10 @@ const MANIFEST_KEY = 'manifest.json';
 const MANIFEST_VERSION = 1;
 
 export async function loadManifest(s3: S3Client): Promise<CacheManifest> {
-    const manifestFile = s3.file(MANIFEST_KEY);
-
     try {
-        if (await manifestFile.exists()) {
-            const data = await manifestFile.text();
-            const manifest: CacheManifest = JSON.parse(data);
+        if (await fileExists(s3, MANIFEST_KEY)) {
+            const data = await getObject(s3, MANIFEST_KEY);
+            const manifest: CacheManifest = JSON.parse(new TextDecoder().decode(data));
 
             if (manifest.version === MANIFEST_VERSION) {
                 return manifest;

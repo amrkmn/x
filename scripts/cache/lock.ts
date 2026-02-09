@@ -1,5 +1,6 @@
-import type { S3Client } from 'bun';
+import type { S3Client } from '@aws-sdk/client-s3';
 import { hostname } from 'node:os';
+import { deleteObject, fileExists, getObject } from './s3';
 import type { CacheLock } from './utils';
 import {
     LOCK_DOUBLE_CHECK_MS,
@@ -66,20 +67,19 @@ function isLockStale(lock: CacheLock): boolean {
  * 6. If verification fails, we lost the race - retry
  */
 export async function acquireLock(s3: S3Client, instanceId: string): Promise<string | null> {
-    const lockFile = s3.file(LOCK_KEY);
     let retryDelay = LOCK_RETRY_START_MS;
 
     for (let attempt = 0; attempt < LOCK_MAX_RETRIES; attempt++) {
         try {
             // Step 1: Check for existing lock
-            if (await lockFile.exists()) {
-                const lockContent = await lockFile.text();
-                const existingLock: CacheLock = JSON.parse(lockContent);
+            if (await fileExists(s3, LOCK_KEY)) {
+                const lockData = await getObject(s3, LOCK_KEY);
+                const existingLock: CacheLock = JSON.parse(new TextDecoder().decode(lockData));
 
                 // Check if lock is stale
                 if (isLockStale(existingLock)) {
                     console.log('Stale lock detected, removing...');
-                    await lockFile.delete().catch(() => {});
+                    await deleteObject(s3, LOCK_KEY).catch(() => {});
                 } else {
                     // Lock is valid, need to retry
                     console.log(
@@ -111,9 +111,9 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
             await Bun.sleep(LOCK_DOUBLE_CHECK_MS);
 
             // Step 4: Verify we still own the lock (detect race conditions)
-            if (await lockFile.exists()) {
-                const verifyContent = await lockFile.text();
-                const verifyLock: CacheLock = JSON.parse(verifyContent);
+            if (await fileExists(s3, LOCK_KEY)) {
+                const verifyData = await getObject(s3, LOCK_KEY);
+                const verifyLock: CacheLock = JSON.parse(new TextDecoder().decode(verifyData));
 
                 if (verifyLock.instance === instanceId) {
                     // Successfully acquired lock
@@ -142,14 +142,13 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
  * Renews the lock to extend its TTL. Should be called periodically during long operations.
  */
 export async function renewLock(s3: S3Client, instanceId: string): Promise<boolean> {
-    const lockFile = s3.file(LOCK_KEY);
-
     try {
-        if (!(await lockFile.exists())) {
+        if (!(await fileExists(s3, LOCK_KEY))) {
             return false;
         }
 
-        const lock: CacheLock = JSON.parse(await lockFile.text());
+        const lockData = await getObject(s3, LOCK_KEY);
+        const lock: CacheLock = JSON.parse(new TextDecoder().decode(lockData));
 
         if (lock.instance !== instanceId) {
             return false;
@@ -171,17 +170,16 @@ export async function renewLock(s3: S3Client, instanceId: string): Promise<boole
  * Releases the lock if owned by this instance.
  */
 export async function releaseLock(s3: S3Client, instanceId: string): Promise<void> {
-    const lockFile = s3.file(LOCK_KEY);
-
     try {
-        if (!(await lockFile.exists())) {
+        if (!(await fileExists(s3, LOCK_KEY))) {
             return;
         }
 
-        const lock: CacheLock = JSON.parse(await lockFile.text());
+        const lockData = await getObject(s3, LOCK_KEY);
+        const lock: CacheLock = JSON.parse(new TextDecoder().decode(lockData));
 
         if (lock.instance === instanceId) {
-            await lockFile.delete();
+            await deleteObject(s3, LOCK_KEY);
             console.log('Lock released');
         }
     } catch (e) {

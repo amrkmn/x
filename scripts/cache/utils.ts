@@ -1,4 +1,7 @@
-import type { S3Client } from 'bun';
+import type { S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { log } from './logger';
+import { getObject, uploadToS3, s3Config } from './s3';
 
 // ============================================================================
 // Types
@@ -81,5 +84,55 @@ export async function generateCacheKey(): Promise<string> {
 
 // Helper to write JSON to S3 file
 export async function writeJsonToS3(s3: S3Client, key: string, data: any): Promise<void> {
-    await Bun.write(s3.file(key), JSON.stringify(data, null, 2));
+    const jsonData = JSON.stringify(data, null, 2);
+    await uploadToS3(key, new TextEncoder().encode(jsonData));
+}
+
+// Helper to upload file to S3 with progress tracking
+export async function uploadFileToS3(
+    s3: S3Client,
+    key: string,
+    sourcePath: string
+): Promise<number> {
+    const cacheFile = Bun.file(sourcePath);
+    const data = await cacheFile.arrayBuffer();
+
+    const logger = log.transfer(`Uploading ${key}`);
+    await uploadToS3(key, data, (bytes) => logger.progress(bytes));
+    logger.complete(data.byteLength);
+
+    return data.byteLength;
+}
+
+// Helper to download file from S3 with progress tracking
+export async function downloadFileFromS3(
+    s3: S3Client,
+    key: string,
+    targetPath: string
+): Promise<number> {
+    const response = await s3.send(
+        new GetObjectCommand({
+            Bucket: s3Config.BUCKET_NAME!,
+            Key: key
+        })
+    );
+
+    if (!response.Body) {
+        throw new Error(`No response body for key: ${key}`);
+    }
+
+    const writer = Bun.file(targetPath).writer();
+    const logger = log.transfer('Received');
+    let totalBytes = 0;
+
+    for await (const chunk of response.Body as any) {
+        writer.write(chunk);
+        totalBytes += chunk.length;
+        logger.progress(totalBytes);
+    }
+
+    await writer.end();
+    logger.complete(totalBytes);
+
+    return totalBytes;
 }

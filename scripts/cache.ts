@@ -1,12 +1,11 @@
-import type { S3Client } from 'bun';
+import type { S3Client } from '@aws-sdk/client-s3';
 import { join } from 'node:path';
 import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
 import { withLock } from './cache/lock';
-import { log } from './cache/logger';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
-import { cleanupOldCaches, ENABLED, getClient, resolveCacheKey } from './cache/s3';
-import { CACHE_FILE_NAME, TMP_DIR } from './cache/utils';
+import { cleanupOldCaches, ENABLED, fileExists, getClient, resolveCacheKey } from './cache/s3';
+import { CACHE_FILE_NAME, downloadFileFromS3, TMP_DIR, uploadFileToS3 } from './cache/utils';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
@@ -15,56 +14,11 @@ function formatBytes(bytes: number): string {
 }
 
 async function downloadCache(s3: S3Client, key: string, targetPath: string): Promise<number> {
-    const s3File = s3.file(key);
-    const stream = s3File.stream();
-    const writer = Bun.file(targetPath).writer();
-
-    const transfer = log.transfer('Received');
-    let downloadedBytes = 0;
-
-    for await (const chunk of stream) {
-        writer.write(chunk);
-        downloadedBytes += chunk.length;
-        transfer.progress(downloadedBytes);
-    }
-    await writer.end();
-
-    transfer.complete(downloadedBytes);
-
-    return downloadedBytes;
+    return downloadFileFromS3(s3, key, targetPath);
 }
 
 async function uploadCache(s3: S3Client, key: string, sourcePath: string): Promise<number> {
-    const cacheFile = Bun.file(sourcePath);
-    const stream = cacheFile.stream();
-
-    const s3File = s3.file(key);
-    const writer = s3File.writer({
-        partSize: 10 * 1024 * 1024, // 10 MB
-        queueSize: 4,
-        retry: 3
-    });
-
-    const timer = log.timer('Uploading cache');
-    let uploadedBytes = 0;
-
-    // Start a timer to log progress every second
-    const progressInterval = setInterval(() => {
-        timer.progress();
-    }, 1000);
-
-    try {
-        for await (const chunk of stream) {
-            writer.write(chunk);
-            uploadedBytes += chunk.length;
-        }
-
-        await writer.end();
-        return uploadedBytes;
-    } finally {
-        clearInterval(progressInterval);
-        timer.complete();
-    }
+    return uploadFileToS3(s3, key, sourcePath);
 }
 
 export async function restoreCache(
@@ -115,7 +69,16 @@ export async function restoreCache(
 
         console.log('Extracting cache...');
         const extractStartTime = Date.now();
-        await extractTar(CACHE_FILE_PATH);
+        let lastExtractPhase = '';
+        await extractTar(CACHE_FILE_PATH, '.', (phase, percent) => {
+            if (phase !== lastExtractPhase) {
+                if (lastExtractPhase) process.stdout.write('\n');
+                lastExtractPhase = phase;
+            }
+            const phaseLabel = phase === 'decompress' ? 'Decompressing' : 'Extracting';
+            process.stdout.write(`\r${phaseLabel}: ${percent}%`);
+        });
+        process.stdout.write('\n');
         const extractTime = Date.now() - extractStartTime;
         console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
 
@@ -144,8 +107,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
     // Use withLock for automatic lock management with renewal
     const result = await withLock(s3, async () => {
         // Check if cache already exists before compressing
-        const cacheFile = s3.file(key);
-        if (await cacheFile.exists()) {
+        if (await fileExists(s3, key)) {
             console.log(`Cache already exists: ${key}, skipping upload`);
             return;
         }
@@ -155,7 +117,21 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         // Compress and calculate checksums
         console.log('Compressing cache...');
         const compressStartTime = Date.now();
-        const files = await compressToTar(paths, CACHE_FILE_PATH);
+        let lastPhase = '';
+        const files = await compressToTar(paths, CACHE_FILE_PATH, (phase, percent) => {
+            if (phase !== lastPhase) {
+                if (lastPhase) process.stdout.write('\n');
+                lastPhase = phase;
+            }
+            const phaseLabel =
+                phase === 'read'
+                    ? 'Reading files'
+                    : phase === 'archive'
+                      ? 'Creating archive'
+                      : 'Compressing';
+            process.stdout.write(`\r${phaseLabel}: ${percent}%`);
+        });
+        process.stdout.write('\n');
         const compressTime = Date.now() - compressStartTime;
         console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
 
