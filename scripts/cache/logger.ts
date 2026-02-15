@@ -92,6 +92,43 @@ class TransferLogger {
     }
 }
 
+class ValidationLogger {
+    private isInteractive: boolean;
+    private prefix: string;
+    private throttleMs: number;
+    private lastLogTime: number;
+
+    constructor(prefix: string, totalItems: number) {
+        this.isInteractive = isInteractiveTerminal();
+        this.prefix = `${prefix} (${totalItems} files)`;
+        this.throttleMs = this.isInteractive ? 100 : 500;
+        this.lastLogTime = Date.now();
+    }
+
+    progress(current: number, total: number): this {
+        const now = Date.now();
+        if (now - this.lastLogTime >= this.throttleMs) {
+            const message = `${this.prefix}: ${current}/${total} files validated`;
+
+            if (this.isInteractive) process.stdout.write(`\r${message}`);
+            else console.log(message);
+
+            this.lastLogTime = now;
+        }
+        return this;
+    }
+
+    complete(current: number, valid: number, invalid: number, missing: number): void {
+        const message =
+            valid === current
+                ? `Cache is valid: ${valid} files matched`
+                : `Cache validation failed: ${valid} valid, ${invalid} invalid, ${missing} missing (total: ${current})`;
+
+        if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}\n`);
+        else console.log(message);
+    }
+}
+
 class Logger {
     /**
      * Creates a transfer progress logger.
@@ -99,6 +136,14 @@ class Logger {
      */
     transfer(prefix: string): TransferLogger {
         return new TransferLogger(prefix);
+    }
+
+    /**
+     * Creates a validation progress logger.
+     * Usage: log.validation('Validating cache', total).progress(current, total).complete(...)
+     */
+    validation(prefix: string, totalItems: number): ValidationLogger {
+        return new ValidationLogger(prefix, totalItems);
     }
 }
 

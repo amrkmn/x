@@ -1,6 +1,7 @@
 import { exists, mkdir, readdir, rm } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 
+import { log } from './logger';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
@@ -22,18 +23,20 @@ export async function calculateFileChecksum(filePath: string): Promise<string> {
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
-    console.log('Validating cache...');
     let valid = 0;
     let invalid = 0;
     let missing = 0;
 
-    const totalFiles = Object.keys(metadata.files).length;
+    const fileEntries = Object.entries(metadata.files);
+    const totalFiles = fileEntries.length;
+    const logger = log.validation('Validating cache', totalFiles);
 
-    for (const [filePath, fileInfo] of Object.entries(metadata.files)) {
+    for (const [index, [filePath, fileInfo]] of fileEntries.entries()) {
         const fullPath = join('.', filePath);
 
         if (!(await exists(fullPath))) {
             missing++;
+            logger.progress(index + 1, totalFiles);
             continue;
         }
 
@@ -41,20 +44,15 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
             const actualChecksum = await calculateFileChecksum(fullPath);
             if (actualChecksum === fileInfo.checksum) valid++;
             else invalid++;
-        } catch (e) {
+        } catch {
             invalid++;
         }
+
+        logger.progress(index + 1, totalFiles);
     }
 
     const isValid = invalid === 0 && missing === 0;
-
-    if (isValid) {
-        console.log(`Cache is valid: ${valid} files matched`);
-    } else {
-        console.log(
-            `Cache validation failed: ${valid} valid, ${invalid} invalid, ${missing} missing (total: ${totalFiles})`
-        );
-    }
+    logger.complete(totalFiles, valid, invalid, missing);
 
     return isValid;
 }
