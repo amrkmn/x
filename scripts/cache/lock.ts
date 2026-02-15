@@ -104,7 +104,7 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
                 hostname: hostname()
             };
 
-            await writeJsonToS3(s3, LOCK_KEY, newLock);
+            await writeJsonToS3(LOCK_KEY, newLock);
 
             // Step 3: Wait for double-check delay (Restic's waitBeforeLockCheck pattern)
             // This allows any racing processes to also write their locks
@@ -156,7 +156,7 @@ export async function renewLock(s3: S3Client, instanceId: string): Promise<boole
 
         // Update renewal time
         lock.renewedAt = Date.now();
-        await writeJsonToS3(s3, LOCK_KEY, lock);
+        await writeJsonToS3(LOCK_KEY, lock);
 
         console.log('Lock renewed');
         return true;

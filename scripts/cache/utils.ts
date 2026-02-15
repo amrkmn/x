@@ -1,7 +1,7 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { log } from './logger';
-import { getObject, uploadToS3, s3Config } from './s3';
+import { uploadToS3, s3Config } from './s3';
 
 // ============================================================================
 // Types
@@ -83,17 +83,13 @@ export async function generateCacheKey(): Promise<string> {
 }
 
 // Helper to write JSON to S3 file
-export async function writeJsonToS3(s3: S3Client, key: string, data: any): Promise<void> {
+export async function writeJsonToS3(key: string, data: any): Promise<void> {
     const jsonData = JSON.stringify(data, null, 2);
     await uploadToS3(key, new TextEncoder().encode(jsonData));
 }
 
 // Helper to upload file to S3 with progress tracking
-export async function uploadFileToS3(
-    s3: S3Client,
-    key: string,
-    sourcePath: string
-): Promise<number> {
+export async function uploadFileToS3(key: string, sourcePath: string): Promise<number> {
     const cacheFile = Bun.file(sourcePath);
     const data = await cacheFile.arrayBuffer();
 

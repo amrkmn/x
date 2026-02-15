@@ -27,8 +27,8 @@ export async function loadManifest(s3: S3Client): Promise<CacheManifest> {
     };
 }
 
-export async function saveManifest(s3: S3Client, manifest: CacheManifest): Promise<void> {
-    await writeJsonToS3(s3, MANIFEST_KEY, manifest);
+export async function saveManifest(manifest: CacheManifest): Promise<void> {
+    await writeJsonToS3(MANIFEST_KEY, manifest);
 }
 
 export async function addCacheEntry(
@@ -50,13 +50,13 @@ export async function addCacheEntry(
         lastAccessed: timestamp
     });
 
-    await saveManifest(s3, manifest);
+    await saveManifest(manifest);
 }
 
 export async function removeCacheEntry(s3: S3Client, key: string): Promise<void> {
     const manifest = await loadManifest(s3);
     manifest.caches = manifest.caches.filter((entry) => entry.key !== key);
-    await saveManifest(s3, manifest);
+    await saveManifest(manifest);
 }
 
 export function findCacheByKey(manifest: CacheManifest, key: string): CacheEntry | null {

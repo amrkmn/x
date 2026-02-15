@@ -8,7 +8,6 @@ function getMetadataKey(cacheKey: string): string {
 }
 
 export async function saveMetadata(
-    s3: S3Client,
     key: string,
     files: Record<string, FileMetadata>,
     cacheFilePath: string
@@ -26,7 +25,7 @@ export async function saveMetadata(
     };
 
     const metadataKey = getMetadataKey(key);
-    await writeJsonToS3(s3, metadataKey, metadata);
+    await writeJsonToS3(metadataKey, metadata);
 
     console.log(`Metadata saved: ${metadataKey}`);
     return hash;
@@ -54,15 +53,11 @@ export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<Cach
     }
 }
 
-async function updateMetadataAccessTime(
-    s3: S3Client,
-    cacheKey: string,
-    metadata: CacheMetadata
-): Promise<void> {
+async function updateMetadataAccessTime(cacheKey: string, metadata: CacheMetadata): Promise<void> {
     metadata.lastAccessed = Date.now();
 
     const metadataKey = getMetadataKey(cacheKey);
-    await writeJsonToS3(s3, metadataKey, metadata);
+    await writeJsonToS3(metadataKey, metadata);
 }
 
 export async function updateBothAccessTimes(
@@ -70,7 +65,7 @@ export async function updateBothAccessTimes(
     cacheKey: string,
     metadata: CacheMetadata
 ): Promise<void> {
-    await updateMetadataAccessTime(s3, cacheKey, metadata);
+    await updateMetadataAccessTime(cacheKey, metadata);
 
     // Also update manifest
     const { loadManifest, saveManifest } = await import('./manifest');
@@ -79,7 +74,7 @@ export async function updateBothAccessTimes(
 
     if (entry) {
         entry.lastAccessed = Date.now();
-        await saveManifest(s3, manifest);
+        await saveManifest(manifest);
     }
 }
 

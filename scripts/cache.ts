@@ -17,8 +17,8 @@ async function downloadCache(s3: S3Client, key: string, targetPath: string): Pro
     return downloadFileFromS3(s3, key, targetPath);
 }
 
-async function uploadCache(s3: S3Client, key: string, sourcePath: string): Promise<number> {
-    return uploadFileToS3(s3, key, sourcePath);
+async function uploadCache(key: string, sourcePath: string): Promise<number> {
+    return uploadFileToS3(key, sourcePath);
 }
 
 export async function restoreCache(
@@ -121,7 +121,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
 
         const startTime = Date.now();
 
-        await uploadCache(s3, key, CACHE_FILE_PATH);
+        await uploadCache(key, CACHE_FILE_PATH);
 
         const uploadTime = Date.now() - startTime;
         const uploadSpeed = sizeInBytes / (1024 * 1024) / (uploadTime / 1000);
@@ -132,7 +132,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         const timestamp = Date.now();
 
         // Save metadata and get hash
-        const hash = await saveMetadata(s3, key, files, CACHE_FILE_PATH);
+        const hash = await saveMetadata(key, files, CACHE_FILE_PATH);
         await cleanupDir(TMP_DIR);
 
         // Add entry to manifest
