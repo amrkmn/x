@@ -4,13 +4,13 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "04d47d36e4ef671830faa2d7804156e8b65ae1bc"
+            "commit": "4b8a9c4058e70d72a04d261c5c3ec822abdeff8b"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
             "source": "https://github.com/yuzono/manga-repo",
             "path": "/yuzono/manga/index.min.json",
-            "commit": "5edc1305f5b4a5ee985001679edf1d768ccaffcf"
+            "commit": "721dfe97fee10c77d3a17d59a8c603876007e028"
         }
     },
     "aniyomi": {
@@ -18,7 +18,7 @@
             "name": "Kohi-den",
             "source": "https://noz.one/mirror/kohi-den-extensions",
             "path": "/kohi-den/index.min.json",
-            "commit": "5f3765ba24d0df4b7ca7988eea965ae69ac48734"
+            "commit": "130c7ff1b249290c96f12e086261f80b540f10bc"
         },
         "yuzono/anime": {
             "name": "Yuzono Anime",
