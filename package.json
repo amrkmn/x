@@ -1,28 +1,8 @@
 {
     "name": "x",
     "version": "0.0.1",
-    "devDependencies": {
-        "@sveltejs/adapter-static": "^3.0.10",
-        "@sveltejs/kit": "^2.52.0",
-        "@sveltejs/vite-plugin-svelte": "^6.2.4",
-        "@types/bun": "^1.3.9",
-        "meilisearch": "^0.54.0",
-        "prettier": "^3.8.1",
-        "prettier-plugin-svelte": "^3.4.1",
-        "svelte": "^5.51.2",
-        "svelte-check": "^4.4.0",
-        "typescript": "^5.9.3",
-        "vite": "^7.3.1",
-        "wrangler": "^4.65.0"
-    },
     "description": "Mihon & Aniyomi Extensions",
-    "keywords": [
-        "mihon",
-        "aniyomi",
-        "extensions",
-        "manga",
-        "anime"
-    ],
+    "type": "module",
     "private": true,
     "scripts": {
         "dev": "vite dev",
@@ -37,9 +17,30 @@
         "test": "bun test",
         "setup-hooks": "bun run scripts/setup-hooks.ts"
     },
-    "type": "module",
     "dependencies": {
-        "@aws-sdk/client-s3": "^3.990.0",
-        "@aws-sdk/lib-storage": "^3.990.0"
-    }
+        "@aws-sdk/client-s3": "^3.1000.0",
+        "@aws-sdk/lib-storage": "^3.1000.0",
+        "minisearch": "^7.2.0"
+    },
+    "devDependencies": {
+        "@sveltejs/adapter-static": "^3.0.10",
+        "@sveltejs/kit": "^2.53.3",
+        "@sveltejs/vite-plugin-svelte": "^6.2.4",
+        "@types/bun": "^1.3.9",
+        "meilisearch": "^0.54.0",
+        "prettier": "^3.8.1",
+        "prettier-plugin-svelte": "^3.5.0",
+        "svelte": "^5.53.6",
+        "svelte-check": "^4.4.4",
+        "typescript": "^5.9.3",
+        "vite": "^7.3.1",
+        "wrangler": "^4.69.0"
+    },
+    "keywords": [
+        "mihon",
+        "aniyomi",
+        "extensions",
+        "manga",
+        "anime"
+    ]
 }
