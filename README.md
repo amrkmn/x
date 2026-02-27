@@ -7,13 +7,14 @@ A repository aggregator for Mihon and Aniyomi extensions that automatically sync
 - [x.noz.one](https://x.noz.one)
 - [x.ujol.dev](https://x.ujol.dev)
 - [x.ujol.workers.dev](https://x.ujol.workers.dev)
+- [x.amar.kim](https://x.amar.kim)
 
 ## Features
 
 - Automatic updates every 4 hours from upstream extension repositories
 - Static website for browsing and adding extensions
 - Built with SvelteKit and Vite
-- Search functionality for all extensions across repositories
+- Search functionality powered by Meilisearch
 
 ## Extension Sources
 
@@ -41,4 +42,7 @@ bun run update
 
 # Build for production
 bun run build
+
+# Type-check
+bun run check
 ```
