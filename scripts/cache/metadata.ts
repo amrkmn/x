@@ -1,4 +1,7 @@
 import type { S3Client } from '@aws-sdk/client-s3';
+import { exists } from 'node:fs/promises';
+import { join } from 'node:path';
+import { calculateFileChecksum } from './files';
 import { deleteObject, fileExists, getObject } from './s3';
 import type { CacheMetadata, FileMetadata } from './utils';
 import { METADATA_VERSION, writeJsonToS3 } from './utils';
@@ -32,6 +35,40 @@ export async function saveMetadata(
     return hash;
 }
 
+async function migrateMetadata(
+    cacheKey: string,
+    old: CacheMetadata
+): Promise<CacheMetadata | null> {
+    // Only migrate if all files are already present locally
+    for (const filePath of Object.keys(old.files)) {
+        if (!(await exists(join('.', filePath)))) {
+            console.log(`Cannot migrate metadata: missing file ${filePath}`);
+            return null;
+        }
+    }
+
+    console.log(`Migrating cache metadata v${old.version} → v${METADATA_VERSION}...`);
+
+    const files: Record<string, FileMetadata> = {};
+    for (const [filePath, info] of Object.entries(old.files)) {
+        const fullPath = join('.', filePath);
+        const checksum = await calculateFileChecksum(fullPath);
+        files[filePath] = { checksum, size: info.size };
+    }
+
+    const migrated: CacheMetadata = {
+        ...old,
+        files,
+        version: METADATA_VERSION,
+        lastAccessed: Date.now()
+    };
+
+    await writeJsonToS3(getMetadataKey(cacheKey), migrated);
+    console.log(`Metadata migrated successfully`);
+
+    return migrated;
+}
+
 export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<CacheMetadata | null> {
     const metadataKey = getMetadataKey(cacheKey);
 
@@ -44,7 +81,10 @@ export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<Cach
         const metadata: CacheMetadata = JSON.parse(new TextDecoder().decode(data));
 
         if (metadata.version !== METADATA_VERSION) {
-            return null;
+            console.log(
+                `Cache metadata version mismatch: expected ${METADATA_VERSION}, got ${metadata.version} — attempting migration`
+            );
+            return migrateMetadata(cacheKey, metadata);
         }
 
         return metadata;
