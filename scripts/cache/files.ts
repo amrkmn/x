@@ -5,21 +5,8 @@ import { log } from './logger';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
-    const fileBlob = Bun.file(filePath);
-    const size = fileBlob.size;
-
-    const hasher = new Bun.CryptoHasher('sha256');
-    if (size <= 10 * 1024 * 1024 /** 10MB */)
-        return hasher.update(await fileBlob.arrayBuffer()).digest('hex');
-
-    const reader = fileBlob.stream().getReader();
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) hasher.update(value);
-    }
-
-    return hasher.digest('hex');
+    const data = await Bun.file(filePath).arrayBuffer();
+    return Bun.hash(data).toString(16);
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
@@ -97,6 +84,36 @@ export async function compressToTar(
     await Bun.write(outputPath, Bun.zstdCompressSync(await archive.bytes()));
 
     return checksums;
+}
+
+export async function checksumFiles(paths: string[]): Promise<Record<string, FileMetadata>> {
+    const result: Record<string, FileMetadata> = {};
+    const allEntries: Array<{ fullPath: string; relativePath: string; size: number }> = [];
+
+    for (const path of paths) {
+        const entries = await readdir(path, { recursive: true, withFileTypes: true });
+        for (const entry of entries) {
+            if (entry.isFile()) {
+                const fullPath = join(entry.parentPath, entry.name);
+                const relativePath = posix.relative('.', fullPath);
+                const size = Bun.file(fullPath).size;
+                allEntries.push({ fullPath, relativePath, size });
+            }
+        }
+    }
+
+    const total = allEntries.length;
+    const logger = log.validation('Hashing extracted files', total);
+
+    for (const [index, { fullPath, relativePath, size }] of allEntries.entries()) {
+        const checksum = await calculateFileChecksum(fullPath);
+        result[relativePath] = { checksum, size };
+        logger.progress(index + 1, total);
+    }
+
+    logger.complete(total, total, 0, 0);
+
+    return result;
 }
 
 export async function ensureDir(dir: string): Promise<void> {

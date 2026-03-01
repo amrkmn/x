@@ -22,7 +22,7 @@ test('calculateFileChecksum returns consistent hash for same content', async () 
     const hash2 = await calculateFileChecksum(filePath);
 
     expect(hash1).toBe(hash2);
-    expect(hash1).toHaveLength(64); // SHA256 produces 64 hex characters
+    expect(hash1.length).toBeLessThanOrEqual(16); // wyhash produces up to 16 hex characters
 });
 
 test('calculateFileChecksum returns different hashes for different content', async () => {
@@ -43,16 +43,16 @@ test('calculateFileChecksum handles empty file', async () => {
     await writeFile(filePath, '');
 
     const hash = await calculateFileChecksum(filePath);
-    expect(hash).toHaveLength(64);
+    expect(hash.length).toBeLessThanOrEqual(16);
 });
 
 test('calculateFileChecksum handles larger file', async () => {
     const filePath = join(testDir, 'large.txt');
-    const content = 'x'.repeat(11 * 1024 * 1024); // ~11MB (over 10MB threshold)
+    const content = 'x'.repeat(11 * 1024 * 1024); // ~11MB
     await writeFile(filePath, content);
 
     const hash = await calculateFileChecksum(filePath);
-    expect(hash).toHaveLength(64);
+    expect(hash.length).toBeLessThanOrEqual(16);
 });
 
 test('ensureDir creates directory if it does not exist', async () => {
