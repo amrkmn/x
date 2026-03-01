@@ -1,6 +1,13 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { join } from 'node:path';
-import { cleanupDir, compressToTar, ensureDir, extractTar, validateCache } from './cache/files';
+import {
+    checksumFiles,
+    cleanupDir,
+    compressToTar,
+    ensureDir,
+    extractTar,
+    validateCache
+} from './cache/files';
 import { withLock } from './cache/lock';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
@@ -67,18 +74,24 @@ export async function restoreCache(
         console.log(`Cache Size: ~${sizeInMB} MB (${downloadedBytes} B)`);
         console.log(`Cache downloaded in ${(downloadTime / 1000).toFixed(2)}s`);
 
-        console.log('Extracting cache...');
         const extractStartTime = Date.now();
         await extractTar(CACHE_FILE_PATH, '.');
         const extractTime = Date.now() - extractStartTime;
         console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
 
+        // Recompute checksums from extracted files and update S3 metadata so
+        // the next run can validate locally without re-downloading.
+        // Must happen before cleanupDir so the archive is still present for hashing.
+        // Preserve the original timestamp so age-based eviction is not affected.
+        console.log('Updating cache metadata...');
+        const files = await checksumFiles(paths);
+        await saveMetadata(matchedKey, files, CACHE_FILE_PATH, metadata?.timestamp);
+
         await cleanupDir(TMP_DIR);
 
-        // Update access time after successful restore
-        const newMetadata = await loadMetadata(s3, matchedKey);
-        if (newMetadata) {
-            await updateBothAccessTimes(s3, matchedKey, newMetadata);
+        const refreshedMetadata = await loadMetadata(s3, matchedKey);
+        if (refreshedMetadata) {
+            await updateBothAccessTimes(s3, matchedKey, refreshedMetadata);
         }
 
         console.log(`Cache restored successfully`);

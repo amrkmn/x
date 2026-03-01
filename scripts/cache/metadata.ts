@@ -10,15 +10,16 @@ function getMetadataKey(cacheKey: string): string {
 export async function saveMetadata(
     key: string,
     files: Record<string, FileMetadata>,
-    cacheFilePath: string
+    cacheFilePath: string,
+    timestamp?: number
 ): Promise<string> {
     const content = await Bun.file(cacheFilePath).arrayBuffer();
-    const hash = new Bun.CryptoHasher('sha256').update(content).digest('hex');
+    const hash = Bun.hash(content).toString(16);
 
     const metadata: CacheMetadata = {
         key,
         hash,
-        timestamp: Date.now(),
+        timestamp: timestamp ?? Date.now(),
         lastAccessed: Date.now(),
         files,
         version: METADATA_VERSION
