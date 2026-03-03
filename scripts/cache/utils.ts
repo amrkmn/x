@@ -89,7 +89,7 @@ export async function uploadFileToS3(key: string, sourcePath: string): Promise<n
     const cacheFile = Bun.file(sourcePath);
     const data = await cacheFile.arrayBuffer();
 
-    const logger = log.transfer(`Uploading ${key}`);
+    const logger = log.transfer(`Uploading`, data.byteLength);
     await uploadToS3(key, data, (bytes) => logger.progress(bytes));
     logger.complete(data.byteLength);
 
@@ -114,7 +114,7 @@ export async function downloadFileFromS3(
     }
 
     const writer = Bun.file(targetPath).writer();
-    const logger = log.transfer('Received');
+    const logger = log.transfer('Received', response.ContentLength);
     let totalBytes = 0;
 
     for await (const chunk of response.Body as any) {

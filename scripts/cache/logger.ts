@@ -39,10 +39,17 @@ function isInteractiveTerminal(): boolean {
 /**
  * Formats transfer statistics (size and speed).
  */
-function formatTransferStats(bytes: number, elapsedSeconds: number): string {
+function formatTransferStats(bytes: number, elapsedSeconds: number, totalBytes?: number): string {
     const sizeMB = (bytes / (1024 * 1024)).toFixed(2);
-    const speedMBps = (bytes / (1024 * 1024) / elapsedSeconds).toFixed(2);
-    return `${sizeMB} MB (${speedMBps} MB/s)`;
+    const speedMBps =
+        elapsedSeconds > 0 ? (bytes / (1024 * 1024) / elapsedSeconds).toFixed(2) : '0.00';
+    const hasTotal = typeof totalBytes === 'number' && totalBytes > 0;
+    const percentage = hasTotal ? Math.min((bytes / totalBytes) * 100, 100).toFixed(2) : '0.00';
+    if (hasTotal) {
+        const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
+        return `${sizeMB}/${totalMB}MiB(${percentage}%) ${speedMBps}MiB/s`;
+    }
+    return `${sizeMB}MiB(${percentage}%) ${speedMBps}MiB/s`;
 }
 
 class TransferLogger {
@@ -51,13 +58,15 @@ class TransferLogger {
     private lastLogTime: number;
     private prefix: string;
     private throttleMs: number;
+    private totalBytes?: number;
 
-    constructor(prefix: string) {
+    constructor(prefix: string, totalBytes?: number) {
         this.isInteractive = isInteractiveTerminal();
         this.startTime = Date.now();
         this.lastLogTime = this.startTime;
         this.prefix = prefix;
         this.throttleMs = this.isInteractive ? 200 : 1000;
+        this.totalBytes = totalBytes;
     }
 
     /**
@@ -68,7 +77,7 @@ class TransferLogger {
         const now = Date.now();
         if (now - this.lastLogTime >= this.throttleMs) {
             const elapsed = (now - this.startTime) / 1000;
-            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed)}...`;
+            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
 
             if (this.isInteractive) process.stdout.write(`\r${message}`);
             else console.log(message);
@@ -84,7 +93,7 @@ class TransferLogger {
     complete(bytes: number): void {
         if (bytes > 0) {
             const elapsed = (Date.now() - this.startTime) / 1000;
-            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed)}`;
+            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
 
             if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}\n`);
             else console.log(message);
@@ -134,8 +143,8 @@ class Logger {
      * Creates a transfer progress logger.
      * Usage: log.transfer('Received').progress(bytes).complete(bytes)
      */
-    transfer(prefix: string): TransferLogger {
-        return new TransferLogger(prefix);
+    transfer(prefix: string, totalBytes?: number): TransferLogger {
+        return new TransferLogger(prefix, totalBytes);
     }
 
     /**
