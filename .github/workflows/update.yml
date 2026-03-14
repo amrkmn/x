@@ -72,9 +72,7 @@ jobs:
     sync-to-dufs:
         runs-on: ubuntu-latest
         needs: update
-        env:
-            HAS_SYNC_DUFS_URL: ${{ secrets.SYNC_DUFS_URL != '' }}
-        if: (needs.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch') && env.HAS_SYNC_DUFS_URL == 'true'
+        if: (needs.update.outputs.updated == 'true' || github.event_name == 'workflow_dispatch') && secrets.SYNC_DUFS_URL != ''
 
         steps:
             - name: Checkout repository
