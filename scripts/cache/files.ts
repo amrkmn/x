@@ -6,7 +6,7 @@ import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
     const data = await Bun.file(filePath).arrayBuffer();
-    return Bun.hash(data).toString(16);
+    return Bun.hash.rapidhash(data).toString(16);
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {

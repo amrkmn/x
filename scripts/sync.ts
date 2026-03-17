@@ -1,19 +1,24 @@
 #!/usr/bin/env bun
 
-import { resolve } from 'path';
-import { readdir } from 'fs/promises';
 import { existsSync } from 'fs';
-import { SyncLogger } from './logger.js';
+import { readdir } from 'fs/promises';
+import { relative, resolve } from 'path';
 import { restoreCache } from './cache.js';
+import { loadMetadata } from './cache/metadata.js';
+import { getClient } from './cache/s3.js';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils.js';
+import { SyncLogger } from './logger.js';
 
 const STATIC_DIR = 'static';
 const DUFS_URL = process.env.SYNC_DUFS_URL;
 const DUFS_AUTH = process.env.SYNC_DUFS_AUTH;
-const CONCURRENCY = Math.min(parseInt(process.env.SYNC_CONCURRENCY || '3'), 10);
+const CONCURRENCY = Math.min(parseInt(process.env.SYNC_CONCURRENCY || '20'), 50);
 
 const USE_CACHE = Bun.argv.includes('--use-cache');
 type AuthHeaders = { Authorization: string };
+type RemoteFileMeta = { size: number };
+type FileMetadata = { checksum: string; size: number };
+type LocalCacheMetadata = { key: string; files: Record<string, FileMetadata> } | null;
 
 async function main() {
     if (!DUFS_URL || !DUFS_AUTH) {
@@ -23,18 +28,27 @@ async function main() {
 
     const logger = new SyncLogger('Sync');
 
-    try {
-        if (USE_CACHE) {
-            logger.info('Restoring from cache...');
-            const key = await generateCacheKey();
-            const restoredKey = await restoreCache(CACHE_PATHS, key, CACHE_RESTORE_KEYS);
-            if (restoredKey) {
-                logger.info(`Cache restored: ${restoredKey}`);
-            } else {
-                logger.info('No cache found, continuing without cache');
+    let localCacheMeta: LocalCacheMetadata = null;
+    if (USE_CACHE) {
+        logger.info('Restoring from cache...');
+        const key = await generateCacheKey();
+        const restoredKey = await restoreCache(CACHE_PATHS, key, CACHE_RESTORE_KEYS);
+        if (restoredKey) {
+            logger.info(`Cache restored: ${restoredKey}`);
+            const s3 = getClient();
+            if (s3) {
+                try {
+                    localCacheMeta = await loadMetadata(s3, restoredKey);
+                } catch (e) {
+                    logger.error(`Failed to load cache metadata: ${e}`);
+                }
             }
+        } else {
+            logger.info('No cache found, continuing without cache');
         }
+    }
 
+    try {
         const baseUrl = DUFS_URL.replace(/\/$/, '');
         const authHeaders: AuthHeaders = {
             Authorization: `Basic ${Buffer.from(DUFS_AUTH).toString('base64')}`
@@ -56,13 +70,27 @@ async function main() {
         for (const path of expected) {
             if (!remote.files.has(path)) {
                 toUpload.push(path);
+                continue;
             }
+
+            const remoteMeta = remote.meta.get(path);
+            const localCacheMetaFile = localCacheMeta?.files[path];
+
+            if (localCacheMetaFile && remoteMeta) {
+                const localChecksum = await calculateFileChecksum(resolve(extDir, path));
+                if (localChecksum === localCacheMetaFile.checksum) continue;
+            } else if (remoteMeta) {
+                const localStat = await Bun.file(resolve(extDir, path)).stat();
+                if (localStat.size === remoteMeta.size) continue;
+            }
+
+            toUpload.push(path);
         }
 
         if (toUpload.length > 0) {
             logger.info(`Uploading ${toUpload.length} new files...`);
 
-            const uploaded = await processInBatches(
+            const uploaded = await processWithPool(
                 toUpload,
                 CONCURRENCY,
                 (path) => uploadFile(baseUrl, authHeaders, path, extDir),
@@ -81,7 +109,7 @@ async function main() {
         if (toDelete.length > 0) {
             logger.info(`Deleting ${toDelete.length} dangling files...`);
 
-            const deleted = await processInBatches(
+            const deleted = await processWithPool(
                 toDelete,
                 CONCURRENCY,
                 (path) => deleteFile(baseUrl, authHeaders, path),
@@ -131,7 +159,7 @@ async function buildFileList(baseDir: string): Promise<Set<string>> {
             if (entry.isDirectory()) {
                 await scan(fullPath);
             } else {
-                const relativePath = fullPath.replace(baseDir + '/', '');
+                const relativePath = relative(baseDir, fullPath).replace(/\\/g, '/');
                 files.add(relativePath);
             }
         }
@@ -144,51 +172,55 @@ async function buildFileList(baseDir: string): Promise<Set<string>> {
 async function listRemoteFiles(
     baseUrl: string,
     authHeaders: AuthHeaders
-): Promise<{ files: Set<string>; directories: Set<string> }> {
+): Promise<{ files: Set<string>; directories: Set<string>; meta: Map<string, RemoteFileMeta> }> {
     const files = new Set<string>();
     const directories = new Set<string>();
-    const dirsToScan: string[] = [''];
+    const meta = new Map<string, RemoteFileMeta>();
 
-    try {
-        for (let i = 0; i < dirsToScan.length; i++) {
-            const dir = dirsToScan[i]!;
-            const listUrl = dir === '' ? `${baseUrl}/?json` : `${baseUrl}/${dir}?json`;
+    async function scanDir(dir: string): Promise<void> {
+        const listUrl = dir === '' ? `${baseUrl}/?json` : `${baseUrl}/${dir}?json`;
 
-            let res = await fetch(listUrl, {
-                headers: authHeaders
-            });
+        let res = await fetch(listUrl, { headers: authHeaders });
+        if (!res.ok) res = await fetch(listUrl);
+        if (!res.ok) return;
 
-            if (!res.ok) {
-                res = await fetch(listUrl);
-            }
+        const data = (await res.json()) as {
+            paths?: Array<{ path_type: string; name: string; size?: number }>;
+        };
 
-            if (!res.ok) continue;
-
-            const data = (await res.json()) as {
-                paths?: Array<{ path_type: string; name: string }>;
-            };
-
-            if (data.paths) {
-                for (const item of data.paths) {
-                    const fullPath = dir === '' ? item.name : `${dir}/${item.name}`;
-                    if (item.path_type === 'File') {
-                        files.add(fullPath);
-                    } else if (item.path_type === 'Dir') {
-                        directories.add(fullPath);
-                        dirsToScan.push(fullPath);
-                    }
-                }
+        const subDirs: string[] = [];
+        for (const item of data.paths ?? []) {
+            const fullPath = dir === '' ? item.name : `${dir}/${item.name}`;
+            if (item.path_type === 'File') {
+                files.add(fullPath);
+                meta.set(fullPath, {
+                    size: item.size ?? -1
+                });
+            } else if (item.path_type === 'Dir') {
+                directories.add(fullPath);
+                subDirs.push(fullPath);
             }
         }
+
+        await Promise.all(subDirs.map(scanDir));
+    }
+
+    try {
+        await scanDir('');
     } catch (e) {
         console.error('Failed to list remote files:', e);
     }
 
-    return { files, directories };
+    return { files, directories, meta };
 }
 
 function getUploadUrl(baseUrl: string, path: string): string {
     return `${baseUrl}/${path}`;
+}
+
+async function calculateFileChecksum(filePath: string): Promise<string> {
+    const data = await Bun.file(filePath).arrayBuffer();
+    return Bun.hash(data).toString(16);
 }
 
 function buildExpectedDirPrefixes(expected: Set<string>): Set<string> {
@@ -203,23 +235,24 @@ function buildExpectedDirPrefixes(expected: Set<string>): Set<string> {
     return directories;
 }
 
-async function processInBatches<T>(
+async function processWithPool<T>(
     items: T[],
     concurrency: number,
     worker: (item: T) => Promise<void>,
-    onBatchComplete: (done: number, total: number) => void
+    onProgress: (done: number, total: number) => void
 ): Promise<number> {
+    let index = 0;
     let completed = 0;
-    for (let i = 0; i < items.length; i += concurrency) {
-        const batch = items.slice(i, i + concurrency);
-        await Promise.all(
-            batch.map(async (item) => {
-                await worker(item);
-                completed++;
-            })
-        );
-        onBatchComplete(completed, items.length);
+
+    async function runWorker() {
+        while (index < items.length) {
+            const item = items[index++]!;
+            await worker(item);
+            onProgress(++completed, items.length);
+        }
     }
+
+    await Promise.all(Array.from({ length: concurrency }, runWorker));
     return completed;
 }
 
