@@ -107,7 +107,7 @@ const updates = (
 
                     if (!quickMode && (remoteHash !== syncedHash || ext.commit !== syncedHash)) {
                         console.log(
-                            `[${ext.name}] Update: ${syncedHash?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                            `[${ext.name}] Update: ${ext.commit?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
                         );
                         return { category, key, ext, hash: remoteHash };
                     }
