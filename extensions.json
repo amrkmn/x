@@ -4,13 +4,13 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "49366b6cfb356306cbfcb2d6c64760264a039b79"
+            "commit": "0f56dcb720193531bae4bd6247a9432fe28bdb32"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
             "source": "https://github.com/yuzono/manga-repo",
             "path": "/yuzono/manga/index.min.json",
-            "commit": "d95f43ccea0764e640cd5dfc1ffff6d5cb2f6d44"
+            "commit": "49b3d800ccb8a879815454ab47bdffc358a1277c"
         }
     },
     "aniyomi": {
