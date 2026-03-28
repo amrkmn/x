@@ -18,13 +18,13 @@
             "name": "Kohi-den",
             "source": "https://noz.one/mirror/kohi-den-extensions",
             "path": "/kohi-den/index.min.json",
-            "commit": ""
+            "commit": "7391868c3c91300f19add517004b65e1e71069ec"
         },
         "yuzono/anime": {
             "name": "Yuzono Anime",
             "source": "https://github.com/yuzono/anime-repo",
             "path": "/yuzono/anime/index.min.json",
-            "commit": "5d659ae7c0c8ffcd30785e6b9b4ad9b4921943ff"
+            "commit": "8f1d98f2c6973364eec6e17b4fddd906b71b3811"
         }
     }
 }
