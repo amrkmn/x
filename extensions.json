@@ -10,7 +10,7 @@
             "name": "Mojuru",
             "source": "https://github.com/mojuru/cursed-manga-repo",
             "path": "/mojuru/index.min.json",
-            "commit": "0615d90d036996e77c8f32df6c9ad606d3272d8f"
+            "commit": "f2fc664826195a8729ca5cb9b271bee9668b02c8"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
