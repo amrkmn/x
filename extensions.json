@@ -6,10 +6,10 @@
             "path": "/keiyoushi/index.min.json",
             "commit": "4384b2dbfa50ebcb7d60d27aa690cb3df25d0b31"
         },
-        "mojuru": {
-            "name": "Mojuru",
-            "source": "https://github.com/mojuru/cursed-manga-repo",
-            "path": "/mojuru/index.min.json",
+        "yuzono/cursed": {
+            "name": "Yuzono Cursed",
+            "source": "https://github.com/yuzono/cursed-manga-repo",
+            "path": "/yuzono/cursed/index.min.json",
             "commit": "f2fc664826195a8729ca5cb9b271bee9668b02c8"
         },
         "yuzono/manga": {
