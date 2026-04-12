@@ -74,6 +74,7 @@ export async function restoreCache(
         console.log(`Cache Size: ~${sizeInMB} MB (${downloadedBytes} B)`);
         console.log(`Cache downloaded in ${(downloadTime / 1000).toFixed(2)}s`);
 
+        console.log('Extracting cache...');
         const extractStartTime = Date.now();
         await extractTar(CACHE_FILE_PATH, '.');
         const extractTime = Date.now() - extractStartTime;
