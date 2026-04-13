@@ -10,7 +10,7 @@
             "name": "Yuzono Cursed",
             "source": "https://github.com/yuzono/cursed-manga-repo",
             "path": "/yuzono/cursed/index.min.json",
-            "commit": "f2fc664826195a8729ca5cb9b271bee9668b02c8"
+            "commit": "a0b77d2346a306058b4d95951db184c2d4be35c5"
         },
         "yuzono/manga": {
             "name": "Yuzono Manga",
@@ -30,7 +30,7 @@
             "name": "Yuzono Anime",
             "source": "https://github.com/yuzono/anime-repo",
             "path": "/yuzono/anime/index.min.json",
-            "commit": "ec40a1d8acc1de317eb2f66d71538ab0693e1acf"
+            "commit": "34a72e48c422561b5188d582e77776f45edfac4e"
         }
     }
 }
