@@ -1,48 +1,32 @@
 # Mihon & Aniyomi Extensions
 
-A repository aggregator for Mihon and Aniyomi extensions that automatically syncs from multiple upstream sources.
+Extension repository aggregator that syncs from multiple upstream sources. Updated every 4 hours.
 
 ## Links
 
-- [x.noz.one](https://x.noz.one)
+- [x.noz.one](https://x.noz.one) / [x.ujol.workers.dev](https://x.ujol.workers.dev)
 - [x.ujol.dev](https://x.ujol.dev)
-- [x.ujol.workers.dev](https://x.ujol.workers.dev)
 - [x.amar.kim](https://x.amar.kim)
 
-## Features
+## Available Extensions
 
-- Automatic updates every 4 hours from upstream extension repositories
-- Static website for browsing and adding extensions
-- Built with SvelteKit and Vite
-- Search functionality powered by Meilisearch
+### Mihon
 
-## Extension Sources
+- Keiyoushi
+- Yuzono Manga
+- Yuzono Cursed
 
-### Mihon Extensions
+### Aniyomi
 
-- **Keiyoushi** - Community-maintained Mihon extensions
-- **Yuzono Manga** - Manga extensions
-
-### Aniyomi Extensions
-
-- **Kohi-den** - Anime extensions
-- **Yuzono Anime** - Anime extensions
+- Kohi-den
+- Yuzono Anime
 
 ## Development
 
 ```bash
-# Install dependencies
 bun install
-
-# Start development server
-bun run dev
-
-# Update extensions from upstream
-bun run update
-
-# Build for production
-bun run build
-
-# Type-check
-bun run check
+bun run dev     # Start dev server
+bun run sync    # Sync extension repos
+bun run update  # Update extensions from upstream
+bun run check   # Type-check
 ```
