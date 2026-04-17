@@ -27,4 +27,10 @@
     {#each Object.entries(extensions) as [category, repos]}
         <ExtensionCategory {category} {repos} selectedDomain={$selectedDomain} />
     {/each}
+    <br />
+    <img
+        src="https://count.getloli.com/@amrkmn.x?name=amrkmn.x&theme=capoo-2&padding=7&offset=0&align=top&scale=0.5&pixelated=0&darkmode=auto"
+        class="counter-img"
+        alt="amrkmn.x"
+    />
 </div>

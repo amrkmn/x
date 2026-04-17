@@ -32,6 +32,11 @@ body {
     display: table;
 }
 
+.counter-img {
+    display: block;
+    margin: 0 auto;
+}
+
 select {
     padding: 4px;
     background-color: #121212;
