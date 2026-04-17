@@ -1,6 +1,6 @@
 # Mihon & Aniyomi Extensions
 
-![Visits](https://badges.pufler.dev/visits/amrkmn/x)
+[![Visits](https://badges.pufler.dev/visits/amrkmn/x)](https://github.com/amrkmn/x)
 
 Extension repository aggregator that syncs from multiple upstream sources. Updated every 4 hours.
 
