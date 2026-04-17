@@ -67,7 +67,8 @@ if (process.argv.includes('--update-search')) {
 }
 
 const quickMode = process.argv.includes('--quick');
-const useCache = !process.argv.includes('--no-cache') && !quickMode;
+const syncMode = process.argv.includes('--sync');
+const useCache = !process.argv.includes('--no-cache') && !quickMode && !syncMode;
 
 if (useCache) await restoreCache(CACHE_PATHS, await generateCacheKey(), CACHE_RESTORE_KEYS);
 else
@@ -134,17 +135,6 @@ if (quickMode) {
     process.exit(0);
 }
 
-const { CI, GITHUB_EVENT_NAME } = process.env;
-if (
-    CI === 'true' &&
-    GITHUB_EVENT_NAME &&
-    !['schedule', 'workflow_dispatch'].includes(GITHUB_EVENT_NAME)
-) {
-    console.log('Skipping updates (CI)');
-    await setOutput('updated', 'false');
-    process.exit(0);
-}
-
 console.log(`Updating ${updates.length} extensions...`);
 await $`rm -rf ${TEMP_DIR}`;
 
@@ -175,9 +165,11 @@ await $`rm -rf ${TEMP_DIR}`;
 if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
-    await generateData();
-    await updateMeilisearch();
     if (useCache) await saveCache(CACHE_PATHS, await generateCacheKey());
+    if (!syncMode) {
+        await generateData();
+        await updateMeilisearch();
+    }
 }
 
 await setOutput('updated', String(changed));

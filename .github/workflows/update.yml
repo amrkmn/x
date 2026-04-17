@@ -103,7 +103,7 @@ jobs:
 
             - name: Sync to DUFS
               if: steps.dufs.outputs.enabled == 'true'
-              run: bun run sync --use-cache
+              run: bun run sync --use-cache --update-if-needed
               env:
                   SYNC_DUFS_URL: ${{ secrets.SYNC_DUFS_URL }}
                   SYNC_DUFS_AUTH: ${{ secrets.SYNC_DUFS_AUTH }}

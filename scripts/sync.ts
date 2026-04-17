@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import { $ } from 'bun';
 import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
 import { relative, resolve } from 'path';
@@ -14,7 +15,7 @@ const DUFS_URL = process.env.SYNC_DUFS_URL;
 const DUFS_AUTH = process.env.SYNC_DUFS_AUTH;
 const CONCURRENCY = Math.min(parseInt(process.env.SYNC_CONCURRENCY || '20'), 50);
 
-const USE_CACHE = Bun.argv.includes('--use-cache');
+const USE_CACHE = process.argv.includes('--use-cache');
 type AuthHeaders = { Authorization: string };
 type RemoteFileMeta = { size: number };
 type FileMetadata = { checksum: string; size: number };
@@ -46,6 +47,12 @@ async function main() {
         } else {
             logger.info('No cache found, continuing without cache');
         }
+    }
+
+    // Update outdated extensions if flag is set
+    if (process.argv.includes('--update-if-needed')) {
+        logger.info('Updating outdated extensions...');
+        await $`bun run update --sync`;
     }
 
     try {
