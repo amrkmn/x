@@ -16,7 +16,7 @@
             "name": "Yuzono Manga",
             "source": "https://github.com/yuzono/manga-repo",
             "path": "/yuzono/manga/index.min.json",
-            "commit": "615c48b14199c3a9026b8e9ac385ce877acceb28"
+            "commit": "8180e80f79b97a2b592808ccfed34315b79a6e92"
         }
     },
     "aniyomi": {
@@ -30,7 +30,7 @@
             "name": "Yuzono Anime",
             "source": "https://github.com/yuzono/anime-repo",
             "path": "/yuzono/anime/index.min.json",
-            "commit": "021b92768c6bbb220ae356542e8442fc92dd6117"
+            "commit": "ab27287f61b561bc6f1bd1dc36add677fd4fe669"
         }
     }
 }
