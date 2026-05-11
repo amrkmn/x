@@ -11,15 +11,13 @@ const data = JSON.parse(readFileSync(dataPath, 'utf-8')) as AppData;
 const { extensions, domains } = data;
 ---
 
-<Base data={data}>
-    <svelte:head slot="head">
-        <title>Mihon & Aniyomi Extensions | Home</title>
-        <meta
-            name="description"
-            content="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
-        />
-        <link rel="canonical" href="https://x.noz.one/" />
-    </svelte:head>
+<Base data={data} title="Mihon & Aniyomi Extensions">
+    <meta
+        slot="head"
+        name="description"
+        content="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
+    />
+    <link slot="head" rel="canonical" href="https://x.noz.one/" />
 
     <div class="container">
         <div class="page-header">
