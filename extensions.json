@@ -4,7 +4,7 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "9b515f7d3adcbc72c9cf1c68d7d2797077adf587"
+            "commit": "402b03df892cdf2cdf8abafe3fc34ae5ab94d9e8"
         },
         "yuzono/cursed": {
             "name": "Yuzono Cursed",
@@ -16,7 +16,7 @@
             "name": "Yuzono Manga",
             "source": "https://github.com/yuzono/manga-repo",
             "path": "/yuzono/manga/index.min.json",
-            "commit": "36495157a21275a0fd528032cbab69abd34e57a0"
+            "commit": "81eb4471df50738fe0ff2f098b9d047380083d37"
         }
     },
     "aniyomi": {
