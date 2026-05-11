@@ -7,6 +7,12 @@
 
     let { domains }: Props = $props();
 
+    $effect(() => {
+        if (domains && domains.length > 0 && !$selectedDomain) {
+            $selectedDomain = domains[0];
+        }
+    });
+
     function getHostname(url: string) {
         try {
             return new URL(url).hostname;

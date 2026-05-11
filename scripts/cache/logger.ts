@@ -79,7 +79,7 @@ class TransferLogger {
             const elapsed = (now - this.startTime) / 1000;
             const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
 
-            if (this.isInteractive) process.stdout.write(`\r${message}`);
+            if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}`);
             else console.log(message);
 
             this.lastLogTime = now;
@@ -119,7 +119,7 @@ class ValidationLogger {
         if (now - this.lastLogTime >= this.throttleMs) {
             const message = `${this.prefix}: ${current}/${total} files validated`;
 
-            if (this.isInteractive) process.stdout.write(`\r${message}`);
+            if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}`);
             else console.log(message);
 
             this.lastLogTime = now;

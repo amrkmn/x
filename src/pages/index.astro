@@ -1,0 +1,42 @@
+---
+import ExtensionCategory from '$lib/components/ExtensionCategory.svelte';
+import MirrorSelector from '$lib/components/MirrorSelector.svelte';
+import type { AppData } from '$lib/types';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import Base from '../layouts/Base.astro';
+
+const dataPath = resolve('static/data.json');
+const data = JSON.parse(readFileSync(dataPath, 'utf-8')) as AppData;
+const { extensions, domains } = data;
+---
+
+<Base data={data}>
+    <svelte:head slot="head">
+        <title>Mihon & Aniyomi Extensions | Home</title>
+        <meta
+            name="description"
+            content="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
+        />
+        <link rel="canonical" href="https://x.noz.one/" />
+    </svelte:head>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Mihon & Aniyomi Extensions</h1>
+            <a href="/search" class="btn btn-secondary header-btn">Search</a>
+        </div>
+
+        <MirrorSelector client:only="svelte" {domains} />
+
+        {Object.entries(extensions).map(([category, repos]) => (
+            <ExtensionCategory client:only="svelte" {category} {repos} />
+        ))}
+        <br />
+        <img
+            src="https://count.getloli.com/@amrkmn.x?name=amrkmn.x&theme=capoo-2&padding=7&offset=0&align=top&scale=0.5&pixelated=0&darkmode=auto"
+            class="counter-img"
+            alt="amrkmn.x"
+        />
+    </div>
+</Base>
