@@ -167,11 +167,11 @@ await $`rm -rf ${TEMP_DIR}`;
 if (changed) {
     await Bun.write('extensions.json', JSON.stringify(extensionsData, null, 4));
     console.log('Updated extensions.json');
-    if (useCache) await saveCache(CACHE_PATHS, await generateCacheKey());
     if (!syncMode) {
         await generateData();
         await updateMeilisearch();
     }
+    if (useCache) await saveCache(CACHE_PATHS, await generateCacheKey());
 }
 
 await setOutput('updated', String(changed));
