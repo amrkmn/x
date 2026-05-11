@@ -6,7 +6,7 @@ import {
     S3Client
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { findCacheByKey, findCacheByPrefix, loadManifest, removeCacheEntry } from './manifest';
+import { findCacheByKey, findCachesByPrefix, loadManifest, removeCacheEntry } from './manifest';
 import { deleteMetadata } from './metadata';
 import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './utils';
 
@@ -143,8 +143,8 @@ export async function resolveCacheKey(
     // Try restore keys in order (prefix matching), preferring most recent
     if (restoreKeys && restoreKeys.length > 0) {
         for (const prefix of restoreKeys) {
-            const match = findCacheByPrefix(manifest, prefix);
-            if (match) {
+            const candidates = findCachesByPrefix(manifest, prefix);
+            for (const match of candidates) {
                 if (await cacheExists(s3, match.key)) {
                     return match.key;
                 }

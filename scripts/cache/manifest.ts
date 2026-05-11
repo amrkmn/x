@@ -64,12 +64,11 @@ export function findCacheByKey(manifest: CacheManifest, key: string): CacheEntry
 }
 
 export function findCacheByPrefix(manifest: CacheManifest, prefix: string): CacheEntry | null {
+    const caches = findCachesByPrefix(manifest, prefix);
+    return caches.length > 0 ? caches[0] : null;
+}
+
+export function findCachesByPrefix(manifest: CacheManifest, prefix: string): CacheEntry[] {
     const matching = manifest.caches.filter((entry) => entry.key.startsWith(prefix));
-
-    if (matching.length === 0) {
-        return null;
-    }
-
-    // Return most recently created cache
-    return matching.sort((a, b) => b.timestamp - a.timestamp)[0];
+    return matching.sort((a, b) => b.timestamp - a.timestamp);
 }
