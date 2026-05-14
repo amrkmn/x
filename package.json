@@ -18,19 +18,19 @@
     },
     "devDependencies": {
         "@astrojs/check": "^0.9.9",
-        "@astrojs/svelte": "^8.1.0",
-        "@aws-sdk/client-s3": "^3.1045.0",
-        "@aws-sdk/lib-storage": "^3.1045.0",
-        "@types/bun": "^1.3.13",
-        "astro": "^6.3.1",
+        "@astrojs/svelte": "^8.1.1",
+        "@aws-sdk/client-s3": "^3.1046.0",
+        "@aws-sdk/lib-storage": "^3.1046.0",
+        "@types/bun": "^1.3.14",
+        "astro": "^6.3.2",
         "meilisearch": "^0.54.0",
         "minisearch": "^7.2.0",
         "prettier": "^3.8.3",
         "prettier-plugin-astro": "^0.14.1",
-        "prettier-plugin-svelte": "^3.5.1",
+        "prettier-plugin-svelte": "^3.5.2",
         "svelte": "^5.55.5",
         "typescript": "^5.9.3",
-        "wrangler": "^4.90.0"
+        "wrangler": "^4.90.1"
     },
     "keywords": [
         "mihon",
