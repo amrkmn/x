@@ -81,7 +81,9 @@ export async function generateCacheKey(): Promise<string> {
 // Helper to write JSON to S3 file
 export async function writeJsonToS3(key: string, data: any): Promise<void> {
     const jsonData = JSON.stringify(data, null, 2);
-    await uploadToS3(key, new TextEncoder().encode(jsonData));
+    await uploadToS3(key, new TextEncoder().encode(jsonData), {
+        contentType: 'application/json'
+    });
 }
 
 // Helper to upload file to S3 with progress tracking
@@ -90,7 +92,9 @@ export async function uploadFileToS3(key: string, sourcePath: string): Promise<n
     const data = await cacheFile.arrayBuffer();
 
     const logger = log.transfer(`Uploading`, data.byteLength);
-    await uploadToS3(key, data, (bytes) => logger.progress(bytes));
+    await uploadToS3(key, data, {
+        onProgress: (bytes) => logger.progress(bytes)
+    });
     logger.complete(data.byteLength);
 
     return data.byteLength;

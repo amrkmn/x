@@ -1,0 +1,66 @@
+# Cloudflare Pages cache headers
+
+# 1 year — immutable
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+/keiyoushi/apk/*.apk
+  Cache-Control: public, max-age=31536000, immutable
+/kohi-den/apk/*.apk
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/anime/apk/*.apk
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/manga/apk/*.apk
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/cursed/apk/*.apk
+  Cache-Control: public, max-age=31536000, immutable
+/keiyoushi/icon/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/kohi-den/icon/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/anime/icon/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/manga/icon/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/yuzono/cursed/icon/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/favicon.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+# 1 day
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+# 5 min — JSON
+/keiyoushi/index.json
+/keiyoushi/index.min.json
+/keiyoushi/repo.json
+  Cache-Control: public, max-age=300, must-revalidate
+/kohi-den/index.json
+/kohi-den/index.min.json
+/kohi-den/repo.json
+  Cache-Control: public, max-age=300, must-revalidate
+/yuzono/anime/index.json
+/yuzono/anime/index.min.json
+/yuzono/anime/repo.json
+  Cache-Control: public, max-age=300, must-revalidate
+/yuzono/manga/index.json
+/yuzono/manga/index.min.json
+/yuzono/manga/repo.json
+  Cache-Control: public, max-age=300, must-revalidate
+/yuzono/cursed/index.json
+/yuzono/cursed/index.min.json
+/yuzono/cursed/repo.json
+  Cache-Control: public, max-age=300, must-revalidate
+/data.json
+  Cache-Control: public, max-age=300, must-revalidate
+
+# 1 hour
+/sitemap.xml
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# No cache
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate

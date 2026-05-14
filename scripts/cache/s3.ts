@@ -80,19 +80,25 @@ export async function deleteObject(client: S3Client, key: string): Promise<void>
 export async function uploadToS3(
     key: string,
     data: Uint8Array | ArrayBuffer,
-    onProgress?: (bytes: number) => void
+    options?: {
+        onProgress?: (bytes: number) => void;
+        contentType?: string;
+    }
 ): Promise<void> {
     const client = getClient();
     if (!client) throw new Error('S3 client not initialized');
 
     const body = data instanceof Uint8Array ? data : new Uint8Array(data);
+    const contentType = options?.contentType;
+    const onProgress = options?.onProgress;
 
     if (!onProgress) {
         await client.send(
             new PutObjectCommand({
                 Bucket: s3Config.BUCKET_NAME!,
                 Key: key,
-                Body: body
+                Body: body,
+                ContentType: contentType
             })
         );
         return;
@@ -103,7 +109,8 @@ export async function uploadToS3(
         params: {
             Bucket: s3Config.BUCKET_NAME!,
             Key: key,
-            Body: body
+            Body: body,
+            ContentType: contentType
         }
     });
 
