@@ -4,7 +4,7 @@
             "name": "Keiyoushi",
             "source": "https://github.com/keiyoushi/extensions",
             "path": "/keiyoushi/index.min.json",
-            "commit": "44ea86bb5a9ac63648bf003d214ac59ecb0ba73a"
+            "commit": "48978c2cbde383b0fe8707d0ae8b0666c50c1609"
         },
         "yuzono/cursed": {
             "name": "Yuzono Cursed",
