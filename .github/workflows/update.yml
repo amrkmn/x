@@ -125,6 +125,6 @@ jobs:
                       --transfers 20 \
                       --checkers 20 \
                       --retries 3 \
-                      --retry-sleep 5s \
+                      --retries-sleep 5s \
                       --log-level INFO \
                       --progress
