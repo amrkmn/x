@@ -27,8 +27,9 @@ Extension repository aggregator that syncs from multiple upstream sources. Updat
 
 ```bash
 bun install
-bun run dev     # Start dev server
-bun run sync    # Sync extension repos
-bun run update  # Update extensions from upstream
-bun run check   # Type-check
+bun run dev            # Start dev server
+bun run update:check   # Check upstream repos and update extensions.json
+bun run update:static  # Populate static/ from upstream repos
+bun run build          # Generate data.json and build dist/
+bun run check          # Type-check
 ```
