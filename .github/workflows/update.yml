@@ -121,10 +121,11 @@ jobs:
 
             - name: Sync to DUFS
               run: |
-                  rclone sync ./dist dufs:/ \
+                  rclone sync ./dist dufs: \
                       --transfers 20 \
                       --checkers 20 \
                       --retries 3 \
                       --retries-sleep 5s \
                       --log-level INFO \
-                      --progress
+                      --progress \
+                      --stats-one-line-date
