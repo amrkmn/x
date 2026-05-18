@@ -103,7 +103,7 @@ jobs:
               with:
                   bun-version: latest
 
-            - name: Setup rclone
+            - name: Setup Rclone
               uses: AnimMouse/setup-rclone@26ef2133e09fd383329a1d4c1fbe6a71db1976c9 # v1.12.0
               with:
                   rclone_config: ${{ secrets.RCLONE_CONFIG }}
