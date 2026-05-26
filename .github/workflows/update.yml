@@ -118,6 +118,8 @@ jobs:
                   S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
                   S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
                   S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+                  PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
+                  PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
 
             - name: Sync to DUFS
               run: |
