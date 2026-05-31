@@ -21,6 +21,7 @@
         "prepare:dist": "bun run scripts/task.ts prepare-dist",
         "sync": "bun run update:static",
         "test": "bun test",
+        "prepare": "bun run setup-hooks",
         "setup-hooks": "bun run scripts/setup-hooks.ts"
     },
     "devDependencies": {
