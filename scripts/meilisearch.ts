@@ -1,4 +1,4 @@
-import { MeiliSearch } from 'meilisearch';
+import { Meilisearch } from 'meilisearch';
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -73,7 +73,7 @@ export async function updateMeilisearch() {
     const STATIC_DIR = join(process.cwd(), 'static');
 
     try {
-        const client = new MeiliSearch({ host: env.host, apiKey: env.apiKey });
+        const client = new Meilisearch({ host: env.host, apiKey: env.apiKey });
         await client.health();
         const index = client.index('extensions');
 
@@ -140,7 +140,10 @@ export async function updateMeilisearch() {
             }
         }
 
-        const existingDocs = await index.getDocuments({ fields: ['id'], limit: 10000 });
+        const existingDocs = await index.getDocuments<{ id: string }>({
+            fields: ['id'],
+            limit: 10000
+        });
         const existingIds = new Set(existingDocs.results.map((doc) => doc.id));
         const idsToDelete = Array.from(existingIds).filter((id) => !newIds.has(id));
 
