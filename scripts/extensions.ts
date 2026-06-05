@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import { config } from './config';
 import type { ExtensionConfig } from './types';
 
-export const ROOT_DIR = process.cwd();
-export const STATIC_DIR = join(ROOT_DIR, 'static');
-export const DATA_FILE = join(STATIC_DIR, 'data.json');
-export const TEMP_DIR = join(ROOT_DIR, 'tmp');
-export const EXTENSIONS_FILE = join(ROOT_DIR, 'extensions.json');
+const ROOT_DIR = process.cwd();
+const STATIC_DIR = join(ROOT_DIR, 'static');
+const DATA_FILE = join(STATIC_DIR, 'data.json');
+const TEMP_DIR = join(ROOT_DIR, 'tmp');
+const EXTENSIONS_FILE = join(ROOT_DIR, 'extensions.json');
 
 export type ExtensionsData = Record<string, Record<string, ExtensionConfig>>;
 
@@ -36,7 +36,7 @@ export async function saveExtensionsData(
     await Bun.write(path, JSON.stringify(data, null, 4));
 }
 
-export function toExtensionList(
+function toExtensionList(
     data: ExtensionsData
 ): Record<string, Array<Pick<ExtensionConfig, 'source' | 'name' | 'path' | 'commit'>>> {
     return Object.fromEntries(

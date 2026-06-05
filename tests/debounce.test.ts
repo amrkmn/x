@@ -1,6 +1,14 @@
 import { expect, test } from 'bun:test';
 import { debounce } from '../src/lib/search/debounce';
 
+async function expectSingleDebouncedResult(results: number[], expected: number): Promise<void> {
+    expect(results.length).toBe(0);
+
+    await Bun.sleep(150);
+    expect(results.length).toBe(1);
+    expect(results[0]).toBe(expected);
+}
+
 test('debounce delays function execution', async () => {
     const results: number[] = [];
     const debouncedFn = debounce((value: number) => results.push(value), 100);
@@ -9,11 +17,7 @@ test('debounce delays function execution', async () => {
     debouncedFn(2);
     debouncedFn(3);
 
-    expect(results.length).toBe(0);
-
-    await Bun.sleep(150);
-    expect(results.length).toBe(1);
-    expect(results[0]).toBe(3);
+    await expectSingleDebouncedResult(results, 3);
 });
 
 test('debounce resets timer on repeated calls', async () => {
@@ -27,11 +31,7 @@ test('debounce resets timer on repeated calls', async () => {
     debouncedFn(3);
     await Bun.sleep(50);
 
-    expect(results.length).toBe(0);
-
-    await Bun.sleep(150);
-    expect(results.length).toBe(1);
-    expect(results[0]).toBe(3);
+    await expectSingleDebouncedResult(results, 3);
 });
 
 test('debounce allows multiple executions over time', async () => {

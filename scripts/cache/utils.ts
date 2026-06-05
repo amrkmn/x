@@ -55,21 +55,19 @@ export const LOCK_MAX_RETRIES = 6; // With exponential backoff: 5s, 10s, 20s, 40
 export const LOCK_DOUBLE_CHECK_MS = 200; // 200ms delay for double-check pattern (matches Restic)
 
 export const METADATA_VERSION = 2;
-export const METADATA_KEY = 'metadata.json';
 export const LOCK_KEY = 'cache.lock';
 
 export const MAX_CACHE_FILES = 7;
 export const MAX_CACHE_AGE_DAYS = 7;
 
 export const TMP_DIR = 'tmp';
-export const STATIC_DIR = 'static';
 export const CACHE_FILE_NAME = 'extensions-cache.tzst';
 
 // Cache configuration
 export const CACHE_PATHS = ['static'];
 export const CACHE_KEY_PREFIX = 'extensions-';
 export const CACHE_RESTORE_KEYS = ['extensions-'];
-export const EXTENSIONS_CONFIG_FILE = 'extensions.json';
+const EXTENSIONS_CONFIG_FILE = 'extensions.json';
 
 // Helper to generate cache key from extensions.json
 export async function generateCacheKey(): Promise<string> {

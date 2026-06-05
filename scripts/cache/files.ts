@@ -51,6 +51,26 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
     await archive.extract(destPath);
 }
 
+async function collectFileEntries(
+    paths: string[]
+): Promise<Array<{ fullPath: string; relativePath: string; size: number }>> {
+    const allEntries: Array<{ fullPath: string; relativePath: string; size: number }> = [];
+
+    for (const path of paths) {
+        const entries = await readdir(path, { recursive: true, withFileTypes: true });
+        for (const entry of entries) {
+            if (!entry.isFile()) continue;
+
+            const fullPath = join(entry.parentPath, entry.name);
+            const relativePath = posix.relative('.', fullPath);
+            const size = Bun.file(fullPath).size;
+            allEntries.push({ fullPath, relativePath, size });
+        }
+    }
+
+    return allEntries;
+}
+
 export async function compressToTar(
     paths: string[],
     outputPath: string
@@ -58,26 +78,11 @@ export async function compressToTar(
     const checksums: Record<string, FileMetadata> = {};
     const files: Record<string, Uint8Array> = {};
 
-    for (const path of paths) {
-        const entries = await readdir(path, {
-            recursive: true,
-            withFileTypes: true
-        });
-
-        for (const entry of entries) {
-            if (entry.isFile()) {
-                const fullPath = join(entry.parentPath, entry.name);
-                const relativePath = posix.relative('.', fullPath);
-
-                const fileBlob = Bun.file(fullPath);
-                const size = fileBlob.size;
-                const fileData = await fileBlob.arrayBuffer();
-
-                const checksum = await calculateFileChecksum(fullPath);
-                checksums[relativePath] = { checksum, size };
-                files[relativePath] = new Uint8Array(fileData);
-            }
-        }
+    for (const { fullPath, relativePath, size } of await collectFileEntries(paths)) {
+        const fileData = await Bun.file(fullPath).arrayBuffer();
+        const checksum = await calculateFileChecksum(fullPath);
+        checksums[relativePath] = { checksum, size };
+        files[relativePath] = new Uint8Array(fileData);
     }
 
     const archive = new Bun.Archive(files);
@@ -88,20 +93,7 @@ export async function compressToTar(
 
 export async function checksumFiles(paths: string[]): Promise<Record<string, FileMetadata>> {
     const result: Record<string, FileMetadata> = {};
-    const allEntries: Array<{ fullPath: string; relativePath: string; size: number }> = [];
-
-    for (const path of paths) {
-        const entries = await readdir(path, { recursive: true, withFileTypes: true });
-        for (const entry of entries) {
-            if (entry.isFile()) {
-                const fullPath = join(entry.parentPath, entry.name);
-                const relativePath = posix.relative('.', fullPath);
-                const size = Bun.file(fullPath).size;
-                allEntries.push({ fullPath, relativePath, size });
-            }
-        }
-    }
-
+    const allEntries = await collectFileEntries(paths);
     const total = allEntries.length;
     const logger = log.validation('Hashing extracted files', total);
 

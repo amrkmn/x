@@ -1,24 +1,19 @@
 ---
 import ExtensionCategory from '$lib/components/ExtensionCategory.svelte';
 import MirrorSelector from '$lib/components/MirrorSelector.svelte';
-import type { AppData } from '$lib/types';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { loadAppData } from '$lib/data';
 import Base from '../layouts/Base.astro';
 
-const dataPath = resolve('static/data.json');
-const data = JSON.parse(readFileSync(dataPath, 'utf-8')) as AppData;
+const data = loadAppData();
 const { extensions, domains } = data;
 ---
 
-<Base data={data} title="Mihon & Aniyomi Extensions">
-    <meta
-        slot="head"
-        name="description"
-        content="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
-    />
-    <link slot="head" rel="canonical" href="https://x.noz.one/" />
-
+<Base
+    data={data}
+    title="Mihon & Aniyomi Extensions"
+    description="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
+    canonical="https://x.noz.one/"
+>
     <div class="container">
         <div class="page-header">
             <h1>Mihon & Aniyomi Extensions</h1>

@@ -1,21 +1,16 @@
 ---
 import SearchApp from '$lib/components/SearchApp.svelte';
-import type { AppData } from '$lib/types';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { loadAppData } from '$lib/data';
 import Base from '../layouts/Base.astro';
 
-const dataPath = resolve('static/data.json');
-const data = JSON.parse(readFileSync(dataPath, 'utf-8')) as AppData;
+const data = loadAppData();
 ---
 
-<Base data={data} title="Search Extensions - Mihon & Aniyomi">
-    <meta
-        slot="head"
-        name="description"
-        content="Search and filter Mihon and Aniyomi extensions by name, source, language, and category. Find exactly what you need."
-    />
-    <link slot="head" rel="canonical" href="https://x.noz.one/search" />
-
+<Base
+    data={data}
+    title="Search Extensions - Mihon & Aniyomi"
+    description="Search and filter Mihon and Aniyomi extensions by name, source, language, and category. Find exactly what you need."
+    canonical="https://x.noz.one/search"
+>
     <SearchApp client:only="svelte" {data} />
 </Base>

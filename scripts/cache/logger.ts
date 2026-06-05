@@ -69,6 +69,14 @@ class TransferLogger {
         this.totalBytes = totalBytes;
     }
 
+    private write(bytes: number, newline = false): void {
+        const elapsed = (Date.now() - this.startTime) / 1000;
+        const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
+
+        if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}${newline ? '\n' : ''}`);
+        else console.log(message);
+    }
+
     /**
      * Logs transfer progress at regular intervals.
      * Throttled to 200ms for TTY, 1 second for non-TTY.
@@ -76,12 +84,7 @@ class TransferLogger {
     progress(bytes: number): this {
         const now = Date.now();
         if (now - this.lastLogTime >= this.throttleMs) {
-            const elapsed = (now - this.startTime) / 1000;
-            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
-
-            if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}`);
-            else console.log(message);
-
+            this.write(bytes);
             this.lastLogTime = now;
         }
         return this;
@@ -91,13 +94,7 @@ class TransferLogger {
      * Logs final transfer completion message.
      */
     complete(bytes: number): void {
-        if (bytes > 0) {
-            const elapsed = (Date.now() - this.startTime) / 1000;
-            const message = `${this.prefix} ${formatTransferStats(bytes, elapsed, this.totalBytes)}`;
-
-            if (this.isInteractive) process.stdout.write(`\r\x1b[K${message}\n`);
-            else console.log(message);
-        }
+        if (bytes > 0) this.write(bytes, true);
     }
 }
 

@@ -6,9 +6,16 @@ import '../app.css';
 interface Props {
     data: AppData;
     title?: string;
+    description?: string;
+    canonical?: string;
 }
 
-const { data, title = 'Mihon & Aniyomi Extensions' } = Astro.props;
+const {
+    data,
+    title = 'Mihon & Aniyomi Extensions',
+    description = 'Aggregator for Mihon and Aniyomi extensions. Find, download, and manage extensions for your favorite manga and anime apps.',
+    canonical = 'https://x.noz.one/'
+} = Astro.props;
 const { source, commitLink, latestCommitHash } = data;
 ---
 
@@ -18,7 +25,29 @@ const { source, commitLink, latestCommitHash } = data;
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="generator" content={Astro.generator} />
+        <meta name="description" content={description} />
+        <meta
+            name="keywords"
+            content="Mihon, Aniyomi, Tachiyomi, Extensions, Manga, Anime, Aggregator, Repository"
+        />
+        <meta name="author" content="Mihon/Aniyomi Community" />
+        <meta name="theme-color" content="#2b2b2b" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:site_name" content="Mihon & Aniyomi Extensions" />
+
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={canonical} />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+
+        <link rel="canonical" href={canonical} />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <script is:inline defer data-domain="x.noz.one" src="https://vince.noz.one/js/script.js"
+        ></script>
         <title>{title}</title>
         <slot name="head" />
     </head>
