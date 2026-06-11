@@ -48,6 +48,7 @@ extensions/
 # Generated static files
 static/extensions.json
 static/data.json
+static/indexes.json
 static/keiyoushi/
 static/yuzono/
 static/kohi-den/

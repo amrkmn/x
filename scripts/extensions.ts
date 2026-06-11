@@ -1,13 +1,18 @@
 import { $ } from 'bun';
 import { existsSync } from 'node:fs';
-import { appendFile, cp } from 'node:fs/promises';
+import { appendFile, cp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { SearchIndexEntry } from '../src/lib/types';
+import { parseAppData, parseExtension } from '../src/lib/validation';
 import { config } from './config';
+import { logger } from './log';
 import type { ExtensionConfig } from './types';
+import { parseExtensionsData } from './validation';
 
 const ROOT_DIR = process.cwd();
 const STATIC_DIR = join(ROOT_DIR, 'static');
 const DATA_FILE = join(STATIC_DIR, 'data.json');
+const SEARCH_INDEX_FILE = join(STATIC_DIR, 'indexes.json');
 const TEMP_DIR = join(ROOT_DIR, 'tmp');
 const EXTENSIONS_FILE = join(ROOT_DIR, 'extensions.json');
 
@@ -20,13 +25,39 @@ export interface ExtensionUpdate {
     hash: string;
 }
 
+export interface MaterializeFailure {
+    category: string;
+    key: string;
+    name: string;
+    reason: string;
+}
+
+export interface MaterializeResult {
+    changed: boolean;
+    failures: MaterializeFailure[];
+}
+
+interface GenerateDataOptions {
+    commit?: string;
+    dataFile?: string;
+    searchIndexFile?: string;
+    staticDir?: string;
+}
+
+interface FindExtensionUpdatesOptions {
+    quick: boolean;
+    staticDir?: string;
+    getRemoteHead?: (url: string) => Promise<string>;
+    loadSyncedCommits?: () => Promise<Map<string, string>>;
+}
+
 export async function setGithubOutput(key: string, value: string): Promise<void> {
     if (!process.env.GITHUB_OUTPUT) return;
     await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
 }
 
 export async function loadExtensionsData(path = EXTENSIONS_FILE): Promise<ExtensionsData> {
-    return Bun.file(path).json();
+    return parseExtensionsData(await Bun.file(path).json());
 }
 
 export async function saveExtensionsData(
@@ -34,6 +65,10 @@ export async function saveExtensionsData(
     path = EXTENSIONS_FILE
 ): Promise<void> {
     await Bun.write(path, JSON.stringify(data, null, 4));
+}
+
+function formatSourceName(sourceName: string): string {
+    return sourceName.toLowerCase().replace(/\s+/g, '.');
 }
 
 function toExtensionList(
@@ -46,22 +81,81 @@ function toExtensionList(
                 source,
                 name,
                 path,
-                commit
+                ...(commit ? { commit } : {})
             }))
         ])
     );
 }
 
-export async function generateDataJson(data?: ExtensionsData): Promise<void> {
-    console.log('Generating data.json...');
+async function generateSearchIndexJson(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR,
+    searchIndexFile = SEARCH_INDEX_FILE
+): Promise<void> {
+    logger.info('search', 'index generate start file="indexes.json"');
+
+    const entries: SearchIndexEntry[] = [];
+    let reposScanned = 0;
+
+    for (const [category, repos] of Object.entries(data)) {
+        for (const [, repo] of Object.entries(repos)) {
+            const normalizedPath = repo.path.replace(/^\//, '');
+            const repoFile = join(staticDir, normalizedPath);
+
+            if (!existsSync(repoFile)) {
+                logger.warn(
+                    'search',
+                    `index source skip reason="missing_file" path=${JSON.stringify(repo.path)}`
+                );
+                continue;
+            }
+
+            reposScanned += 1;
+            const rawIndex = await Bun.file(repoFile).json();
+            if (!Array.isArray(rawIndex)) {
+                throw new Error(`Invalid extension index at ${repo.path}: expected array`);
+            }
+
+            const repoUrl = repo.path.substring(0, repo.path.lastIndexOf('/'));
+            const sourceName = repo.name;
+            const formattedSourceName = formatSourceName(sourceName);
+
+            for (const [index, rawExtension] of rawIndex.entries()) {
+                const extension = parseExtension(rawExtension, `${repo.path}[${index}]`);
+                entries.push({
+                    ...extension,
+                    repoUrl,
+                    sourceName,
+                    formattedSourceName,
+                    category
+                });
+            }
+        }
+    }
+
+    await Bun.write(searchIndexFile, JSON.stringify(entries));
+    logger.info(
+        'search',
+        `index generate complete records=${entries.length} repos=${reposScanned} output=${JSON.stringify(searchIndexFile)}`
+    );
+}
+
+export async function generateDataJson(
+    data?: ExtensionsData,
+    options: GenerateDataOptions = {}
+): Promise<void> {
+    logger.info('data', 'data generate start file="data.json"');
 
     const extensionsData = data ?? (await loadExtensionsData());
-    const commit = (await $`git rev-parse HEAD`.text()).trim();
+    const commit = options.commit ?? (await $`git rev-parse HEAD`.text()).trim();
+    const dataFile = options.dataFile ?? DATA_FILE;
+    const searchIndexFile = options.searchIndexFile ?? SEARCH_INDEX_FILE;
+    const staticDir = options.staticDir ?? STATIC_DIR;
     const { owner, repo } = config.github;
     const source = `https://github.com/${owner}/${repo}`;
 
     await Bun.write(
-        DATA_FILE,
+        dataFile,
         JSON.stringify({
             extensions: toExtensionList(extensionsData),
             domains: config.domains,
@@ -71,7 +165,8 @@ export async function generateDataJson(data?: ExtensionsData): Promise<void> {
         })
     );
 
-    console.log(`Generated data.json (${commit.substring(0, 7)})`);
+    await generateSearchIndexJson(extensionsData, staticDir, searchIndexFile);
+    logger.info('data', `data generate complete commit=${commit.substring(0, 7)}`);
 }
 
 async function getRemoteHead(url: string): Promise<string> {
@@ -79,15 +174,15 @@ async function getRemoteHead(url: string): Promise<string> {
     return output.split(/\s+/)[0] ?? '';
 }
 
-async function loadSyncedCommits(): Promise<Map<string, string>> {
+async function loadSyncedCommits(dataFile = DATA_FILE): Promise<Map<string, string>> {
     const synced = new Map<string, string>();
 
     try {
-        const data = await Bun.file(DATA_FILE).json();
-        Object.values(data.extensions || {})
+        const data = parseAppData(await Bun.file(dataFile).json());
+        Object.values(data.extensions)
             .flat()
-            .forEach((entry: any) => {
-                if (entry?.path && entry?.commit) synced.set(entry.path, entry.commit);
+            .forEach((entry) => {
+                if (entry.path && entry.commit) synced.set(entry.path, entry.commit);
             });
     } catch {
         // data.json may not exist before the first full materialization.
@@ -98,39 +193,46 @@ async function loadSyncedCommits(): Promise<Map<string, string>> {
 
 export async function findExtensionUpdates(
     data: ExtensionsData,
-    options: { quick: boolean }
+    options: FindExtensionUpdatesOptions
 ): Promise<ExtensionUpdate[]> {
-    console.log('Checking for updates...');
+    logger.info('extensions', 'update check start');
 
-    const synced = options.quick ? new Map<string, string>() : await loadSyncedCommits();
+    const staticDir = options.staticDir ?? STATIC_DIR;
+    const remoteHead = options.getRemoteHead ?? getRemoteHead;
+    const synced = options.quick
+        ? new Map<string, string>()
+        : await (options.loadSyncedCommits ?? (() => loadSyncedCommits()))();
+
     const checks = Object.entries(data).flatMap(([category, group]) =>
         Object.entries(group).map(async ([key, ext]) => {
             try {
-                const dest = join(STATIC_DIR, key);
+                const dest = join(staticDir, key);
                 const syncedHash = synced.get(ext.path);
 
                 if (!options.quick && !existsSync(dest)) {
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
-                const remoteHash = await getRemoteHead(ext.source);
+                const remoteHash = await remoteHead(ext.source);
 
                 if (options.quick && remoteHash !== ext.commit) {
-                    console.log(
-                        `[${ext.name}] Update available: ${ext.commit?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                    logger.info(
+                        'extensions',
+                        `update available name=${JSON.stringify(ext.name)} from=${ext.commit?.slice(0, 7) ?? 'none'} to=${remoteHash.slice(0, 7)}`
                     );
                     return { category, key, ext, hash: remoteHash };
                 }
 
                 const compareHash = syncedHash ?? ext.commit;
                 if (!options.quick && remoteHash !== compareHash) {
-                    console.log(
-                        `[${ext.name}] Update: ${compareHash?.slice(0, 7) ?? 'none'} -> ${remoteHash.slice(0, 7)}`
+                    logger.info(
+                        'extensions',
+                        `update detected name=${JSON.stringify(ext.name)} from=${compareHash?.slice(0, 7) ?? 'none'} to=${remoteHash.slice(0, 7)}`
                     );
                     return { category, key, ext, hash: remoteHash };
                 }
             } catch {
-                console.error(`Check failed: ${ext.name}`);
+                logger.error('extensions', `update check failed name=${JSON.stringify(ext.name)}`);
             }
 
             return null;
@@ -147,43 +249,83 @@ export function applyCommitUpdates(data: ExtensionsData, updates: ExtensionUpdat
     }
 }
 
+async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {
+    try {
+        await $`git clone --depth 1 --filter=blob:none --sparse ${source} ${temp}`.quiet();
+        await $`git -C ${temp} sparse-checkout set --no-cone ${config.filesToCopy}`.quiet();
+        return 'sparse';
+    } catch {
+        await rm(temp, { recursive: true, force: true });
+        await $`git clone --depth 1 ${source} ${temp}`.quiet();
+        return 'full';
+    }
+}
+
+export function shouldFailOnMaterializeErrors(): boolean {
+    return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+}
+
 export async function materializeExtensions(
     data: ExtensionsData,
     updates: ExtensionUpdate[]
-): Promise<boolean> {
-    if (updates.length === 0) return false;
+): Promise<MaterializeResult> {
+    if (updates.length === 0) return { changed: false, failures: [] };
 
-    console.log(`Updating ${updates.length} extensions...`);
+    logger.info('extensions', `materialize start count=${updates.length}`);
     await $`rm -rf ${TEMP_DIR}`;
 
     let changed = false;
+    const failures: MaterializeFailure[] = [];
+    let sparseClones = 0;
+    let fullClones = 0;
 
     try {
         for (const { key, ext, hash, category } of updates) {
-            console.log(`Processing ${ext.name}...`);
+            logger.info('extensions', `materialize item start name=${JSON.stringify(ext.name)}`);
             const temp = join(TEMP_DIR, key);
             const dest = join(STATIC_DIR, key);
 
             try {
-                await $`git clone --depth 1 ${ext.source} ${temp}`.quiet();
+                await mkdir(join(temp, '..'), { recursive: true });
+                const cloneMode = await cloneRepository(ext.source, temp);
+                if (cloneMode === 'sparse') sparseClones += 1;
+                else fullClones += 1;
+
                 await $`rm -rf ${dest} && mkdir -p ${dest}`;
 
                 for (const file of config.filesToCopy) {
                     const srcPath = join(temp, file);
-                    if (existsSync(srcPath))
+                    if (existsSync(srcPath)) {
                         await cp(srcPath, join(dest, file), { recursive: true });
+                    }
                 }
 
                 data[category][key].commit = hash;
                 changed = true;
-                console.log(`  Updated ${ext.name}`);
+                logger.info(
+                    'extensions',
+                    `materialize item complete name=${JSON.stringify(ext.name)}`
+                );
             } catch (error) {
-                console.error(`  Update failed: ${ext.name}`, error);
+                const reason = error instanceof Error ? error.message : String(error);
+                failures.push({ category, key, name: ext.name, reason });
+                logger.error(
+                    'extensions',
+                    `materialize item failed name=${JSON.stringify(ext.name)}`,
+                    error
+                );
+            } finally {
+                await rm(temp, { recursive: true, force: true });
             }
         }
     } finally {
         await $`rm -rf ${TEMP_DIR}`;
     }
 
-    return changed;
+    logger.info(
+        'extensions',
+        `materialize complete updates=${updates.length} changed=${changed} failures=${failures.length} sparse_clones=${sparseClones} full_clones=${fullClones}`
+    );
+
+    return { changed, failures };
 }

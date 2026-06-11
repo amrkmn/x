@@ -6,7 +6,6 @@
     import {
         getFilterOptions,
         initMeilisearch,
-        isMeilisearchEnabled,
         searchExtensions,
         transformMeilisearchHit
     } from '$lib/search/meilisearch.js';
@@ -17,17 +16,19 @@
         searchExtensionsFallback
     } from '$lib/search/minisearch.js';
     import type { EnrichedExtension } from '$lib/search/types.js';
-    import type { AppData } from '$lib/types.js';
     import { findSourceByFormattedName, formatSourceName } from '$lib/search/utils.js';
+    import type { AppData } from '$lib/types.js';
+    import { parseSearchIndex } from '$lib/validation.js';
 
     interface Props {
         data: AppData;
     }
 
-    const { data }: Props = $props();
+    const { data: _data }: Props = $props();
+    void _data;
 
-    // State
-    let loading = $state(true);
+    let initializing = $state(true);
+    let searching = $state(false);
     let error = $state<string | null>(null);
     let results = $state<EnrichedExtension[]>([]);
     let sources = $state<string[]>(['all']);
@@ -39,15 +40,25 @@
     let resultsPerPage = $state(10);
     let hasSearched = $state(false);
     let usingFallback = $state(false);
+    let meilisearchEnabled = $state(false);
     let minisearchReady = $state(false);
+    let loadingOfflineIndex = $state(false);
     let forceMinisearch = $state(false);
+    let searchReady = $state(false);
 
-    // URL-based state
     let query = $state('');
     let selectedSource = $state('all');
     let selectedCategory = $state('all');
     let selectedLanguage = $state('all');
     let showNSFW = $state(true);
+
+    let searchRequestId = 0;
+    let minisearchLoadPromise: Promise<void> | null = null;
+
+    function parsePage(value: string | null): number {
+        const parsed = Number.parseInt(value ?? '1', 10);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    }
 
     function readUrlParams() {
         const params = new URLSearchParams(window.location.search);
@@ -56,7 +67,7 @@
         selectedCategory = params.get('category') ?? 'all';
         selectedLanguage = params.get('lang') ?? 'all';
         showNSFW = params.get('nsfw') !== '0';
-        currentPage = parseInt(params.get('page') ?? '1');
+        currentPage = parsePage(params.get('page'));
     }
 
     function updateParams(updates: Record<string, string | null>) {
@@ -71,6 +82,7 @@
             if (value === null) params.delete(key);
             else params.set(key, value);
         }
+
         window.history.replaceState({}, '', `?${params.toString()}`);
         readUrlParams();
     }
@@ -83,102 +95,162 @@
         sources = [...new Set(['all', ...options.sources.sort()])];
         categories = [...new Set(['all', ...options.categories.sort()])];
         languages = [...new Set(['all', ...options.languages.sort()])];
+        selectedSource = findSourceByFormattedName(selectedSource, sources);
     }
 
-    // Debounced search
+    async function ensureMinisearchReady() {
+        if (minisearchReady) return;
+        if (minisearchLoadPromise) {
+            await minisearchLoadPromise;
+            return;
+        }
+
+        minisearchLoadPromise = (async () => {
+            loadingOfflineIndex = true;
+
+            const response = await fetch('/indexes.json');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch indexes.json: ${response.status}`);
+            }
+
+            const allExtensions = parseSearchIndex(await response.json());
+            initMinisearch(allExtensions);
+            minisearchReady = true;
+            applyFilterOptions(getFilterOptionsFallback());
+            readUrlParams();
+        })();
+
+        try {
+            await minisearchLoadPromise;
+        } finally {
+            loadingOfflineIndex = false;
+            minisearchLoadPromise = null;
+        }
+    }
+
+    async function performSearch(
+        requestId: number,
+        q: string,
+        source: string,
+        category: string,
+        lang: string,
+        nsfw: boolean,
+        page: number,
+        offlineOnly: boolean
+    ) {
+        const filters = {
+            query: q || undefined,
+            source: source !== 'all' ? formatSourceName(source) : undefined,
+            category: category !== 'all' ? category : undefined,
+            lang: lang !== 'all' ? lang : undefined,
+            nsfw,
+            page,
+            limit: resultsPerPage
+        };
+
+        try {
+            if (meilisearchEnabled && !offlineOnly) {
+                const searchResults = await searchExtensions(filters);
+                if (requestId !== searchRequestId) return;
+
+                results = searchResults.hits.map(transformMeilisearchHit);
+                totalHits = searchResults.estimatedTotalHits || searchResults.hits.length;
+                totalPages = Math.max(1, Math.ceil(totalHits / resultsPerPage));
+                currentPage = page;
+                hasSearched = true;
+                usingFallback = false;
+                error = null;
+                return;
+            }
+
+            if (!isMinisearchReady()) {
+                await ensureMinisearchReady();
+            }
+
+            const fallbackResults = searchExtensionsFallback(filters);
+            if (requestId !== searchRequestId) return;
+
+            results = fallbackResults.hits;
+            totalHits = fallbackResults.estimatedTotalHits;
+            totalPages = Math.max(1, Math.ceil(totalHits / resultsPerPage));
+            currentPage = page;
+            hasSearched = true;
+            usingFallback = true;
+            error = null;
+        } catch {
+            if (requestId !== searchRequestId) return;
+
+            if (!isMinisearchReady()) {
+                try {
+                    await ensureMinisearchReady();
+                } catch {
+                    // fall through to shared error handling
+                }
+            }
+
+            if (isMinisearchReady()) {
+                try {
+                    const fallbackResults = searchExtensionsFallback(filters);
+                    results = fallbackResults.hits;
+                    totalHits = fallbackResults.estimatedTotalHits;
+                    totalPages = Math.max(1, Math.ceil(totalHits / resultsPerPage));
+                    currentPage = page;
+                    hasSearched = true;
+                    usingFallback = true;
+                    error = null;
+                    return;
+                } catch {
+                    // fall through to shared error handling
+                }
+            }
+
+            error = 'Search is unavailable. Please try again later.';
+            results = [];
+            totalHits = 0;
+            totalPages = 1;
+            hasSearched = true;
+        } finally {
+            if (requestId === searchRequestId) {
+                searching = false;
+            }
+        }
+    }
+
     const debouncedSearch = debounce(
         (
+            requestId: number,
             q: string,
             source: string,
             category: string,
             lang: string,
             nsfw: boolean,
-            page: number
+            page: number,
+            offlineOnly: boolean
         ) => {
-            const filters = {
-                query: q || undefined,
-                source: source !== 'all' ? formatSourceName(source) : undefined,
-                category: category !== 'all' ? category : undefined,
-                lang: lang !== 'all' ? lang : undefined,
-                nsfw,
-                page,
-                limit: resultsPerPage
-            };
-
-            const runMeiliSearch =
-                isMeilisearchEnabled() && !forceMinisearch
-                    ? searchExtensions(filters)
-                    : Promise.reject(new Error('Meilisearch not configured'));
-
-            runMeiliSearch
-                .then((searchResults) => {
-                    results = searchResults.hits.map(transformMeilisearchHit);
-                    totalHits = searchResults.estimatedTotalHits || searchResults.hits.length;
-                    totalPages = Math.ceil(totalHits / resultsPerPage);
-                    currentPage = page;
-                    hasSearched = true;
-                    usingFallback = false;
-                })
-                .catch(() => {
-                    if (isMinisearchReady()) {
-                        try {
-                            const fallbackResults = searchExtensionsFallback(filters);
-                            results = fallbackResults.hits;
-                            totalHits = fallbackResults.estimatedTotalHits;
-                            totalPages = Math.ceil(totalHits / resultsPerPage);
-                            currentPage = page;
-                            hasSearched = true;
-                            usingFallback = true;
-                        } catch {
-                            error = 'Search is unavailable. Please try again later.';
-                            hasSearched = true;
-                        }
-                    } else {
-                        error = 'Search is unavailable. Please try again later.';
-                        hasSearched = true;
-                    }
-                })
-                .finally(() => {
-                    loading = false;
-                });
+            void performSearch(requestId, q, source, category, lang, nsfw, page, offlineOnly);
         },
         300
     );
 
-    // Reactive search
     $effect(() => {
-        void forceMinisearch;
-        currentPage = parseInt(new URLSearchParams(window.location.search).get('page') ?? '1');
-        loading = true;
+        if (!searchReady) return;
+
+        const requestId = ++searchRequestId;
+        searching = true;
         error = null;
+
         debouncedSearch(
+            requestId,
             query,
             selectedSource,
             selectedCategory,
             selectedLanguage,
             showNSFW,
-            currentPage
+            currentPage,
+            forceMinisearch
         );
     });
 
-    // Load filter options
-    $effect(() => {
-        if (!isMeilisearchEnabled()) {
-            if (minisearchReady) {
-                applyFilterOptions(getFilterOptionsFallback());
-            }
-            return;
-        }
-        getFilterOptions()
-            .then(applyFilterOptions)
-            .catch(() => {
-                if (minisearchReady) {
-                    applyFilterOptions(getFilterOptionsFallback());
-                }
-            });
-    });
-
-    // Initialize
     onMount(async () => {
         readUrlParams();
 
@@ -187,59 +259,31 @@
                 host: import.meta.env.PUBLIC_MEILISEARCH_HOST || '',
                 apiKey: import.meta.env.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY
             };
+
             if (meiliConfig.host) {
                 initMeilisearch(meiliConfig);
+                meilisearchEnabled = true;
             }
         } catch (e) {
             console.error('Failed to initialize Meilisearch:', e);
         }
 
         try {
-            const allExtensions: EnrichedExtension[] = [];
-
-            for (const [category, repos] of Object.entries(data.extensions)) {
-                for (const repo of repos) {
-                    try {
-                        const indexRes = await fetch(repo.path);
-                        if (!indexRes.ok) continue;
-                        const index = await indexRes.json();
-                        const formattedSourceName = formatSourceName(repo.name);
-                        const repoPath = repo.path.split('/').slice(0, -1).join('/');
-
-                        for (const ext of index) {
-                            allExtensions.push({
-                                ...ext,
-                                nsfw: typeof ext.nsfw === 'number' ? ext.nsfw : ext.nsfw ? 1 : 0,
-                                category,
-                                sourceName: repo.name,
-                                formattedSourceName,
-                                repoUrl: repoPath
-                            });
-                        }
-                    } catch {
-                        // skip
-                    }
-                }
-            }
-
-            if (allExtensions.length > 0) {
-                initMinisearch(allExtensions);
-                minisearchReady = true;
-                if (error) {
-                    error = null;
-                    loading = true;
-                    debouncedSearch(
-                        query,
-                        selectedSource,
-                        selectedCategory,
-                        selectedLanguage,
-                        showNSFW,
-                        currentPage
-                    );
-                }
+            if (meilisearchEnabled) {
+                applyFilterOptions(await getFilterOptions());
+                readUrlParams();
+            } else {
+                await ensureMinisearchReady();
             }
         } catch (e) {
-            console.error('Failed to load extension data for fallback search:', e);
+            console.error('Failed to initialize search:', e);
+
+            if (!meilisearchEnabled) {
+                error = 'Search is unavailable. Please try again later.';
+            }
+        } finally {
+            searchReady = meilisearchEnabled || minisearchReady;
+            initializing = false;
         }
     });
 </script>
@@ -320,15 +364,20 @@
                 <span>Show NSFW</span>
             </label>
         </div>
-        {#if minisearchReady && isMeilisearchEnabled()}
+        {#if meilisearchEnabled}
             <div class="filter-group filter-checkbox">
                 <label>
                     <input
                         type="checkbox"
                         checked={forceMinisearch}
+                        disabled={loadingOfflineIndex}
                         onchange={() => (forceMinisearch = !forceMinisearch)}
                     />
-                    <span>Use offline search</span>
+                    <span
+                        >{loadingOfflineIndex
+                            ? 'Loading offline search…'
+                            : 'Use offline search'}</span
+                    >
                 </label>
             </div>
         {/if}
@@ -418,7 +467,7 @@
         </div>
     {/if}
 
-    {#if loading}
+    {#if initializing || searching}
         <div style="text-align: center; padding: 20px;">Loading extensions...</div>
     {:else if results.length === 0 && hasSearched}
         <div style="text-align: center; padding: 20px;">No results found.</div>

@@ -1,62 +1,7 @@
 import { Meilisearch } from 'meilisearch';
-import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-
-interface Extension {
-    name: string;
-    pkg: string;
-    apk: string;
-    lang: string;
-    code: number;
-    version: string;
-    nsfw: number;
-}
-
-interface EnrichedExtension extends Extension {
-    id: string;
-    category: string;
-    sourceName: string;
-    formattedSourceName: string;
-    repoUrl: string;
-}
-
-interface SourceMapping {
-    name: string;
-    repoUrl: string;
-    category: string;
-}
-
-async function buildSourceMapping(path: string): Promise<Map<string, SourceMapping>> {
-    const mapping = new Map<string, SourceMapping>();
-    const data = await Bun.file(path).json();
-
-    for (const category in data.extensions) {
-        for (const repo of data.extensions[category]) {
-            const normalizedPath = repo.path.replace(/^\//, '');
-            mapping.set(normalizedPath, {
-                name: repo.name,
-                repoUrl: repo.path.substring(0, repo.path.lastIndexOf('/')),
-                category
-            });
-        }
-    }
-    return mapping;
-}
-
-async function findExtensionFiles(dir: string): Promise<string[]> {
-    let results: string[] = [];
-    try {
-        const entries = await readdir(dir, { withFileTypes: true });
-        for (const file of entries) {
-            const path = join(dir, file.name);
-            if (file.isDirectory()) results.push(...(await findExtensionFiles(path)));
-            else if (file.name === 'index.min.json') results.push(path);
-        }
-    } catch (e) {
-        console.error(`Error reading ${dir}:`, e);
-    }
-    return results;
-}
+import type { SearchIndexEntry } from '../src/lib/types';
+import { parseSearchIndex } from '../src/lib/validation';
 
 export async function updateMeilisearch() {
     const env = {
@@ -71,11 +16,12 @@ export async function updateMeilisearch() {
 
     console.log('Updating Meilisearch index...');
     const STATIC_DIR = join(process.cwd(), 'static');
+    const searchIndexFile = join(STATIC_DIR, 'indexes.json');
 
     try {
         const client = new Meilisearch({ host: env.host, apiKey: env.apiKey });
         await client.health();
-        const index = client.index('extensions');
+        const index = client.index<SearchIndexEntry>('extensions');
 
         await index.updateSettings({
             searchableAttributes: ['name', 'pkg', 'lang', 'sourceName'],
@@ -92,58 +38,24 @@ export async function updateMeilisearch() {
             pagination: { maxTotalHits: 10000 }
         });
 
-        const sourceMapping = await buildSourceMapping(join(STATIC_DIR, 'data.json'));
-        const files = await findExtensionFiles(STATIC_DIR);
+        const allExtensions = parseSearchIndex(await Bun.file(searchIndexFile).json());
 
-        if (!files.length) {
+        if (!allExtensions.length) {
             console.warn('No extension files found for Meilisearch');
             return;
-        }
-
-        const allExtensions: EnrichedExtension[] = [];
-        const newIds = new Set<string>();
-
-        for (const file of files) {
-            try {
-                const extensions: Extension[] = await Bun.file(file).json();
-                const relativePath = file
-                    .replace(STATIC_DIR, '')
-                    .replace(/\\/g, '/')
-                    .replace(/^\//, '');
-                const pathParts = relativePath.split('/').filter(Boolean);
-                const sourceInfo = sourceMapping.get(relativePath);
-
-                const sourceName = sourceInfo?.name || pathParts[0] || 'Unknown';
-                const repoUrl = sourceInfo?.repoUrl || '/' + pathParts.slice(0, -1).join('/');
-                const category =
-                    sourceInfo?.category ||
-                    (pathParts[0]?.toLowerCase().includes('anime') ? 'aniyomi' : 'mihon');
-                const formattedSourceName = sourceName.toLowerCase().replace(/\s+/g, '.');
-                const idSafeSourceName = formattedSourceName.replace(/\./g, '_');
-
-                const enrichedExtensions = extensions.map((ext) => ({
-                    ...ext,
-                    id: `${idSafeSourceName}-${ext.pkg.replace(/\./g, '_')}`,
-                    category,
-                    sourceName,
-                    formattedSourceName,
-                    repoUrl,
-                    nsfw: typeof ext.nsfw === 'number' ? ext.nsfw : ext.nsfw ? 1 : 0
-                }));
-
-                for (const ext of enrichedExtensions) {
-                    newIds.add(ext.id);
-                }
-                allExtensions.push(...enrichedExtensions);
-            } catch (err) {
-                console.error(`Error processing ${file}:`, err);
-            }
         }
 
         const existingDocs = await index.getDocuments<{ id: string }>({
             fields: ['id'],
             limit: 10000
         });
+
+        const newDocuments = allExtensions.map((ext) => ({
+            ...ext,
+            id: `${ext.formattedSourceName.replace(/\./g, '_')}-${ext.pkg.replace(/\./g, '_')}`
+        }));
+
+        const newIds = new Set(newDocuments.map((doc) => doc.id));
         const existingIds = new Set(existingDocs.results.map((doc) => doc.id));
         const idsToDelete = Array.from(existingIds).filter((id) => !newIds.has(id));
 
@@ -152,7 +64,7 @@ export async function updateMeilisearch() {
             await index.deleteDocuments(idsToDelete);
         }
 
-        const task = await index.updateDocuments(allExtensions, { primaryKey: 'id' });
+        const task = await index.updateDocuments(newDocuments, { primaryKey: 'id' });
         const result = await client.tasks.waitForTask(task.taskUid, {
             timeout: 300000,
             interval: 1000

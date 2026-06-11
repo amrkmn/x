@@ -10,9 +10,11 @@ import {
     loadExtensionsData,
     materializeExtensions,
     saveExtensionsData,
-    setGithubOutput
+    setGithubOutput,
+    shouldFailOnMaterializeErrors
 } from './extensions';
 import { updateMeilisearch } from './meilisearch';
+import { logger } from './log';
 
 export type TaskCommand =
     | 'check'
@@ -52,12 +54,88 @@ async function restoreStaticCache(): Promise<void> {
     const key = await generateCacheKey();
     const restoredKey = await restoreCache(CACHE_PATHS, key, CACHE_RESTORE_KEYS);
 
-    if (restoredKey) console.log(`Cache restored: ${restoredKey}`);
-    else console.log('No cache restored');
+    if (restoredKey) logger.info('cache', `restore complete key=${JSON.stringify(restoredKey)}`);
+    else logger.info('cache', 'restore skipped reason="not_found"');
 }
 
 async function saveStaticCache(): Promise<void> {
     await saveCache(CACHE_PATHS, await generateCacheKey());
+}
+
+async function persistQuickUpdates(updated: boolean): Promise<void> {
+    await setGithubOutput('updated', String(updated));
+}
+
+function logCacheModeDisabled(quick: boolean): void {
+    logger.info('cache', quick ? 'cache disabled mode="quick"' : 'cache disabled mode="command"');
+}
+
+async function maybeRestoreStaticCache(useCache: boolean, quick: boolean): Promise<void> {
+    if (useCache) {
+        await restoreStaticCache();
+        return;
+    }
+
+    logCacheModeDisabled(quick);
+}
+
+async function handleNoUpdates(): Promise<void> {
+    logger.info('task', 'update check result="no_updates"');
+    await persistQuickUpdates(false);
+}
+
+async function handleQuickUpdates(
+    data: Awaited<ReturnType<typeof loadExtensionsData>>,
+    updates: Awaited<ReturnType<typeof findExtensionUpdates>>
+): Promise<void> {
+    logger.info(
+        'task',
+        `update check result="updates_found" count=${updates.length} action="update_extensions_json"`
+    );
+    applyCommitUpdates(data, updates);
+    await saveExtensionsData(data);
+    await persistQuickUpdates(true);
+}
+
+async function finalizeFullUpdate(
+    command: 'static' | 'full',
+    useCache: boolean,
+    data: Awaited<ReturnType<typeof loadExtensionsData>>,
+    changed: boolean
+): Promise<void> {
+    if (!changed) {
+        await persistQuickUpdates(false);
+        return;
+    }
+
+    await saveExtensionsData(data);
+    logger.info('task', 'extensions_json updated=true');
+
+    if (command === 'full') {
+        await generateDataJson(data);
+        await updateMeilisearch();
+        if (useCache) await saveStaticCache();
+    }
+
+    await persistQuickUpdates(true);
+}
+
+function reportMaterializeFailures(
+    failures: Awaited<ReturnType<typeof materializeExtensions>>['failures']
+): void {
+    if (failures.length === 0) return;
+
+    logger.error('extensions', `materialize result="failed" failures=${failures.length}`);
+    for (const failure of failures) {
+        logger.error(
+            'extensions',
+            `failure category=${failure.category} key=${failure.key} name=${JSON.stringify(failure.name)} reason=${JSON.stringify(failure.reason)}`
+        );
+    }
+
+    if (shouldFailOnMaterializeErrors()) {
+        throw new Error('One or more upstream repositories failed to materialize');
+    }
 }
 
 async function updateExtensions(
@@ -67,73 +145,59 @@ async function updateExtensions(
     const quick = command === 'check';
     const useCache = command === 'full' && !args.includes('--no-cache');
 
-    if (useCache) await restoreStaticCache();
-    else console.log(quick ? 'Cache disabled for quick mode' : 'Cache disabled for this command');
+    await maybeRestoreStaticCache(useCache, quick);
 
     const data = await loadExtensionsData();
     const updates = await findExtensionUpdates(data, { quick });
 
     if (updates.length === 0) {
-        console.log('No updates found');
-        await setGithubOutput('updated', 'false');
+        await handleNoUpdates();
         return;
     }
 
     if (quick) {
-        console.log(`Found ${updates.length} updates. Updating extensions.json...`);
-        applyCommitUpdates(data, updates);
-        await saveExtensionsData(data);
-        await setGithubOutput('updated', 'true');
+        await handleQuickUpdates(data, updates);
         return;
     }
 
-    const changed = await materializeExtensions(data, updates);
-    if (changed) {
-        await saveExtensionsData(data);
-        console.log('Updated extensions.json');
-
-        if (command === 'full') {
-            await generateDataJson(data);
-            await updateMeilisearch();
-            if (useCache) await saveStaticCache();
-        }
-    }
-
-    await setGithubOutput('updated', String(changed));
+    const { changed, failures } = await materializeExtensions(data, updates);
+    await finalizeFullUpdate(command, useCache, data, changed);
+    reportMaterializeFailures(failures);
 }
+
+const commandHandlers: Record<
+    Exclude<TaskCommand, 'check' | 'static' | 'full'>,
+    (args: string[]) => Promise<void>
+> = {
+    data: async () => {
+        await generateDataJson();
+    },
+    search: async () => {
+        logger.info('search', 'index update mode="only"');
+        await updateMeilisearch();
+    },
+    'cache:restore': async () => {
+        await restoreStaticCache();
+    },
+    'cache:save': async () => {
+        await saveStaticCache();
+    },
+    'prepare-dist': async (args) => {
+        await restoreStaticCache();
+        await updateExtensions('static', args);
+        await $`bun run build`;
+    }
+};
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
     const command = parseTask(args);
 
-    if (command === 'data') {
-        await generateDataJson();
+    if (command === 'check' || command === 'static' || command === 'full') {
+        await updateExtensions(command, args);
         return;
     }
 
-    if (command === 'search') {
-        console.log('Updating search index only...');
-        await updateMeilisearch();
-        return;
-    }
-
-    if (command === 'cache:restore') {
-        await restoreStaticCache();
-        return;
-    }
-
-    if (command === 'cache:save') {
-        await saveStaticCache();
-        return;
-    }
-
-    if (command === 'prepare-dist') {
-        await restoreStaticCache();
-        await updateExtensions('static', args);
-        await $`bun run build`;
-        return;
-    }
-
-    await updateExtensions(command, args);
+    await commandHandlers[command](args);
 }
 
 if (import.meta.main) {

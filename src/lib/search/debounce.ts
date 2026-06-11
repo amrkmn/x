@@ -19,12 +19,3 @@ export function debounce<T extends (...args: any[]) => any>(
         }, wait);
     };
 }
-
-/**
- * Clears a timeout if it exists
- */
-export function clearDebounce(timeoutId: ReturnType<typeof setTimeout> | null) {
-    if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-    }
-}
