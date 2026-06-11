@@ -462,22 +462,65 @@ footer a:hover {
         margin-bottom: 5px;
     }
 
-    .extensions-table th,
+    .extensions-table {
+        margin-top: 16px;
+    }
+
+    .extensions-table thead {
+        display: none;
+    }
+
+    .extensions-table,
+    .extensions-table tbody,
+    .extensions-table tr,
     .extensions-table td {
-        padding: 12px 10px;
-        text-align: left;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .extensions-table tr {
+        padding: 12px;
         border-bottom: 1px solid #2c3e50;
+    }
+
+    .extensions-table td {
+        padding: 8px 0;
+        border-bottom: none;
+        text-align: left;
         vertical-align: middle;
+    }
+
+    .extensions-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #8a9ba8;
+    }
+
+    .icon-cell::before {
+        display: none;
+    }
+
+    .action-cell .btn {
+        width: 100%;
     }
 
     .extension-pkg {
         display: none;
     }
 
+    .meta-cell {
+        white-space: normal;
+    }
+
     .meta-cell .version {
         display: block;
         margin-right: 0;
-        margin-bottom: 2px;
+        margin-bottom: 6px;
     }
 
     .meta-cell .lang {

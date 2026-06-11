@@ -1,6 +1,7 @@
 ---
 import SearchApp from '$lib/components/SearchApp.svelte';
 import { loadAppData } from '$lib/data';
+import { withSiteUrl } from '$lib/site';
 import Base from '../layouts/Base.astro';
 
 const data = loadAppData();
@@ -10,7 +11,7 @@ const data = loadAppData();
     data={data}
     title="Search Extensions - Mihon & Aniyomi"
     description="Search and filter Mihon and Aniyomi extensions by name, source, language, and category. Find exactly what you need."
-    canonical="https://x.noz.one/search"
+    canonical={withSiteUrl('/search')}
 >
     <SearchApp client:only="svelte" {data} />
 </Base>

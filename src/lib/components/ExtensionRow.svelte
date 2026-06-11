@@ -16,7 +16,7 @@
 </script>
 
 <tr class="extension-row">
-    <td class="icon-cell">
+    <td class="icon-cell" data-label="Icon">
         <img
             src={`${repoUrl}/icon/${extension.pkg}.png`}
             alt={extension.name}
@@ -25,7 +25,7 @@
             onerror={handleImageError}
         />
     </td>
-    <td class="info-cell">
+    <td class="info-cell" data-label="Extension">
         <div class="extension-name">
             {extension.name}
             {#if extension.nsfw === 1}
@@ -37,11 +37,11 @@
             <div class="extension-source">Source: {extension.sourceName}</div>
         {/if}
     </td>
-    <td class="meta-cell">
+    <td class="meta-cell" data-label="Version / Lang">
         <span class="version">v{extension.version}</span>
         <span class="lang">{extension.lang}</span>
     </td>
-    <td class="action-cell">
+    <td class="action-cell" data-label="Action">
         <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> Download </a>
     </td>
 </tr>

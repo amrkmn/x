@@ -15,7 +15,7 @@
 
 <div class="card">
     <div class="card-header">
-        <a href={repo.source} target="_blank" class="card-title">
+        <a href={repo.source} target="_blank" rel="noopener noreferrer" class="card-title">
             {repo.name}
         </a>
         <div class="card-meta">
@@ -24,6 +24,7 @@
                 <a
                     href={`${repo.source}/commit/${repo.commit}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="commit-link"
                 >
                     {repo.commit.substring(0, 7)}
@@ -40,7 +41,12 @@
         >
             Add Repo
         </a>
-        <a href={`${selectedDomain}${repo.path}`} target="_blank" class="btn btn-secondary">
+        <a
+            href={`${selectedDomain}${repo.path}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary"
+        >
             JSON
         </a>
     </div>

@@ -33,3 +33,12 @@ bun run update:static  # Populate static/ from upstream repos
 bun run build          # Generate data.json and build dist/
 bun run check          # Type-check
 ```
+
+## Environment
+
+Optional frontend environment variables:
+
+- `PUBLIC_SITE_URL` — canonical site URL
+- `PUBLIC_ANALYTICS_DOMAIN` — analytics domain attribute
+- `PUBLIC_MEILISEARCH_HOST`
+- `PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY`

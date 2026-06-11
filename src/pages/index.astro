@@ -2,6 +2,7 @@
 import ExtensionCategory from '$lib/components/ExtensionCategory.svelte';
 import MirrorSelector from '$lib/components/MirrorSelector.svelte';
 import { loadAppData } from '$lib/data';
+import { withSiteUrl } from '$lib/site';
 import Base from '../layouts/Base.astro';
 
 const data = loadAppData();
@@ -12,7 +13,7 @@ const { extensions, domains } = data;
     data={data}
     title="Mihon & Aniyomi Extensions"
     description="Browse and download the latest Mihon and Aniyomi extensions. Secure, fast, and community-maintained repository."
-    canonical="https://x.noz.one/"
+    canonical={withSiteUrl('/')}
 >
     <div class="container">
         <div class="page-header">

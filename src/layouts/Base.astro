@@ -1,5 +1,6 @@
 ---
 import Footer from '$lib/components/Footer.svelte';
+import { analyticsDomain, withSiteUrl } from '$lib/site';
 import type { AppData } from '$lib/types';
 import '../app.css';
 
@@ -14,7 +15,7 @@ const {
     data,
     title = 'Mihon & Aniyomi Extensions',
     description = 'Aggregator for Mihon and Aniyomi extensions. Find, download, and manage extensions for your favorite manga and anime apps.',
-    canonical = 'https://x.noz.one/'
+    canonical = withSiteUrl('/')
 } = Astro.props;
 const { source, commitLink, latestCommitHash } = data;
 ---
@@ -46,8 +47,11 @@ const { source, commitLink, latestCommitHash } = data;
 
         <link rel="canonical" href={canonical} />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <script is:inline defer data-domain="x.noz.one" src="https://vince.noz.one/js/script.js"
-        ></script>
+        <script
+            is:inline
+            defer
+            data-domain={analyticsDomain}
+            src="https://vince.noz.one/js/script.js"></script>
         <title>{title}</title>
         <slot name="head" />
     </head>

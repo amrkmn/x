@@ -9,8 +9,9 @@
 </script>
 
 <footer>
-    Source Code: <a href={source} target="_blank">{source}</a>
+    Source Code: <a href={source} target="_blank" rel="noopener noreferrer">{source}</a>
     <div>
-        Commit: <a href={commitLink} target="_blank">{latestCommitHash}</a>
+        Commit: <a href={commitLink} target="_blank" rel="noopener noreferrer">{latestCommitHash}</a
+        >
     </div>
 </footer>
