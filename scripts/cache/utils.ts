@@ -1,7 +1,7 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { log } from './logger';
-import { uploadToS3, s3Config } from './s3';
+import { logger } from '../log';
+import { s3Config, uploadToS3 } from './client';
 
 // ============================================================================
 // Types
@@ -89,11 +89,11 @@ export async function uploadFileToS3(key: string, sourcePath: string): Promise<n
     const cacheFile = Bun.file(sourcePath);
     const data = await cacheFile.arrayBuffer();
 
-    const logger = log.transfer(`Uploading`, data.byteLength);
+    const progressLogger = logger.transfer('[cache] uploading', data.byteLength);
     await uploadToS3(key, data, {
-        onProgress: (bytes) => logger.progress(bytes)
+        onProgress: (bytes) => progressLogger.progress(bytes)
     });
-    logger.complete(data.byteLength);
+    progressLogger.complete(data.byteLength);
 
     return data.byteLength;
 }
@@ -116,17 +116,17 @@ export async function downloadFileFromS3(
     }
 
     const writer = Bun.file(targetPath).writer();
-    const logger = log.transfer('Received', response.ContentLength);
+    const progressLogger = logger.transfer('[cache] received', response.ContentLength);
     let totalBytes = 0;
 
     for await (const chunk of response.Body as any) {
         writer.write(chunk);
         totalBytes += chunk.length;
-        logger.progress(totalBytes);
+        progressLogger.progress(totalBytes);
     }
 
     await writer.end();
-    logger.complete(totalBytes);
+    progressLogger.complete(totalBytes);
 
     return totalBytes;
 }

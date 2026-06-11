@@ -1,7 +1,7 @@
 import { exists, mkdir, readdir, rm } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 
-import { log } from './logger';
+import { logger } from '../log';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
@@ -16,14 +16,14 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
 
     const fileEntries = Object.entries(metadata.files);
     const totalFiles = fileEntries.length;
-    const logger = log.validation('Validating cache', totalFiles);
+    const progressLogger = logger.validation('[cache] validating cache', totalFiles);
 
     for (const [index, [filePath, fileInfo]] of fileEntries.entries()) {
         const fullPath = join('.', filePath);
 
         if (!(await exists(fullPath))) {
             missing++;
-            logger.progress(index + 1, totalFiles);
+            progressLogger.progress(index + 1, totalFiles);
             continue;
         }
 
@@ -35,11 +35,11 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
             invalid++;
         }
 
-        logger.progress(index + 1, totalFiles);
+        progressLogger.progress(index + 1, totalFiles);
     }
 
     const isValid = invalid === 0 && missing === 0;
-    logger.complete(totalFiles, valid, invalid, missing);
+    progressLogger.complete(totalFiles, valid, invalid, missing);
 
     return isValid;
 }
@@ -95,15 +95,15 @@ export async function checksumFiles(paths: string[]): Promise<Record<string, Fil
     const result: Record<string, FileMetadata> = {};
     const allEntries = await collectFileEntries(paths);
     const total = allEntries.length;
-    const logger = log.validation('Hashing extracted files', total);
+    const progressLogger = logger.validation('[cache] hashing extracted files', total);
 
     for (const [index, { fullPath, relativePath, size }] of allEntries.entries()) {
         const checksum = await calculateFileChecksum(fullPath);
         result[relativePath] = { checksum, size };
-        logger.progress(index + 1, total);
+        progressLogger.progress(index + 1, total);
     }
 
-    logger.complete(total, total, 0, 0);
+    progressLogger.complete(total, total, 0, 0);
 
     return result;
 }

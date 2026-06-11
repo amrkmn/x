@@ -2,9 +2,10 @@ import type { S3Client } from '@aws-sdk/client-s3';
 import { exists } from 'node:fs/promises';
 import { join } from 'node:path';
 import { calculateFileChecksum } from './files';
-import { deleteObject, fileExists, getObject } from './s3';
+import { deleteObject, fileExists, getObject } from './client';
 import type { CacheMetadata, FileMetadata } from './utils';
 import { METADATA_VERSION, writeJsonToS3 } from './utils';
+import { logger } from '../log';
 
 function getMetadataKey(cacheKey: string): string {
     return `${cacheKey}.meta.json`;
@@ -31,7 +32,7 @@ export async function saveMetadata(
     const metadataKey = getMetadataKey(key);
     await writeJsonToS3(metadataKey, metadata);
 
-    console.log(`Metadata saved: ${metadataKey}`);
+    logger.info('cache', `metadata save complete key=${JSON.stringify(metadataKey)}`);
     return hash;
 }
 
@@ -42,12 +43,15 @@ async function migrateMetadata(
     // Only migrate if all files are already present locally
     for (const filePath of Object.keys(old.files)) {
         if (!(await exists(join('.', filePath)))) {
-            console.log(`Cannot migrate metadata: missing file ${filePath}`);
+            logger.info(
+                'cache',
+                `metadata migrate skipped reason="missing_file" path=${JSON.stringify(filePath)}`
+            );
             return null;
         }
     }
 
-    console.log(`Migrating cache metadata v${old.version} → v${METADATA_VERSION}...`);
+    logger.info('cache', `metadata migrate start from=${old.version} to=${METADATA_VERSION}`);
 
     const files: Record<string, FileMetadata> = {};
     for (const [filePath, info] of Object.entries(old.files)) {
@@ -64,7 +68,7 @@ async function migrateMetadata(
     };
 
     await writeJsonToS3(getMetadataKey(cacheKey), migrated);
-    console.log(`Metadata migrated successfully`);
+    logger.info('cache', 'metadata migrate complete status="success"');
 
     return migrated;
 }
@@ -81,15 +85,16 @@ export async function loadMetadata(s3: S3Client, cacheKey: string): Promise<Cach
         const metadata: CacheMetadata = JSON.parse(new TextDecoder().decode(data));
 
         if (metadata.version !== METADATA_VERSION) {
-            console.log(
-                `Cache metadata version mismatch: expected ${METADATA_VERSION}, got ${metadata.version} — attempting migration`
+            logger.info(
+                'cache',
+                `metadata version mismatch expected=${METADATA_VERSION} got=${metadata.version} action="migrate"`
             );
             return migrateMetadata(cacheKey, metadata);
         }
 
         return metadata;
     } catch (e) {
-        console.error('Failed to load metadata:', e);
+        logger.error('cache', 'metadata load failed', e);
         return null;
     }
 }
@@ -127,6 +132,6 @@ export async function deleteMetadata(s3: S3Client, cacheKey: string): Promise<vo
             await deleteObject(s3, metadataKey);
         }
     } catch (e) {
-        console.error(`Failed to delete metadata: ${e}`);
+        logger.error('cache', 'metadata delete failed', e);
     }
 }

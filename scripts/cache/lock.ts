@@ -11,6 +11,7 @@ import {
     LOCK_TIMEOUT_MS,
     writeJsonToS3
 } from './utils';
+import { logger } from '../log';
 
 export function generateInstanceId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -78,12 +79,13 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
 
                 // Check if lock is stale
                 if (isLockStale(existingLock)) {
-                    console.log('Stale lock detected, removing...');
+                    logger.info('cache', 'lock stale detected action="remove"');
                     await deleteObject(s3, LOCK_KEY).catch(() => {});
                 } else {
                     // Lock is valid, need to retry
-                    console.log(
-                        `Lock busy, retrying in ${retryDelay / 1000}s (${attempt + 1}/${LOCK_MAX_RETRIES})...`
+                    logger.info(
+                        'cache',
+                        `lock busy retry seconds=${retryDelay / 1000} attempt=${attempt + 1}/${LOCK_MAX_RETRIES}`
                     );
                     await Bun.sleep(retryDelay);
 
@@ -117,24 +119,24 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
 
                 if (verifyLock.instance === instanceId) {
                     // Successfully acquired lock
-                    console.log('Lock acquired');
+                    logger.info('cache', 'lock acquire complete');
                     return instanceId;
                 }
             }
 
             // Lost the race - another process overwrote our lock
             // Retry with exponential backoff
-            console.log(`Lost lock race, retrying in ${retryDelay / 1000}s...`);
+            logger.info('cache', `lock race lost retry seconds=${retryDelay / 1000}`);
             await Bun.sleep(retryDelay);
             retryDelay = Math.min(retryDelay * 2, LOCK_RETRY_MAX_MS);
         } catch (e) {
-            console.error(`Lock error: ${e}`);
+            logger.error('cache', 'lock acquire failed', e);
             await Bun.sleep(retryDelay);
             retryDelay = Math.min(retryDelay * 2, LOCK_RETRY_MAX_MS);
         }
     }
 
-    console.error('Failed to acquire lock');
+    logger.error('cache', 'lock acquire failed reason="max_retries"');
     return null;
 }
 
@@ -158,10 +160,10 @@ export async function renewLock(s3: S3Client, instanceId: string): Promise<boole
         lock.renewedAt = Date.now();
         await writeJsonToS3(LOCK_KEY, lock);
 
-        console.log('Lock renewed');
+        logger.info('cache', 'lock renew complete');
         return true;
     } catch (e) {
-        console.error('Failed to renew lock:', e);
+        logger.error('cache', 'lock renew failed', e);
         return false;
     }
 }
@@ -180,10 +182,10 @@ export async function releaseLock(s3: S3Client, instanceId: string): Promise<voi
 
         if (lock.instance === instanceId) {
             await deleteObject(s3, LOCK_KEY);
-            console.log('Lock released');
+            logger.info('cache', 'lock release complete');
         }
     } catch (e) {
-        console.error('Failed to release lock:', e);
+        logger.error('cache', 'lock release failed', e);
     }
 }
 

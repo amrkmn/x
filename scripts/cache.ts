@@ -13,6 +13,7 @@ import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
 import { cleanupOldCaches, ENABLED, fileExists, getClient, resolveCacheKey } from './cache/s3';
 import { CACHE_FILE_NAME, downloadFileFromS3, TMP_DIR, uploadFileToS3 } from './cache/utils';
+import { logger } from './log';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
 
@@ -34,7 +35,7 @@ export async function restoreCache(
     restoreKeys?: string[]
 ): Promise<string | undefined> {
     if (!ENABLED) {
-        console.log('R2 Cache disabled');
+        logger.info('cache', 'cache disabled backend="r2"');
         return undefined;
     }
 
@@ -45,7 +46,7 @@ export async function restoreCache(
         // Find matching cache (exact or prefix match)
         const matchedKey = await resolveCacheKey(s3, key, restoreKeys);
         if (!matchedKey) {
-            console.log('Cache not found');
+            logger.info('cache', `restore miss key=${JSON.stringify(key)}`);
             return undefined;
         }
 
@@ -53,6 +54,10 @@ export async function restoreCache(
         const metadata = await loadMetadata(s3, matchedKey);
         if (metadata && (await validateCache(metadata))) {
             await updateBothAccessTimes(s3, matchedKey, metadata);
+            logger.info(
+                'cache',
+                `restore hit_local requested_key=${JSON.stringify(key)} restored_key=${JSON.stringify(matchedKey)}`
+            );
             return matchedKey;
         }
 
@@ -63,7 +68,7 @@ export async function restoreCache(
             await ensureDir(path);
         }
 
-        console.log(`Downloading cache from key: ${matchedKey}`);
+        logger.info('cache', `restore download start key=${JSON.stringify(matchedKey)}`);
         const startTime = Date.now();
 
         const downloadedBytes = await downloadCache(s3, matchedKey, CACHE_FILE_PATH);
@@ -71,20 +76,23 @@ export async function restoreCache(
         const downloadTime = Date.now() - startTime;
         const sizeInMB = formatBytes(downloadedBytes);
 
-        console.log(`Cache Size: ~${sizeInMB} MB (${downloadedBytes} B)`);
-        console.log(`Cache downloaded in ${(downloadTime / 1000).toFixed(2)}s`);
+        logger.info('cache', `restore download size_mib=${sizeInMB} bytes=${downloadedBytes}`);
+        logger.info(
+            'cache',
+            `restore download complete seconds=${(downloadTime / 1000).toFixed(2)}`
+        );
 
-        console.log('Extracting cache...');
+        logger.info('cache', 'restore extract start');
         const extractStartTime = Date.now();
         await extractTar(CACHE_FILE_PATH, '.');
         const extractTime = Date.now() - extractStartTime;
-        console.log(`Cache extracted in ${(extractTime / 1000).toFixed(2)}s`);
+        logger.info('cache', `restore extract complete seconds=${(extractTime / 1000).toFixed(2)}`);
 
         // Recompute checksums from extracted files and update S3 metadata so
         // the next run can validate locally without re-downloading.
         // Must happen before cleanupDir so the archive is still present for hashing.
         // Preserve the original timestamp so age-based eviction is not affected.
-        console.log('Updating cache metadata...');
+        logger.info('cache', 'restore metadata update start');
         const files = await checksumFiles(paths);
         await saveMetadata(matchedKey, files, CACHE_FILE_PATH, metadata?.timestamp);
 
@@ -95,10 +103,14 @@ export async function restoreCache(
             await updateBothAccessTimes(s3, matchedKey, refreshedMetadata);
         }
 
-        console.log(`Cache restored successfully`);
+        logger.info('cache', 'restore complete status="success"');
+        logger.info(
+            'cache',
+            `restore hit_remote requested_key=${JSON.stringify(key)} restored_key=${JSON.stringify(matchedKey)} bytes=${downloadedBytes} download_ms=${downloadTime} extract_ms=${extractTime}`
+        );
         return matchedKey;
     } catch (e) {
-        console.error('Failed to restore cache:', e);
+        logger.error('cache', `restore failed key=${JSON.stringify(key)}`, e);
         return undefined;
     }
 }
@@ -113,25 +125,25 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
     const result = await withLock(s3, async () => {
         // Check if cache already exists before compressing
         if (await fileExists(s3, key)) {
-            console.log(`Cache already exists: ${key}, skipping upload`);
+            logger.info('cache', `save skipped reason="already_exists" key=${JSON.stringify(key)}`);
             return;
         }
 
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
-        console.log('Compressing cache...');
+        logger.info('cache', 'save compress start');
         const compressStartTime = Date.now();
         const files = await compressToTar(paths, CACHE_FILE_PATH);
         const compressTime = Date.now() - compressStartTime;
-        console.log(`Cache compressed in ${(compressTime / 1000).toFixed(2)}s`);
+        logger.info('cache', `save compress complete seconds=${(compressTime / 1000).toFixed(2)}`);
 
         const cache = Bun.file(CACHE_FILE_PATH);
         const sizeInBytes = cache.size;
         const sizeInMB = formatBytes(sizeInBytes);
 
-        console.log(`Cache Size: ~${sizeInMB} MB (${sizeInBytes} B)`);
-        console.log(`Uploading cache to key: ${key}`);
+        logger.info('cache', `save archive size_mib=${sizeInMB} bytes=${sizeInBytes}`);
+        logger.info('cache', `save upload start key=${JSON.stringify(key)}`);
 
         const startTime = Date.now();
 
@@ -139,8 +151,9 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
 
         const uploadTime = Date.now() - startTime;
         const uploadSpeed = sizeInBytes / (1024 * 1024) / (uploadTime / 1000);
-        console.log(
-            `Cache uploaded in ${(uploadTime / 1000).toFixed(2)}s (${uploadSpeed.toFixed(2)} MB/s)`
+        logger.info(
+            'cache',
+            `save upload complete seconds=${(uploadTime / 1000).toFixed(2)} speed_mib_per_s=${uploadSpeed.toFixed(2)}`
         );
 
         const timestamp = Date.now();
@@ -152,7 +165,11 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         // Add entry to manifest
         await addCacheEntry(s3, key, hash, timestamp);
 
-        console.log(`Cache saved successfully`);
+        logger.info('cache', 'save complete status="success"');
+        logger.info(
+            'cache',
+            `save summary status="saved" key=${JSON.stringify(key)} bytes=${sizeInBytes} compress_ms=${compressTime} upload_ms=${uploadTime}`
+        );
 
         // Extract prefix for cleanup (e.g., "extensions-abc.tgz" -> "extensions-")
         const prefix = key.split('-')[0] + '-';
@@ -162,6 +179,6 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
     });
 
     if (result === null) {
-        console.error('Failed to acquire lock for cache save');
+        logger.error('cache', `save failed reason="lock_acquire" key=${JSON.stringify(key)}`);
     }
 }
