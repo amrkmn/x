@@ -120,6 +120,8 @@ jobs:
                   S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
                   PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
                   PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
+                  PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+                  PUBLIC_ANALYTICS_DOMAIN: ${{ secrets.PUBLIC_ANALYTICS_DOMAIN }}
 
             - name: Sync to DUFS
               run: |
