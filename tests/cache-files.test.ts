@@ -1,8 +1,8 @@
-import { test, expect, beforeEach, afterEach } from 'bun:test';
-import { calculateFileChecksum, ensureDir, cleanupDir } from '../scripts/cache/files';
-import { mkdir, rm, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import { afterEach, beforeEach, expect, test } from 'bun:test';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { calculateFileChecksum, cleanupDir, ensureDir } from '../scripts/cache/files';
 
 const testDir = join(tmpdir(), 'bun-test-cache');
 

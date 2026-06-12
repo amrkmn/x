@@ -1,4 +1,4 @@
-import { test, expect } from 'bun:test';
+import { expect, test } from 'bun:test';
 import { findCacheByKey, findCacheByPrefix } from '../scripts/cache/manifest';
 import type { CacheManifest } from '../scripts/cache/utils';
 

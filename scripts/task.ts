@@ -13,8 +13,8 @@ import {
     setGithubOutput,
     shouldFailOnMaterializeErrors
 } from './extensions';
-import { updateMeilisearch } from './meilisearch';
 import { logger } from './log';
+import { updateMeilisearch } from './meilisearch';
 
 export type TaskCommand =
     | 'check'

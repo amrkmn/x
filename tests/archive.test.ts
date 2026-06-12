@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { compressToTar, extractTar } from '../scripts/cache/files';
 import { mkdir, rm } from 'node:fs/promises';
+import { compressToTar, extractTar } from '../scripts/cache/files';
 
 test('create and extract roundtrip', async () => {
     const testDir = 'tests/test-archive-input';

@@ -25,7 +25,6 @@
     }
 
     const { data: _data }: Props = $props();
-    void _data;
 
     let initializing = $state(true);
     let searching = $state(false);

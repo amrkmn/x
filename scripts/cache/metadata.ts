@@ -1,11 +1,11 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { exists } from 'node:fs/promises';
 import { join } from 'node:path';
-import { calculateFileChecksum } from './files';
+import { logger } from '../log';
 import { deleteObject, fileExists, getObject } from './client';
+import { calculateFileChecksum } from './files';
 import type { CacheMetadata, FileMetadata } from './utils';
 import { METADATA_VERSION, writeJsonToS3 } from './utils';
-import { logger } from '../log';
 
 function getMetadataKey(cacheKey: string): string {
     return `${cacheKey}.meta.json`;

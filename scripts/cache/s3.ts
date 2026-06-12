@@ -1,8 +1,8 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { logger } from '../log';
-import { deleteMetadata } from './metadata';
-import { findCacheByKey, findCachesByPrefix, loadManifest, removeCacheEntry } from './manifest';
 import { deleteObject, fileExists } from './client';
+import { findCacheByKey, findCachesByPrefix, loadManifest, removeCacheEntry } from './manifest';
+import { deleteMetadata } from './metadata';
 import { MAX_CACHE_AGE_DAYS, MAX_CACHE_FILES } from './utils';
 
 export {

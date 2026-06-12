@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseAppData } from './validation';
 import type { AppData } from './types';
+import { parseAppData } from './validation';
 
 export function loadAppData(): AppData {
     const dataPath = resolve('static/data.json');

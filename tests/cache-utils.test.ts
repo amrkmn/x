@@ -1,5 +1,5 @@
-import { test, expect } from 'bun:test';
-import { generateCacheKey, CACHE_KEY_PREFIX } from '../scripts/cache/utils';
+import { expect, test } from 'bun:test';
+import { CACHE_KEY_PREFIX, generateCacheKey } from '../scripts/cache/utils';
 
 test('generateCacheKey returns key with correct prefix', async () => {
     const key = await generateCacheKey();

@@ -1,4 +1,4 @@
-import { test, expect } from 'bun:test';
+import { expect, test } from 'bun:test';
 
 // formatBytes is an internal function in cache.ts
 // This test verifies the expected behavior

@@ -1,5 +1,6 @@
 import type { S3Client } from '@aws-sdk/client-s3';
 import { hostname } from 'node:os';
+import { logger } from '../log';
 import { deleteObject, fileExists, getObject } from './s3';
 import type { CacheLock } from './utils';
 import {
@@ -11,7 +12,6 @@ import {
     LOCK_TIMEOUT_MS,
     writeJsonToS3
 } from './utils';
-import { logger } from '../log';
 
 export function generateInstanceId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

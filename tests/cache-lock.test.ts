@@ -1,4 +1,4 @@
-import { test, expect } from 'bun:test';
+import { expect, test } from 'bun:test';
 import { generateInstanceId } from '../scripts/cache/lock';
 import type { CacheLock } from '../scripts/cache/utils';
 

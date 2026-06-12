@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { parseSearchIndex, parseAppData } from '../src/lib/validation';
 import { parseExtensionsData } from '../scripts/validation';
+import { parseAppData, parseSearchIndex } from '../src/lib/validation';
 
 test('parseAppData validates and returns typed app data', () => {
     const data = parseAppData({

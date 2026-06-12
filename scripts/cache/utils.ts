@@ -3,10 +3,6 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { logger } from '../log';
 import { s3Config, uploadToS3 } from './client';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export interface FileMetadata {
     checksum: string;
     size: number;
