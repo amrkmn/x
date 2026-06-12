@@ -1,7 +1,8 @@
-import type { S3Client } from '@aws-sdk/client-s3';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
+import type { S3Client } from './client';
 import { logger } from '../log';
-import { s3Config, uploadToS3 } from './client';
+import { uploadToS3 } from './client';
+import { mkdir, rm } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 export interface FileMetadata {
     checksum: string;
@@ -64,6 +65,7 @@ export const CACHE_PATHS = ['static'];
 export const CACHE_KEY_PREFIX = 'extensions-';
 export const CACHE_RESTORE_KEYS = ['extensions-'];
 const EXTENSIONS_CONFIG_FILE = 'extensions.json';
+const TRANSFER_CHUNK_SIZE = 1024 * 1024; // 1 MiB
 
 // Helper to generate cache key from extensions.json
 export async function generateCacheKey(): Promise<string> {
@@ -80,18 +82,50 @@ export async function writeJsonToS3(key: string, data: any): Promise<void> {
     });
 }
 
+function createFileUploadStream(
+    sourcePath: string,
+    totalBytes: number,
+    onProgress: (bytes: number) => void
+): ReadableStream<Uint8Array> {
+    let offset = 0;
+
+    return new ReadableStream<Uint8Array>({
+        async pull(controller) {
+            if (offset >= totalBytes) {
+                controller.close();
+                return;
+            }
+
+            const nextOffset = Math.min(offset + TRANSFER_CHUNK_SIZE, totalBytes);
+            const chunk = new Uint8Array(
+                await Bun.file(sourcePath).slice(offset, nextOffset).arrayBuffer()
+            );
+
+            offset = nextOffset;
+            onProgress(offset);
+            controller.enqueue(chunk);
+        }
+    });
+}
+
 // Helper to upload file to S3 with progress tracking
 export async function uploadFileToS3(key: string, sourcePath: string): Promise<number> {
     const cacheFile = Bun.file(sourcePath);
-    const data = await cacheFile.arrayBuffer();
+    const sizeInBytes = cacheFile.size;
+    const progressLogger = logger.transfer('[cache] uploading', sizeInBytes);
 
-    const progressLogger = logger.transfer('[cache] uploading', data.byteLength);
-    await uploadToS3(key, data, {
-        onProgress: (bytes) => progressLogger.progress(bytes)
-    });
-    progressLogger.complete(data.byteLength);
+    await uploadToS3(
+        key,
+        createFileUploadStream(sourcePath, sizeInBytes, (bytes) => {
+            progressLogger.progress(bytes);
+        }),
+        {
+            contentLength: sizeInBytes
+        }
+    );
 
-    return data.byteLength;
+    progressLogger.complete(sizeInBytes);
+    return sizeInBytes;
 }
 
 // Helper to download file from S3 with progress tracking
@@ -100,29 +134,50 @@ export async function downloadFileFromS3(
     key: string,
     targetPath: string
 ): Promise<number> {
-    const response = await s3.send(
-        new GetObjectCommand({
-            Bucket: s3Config.BUCKET_NAME!,
-            Key: key
-        })
-    );
+    const url = s3.presign(key, { expiresIn: 3600 });
 
-    if (!response.Body) {
+    await mkdir(dirname(targetPath), { recursive: true });
+
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(
+            `S3 download failed: ${response.status} ${response.statusText} for key: ${key}`
+        );
+    }
+
+    if (!response.body) {
         throw new Error(`No response body for key: ${key}`);
     }
 
+    const contentLength = Number(response.headers.get('content-length')) || undefined;
     const writer = Bun.file(targetPath).writer();
-    const progressLogger = logger.transfer('[cache] received', response.ContentLength);
+    const progressLogger = logger.transfer('[cache] received', contentLength);
     let totalBytes = 0;
 
-    for await (const chunk of response.Body as any) {
-        writer.write(chunk);
-        totalBytes += chunk.length;
-        progressLogger.progress(totalBytes);
+    try {
+        for await (const chunk of response.body as ReadableStream<Uint8Array>) {
+            writer.write(chunk);
+            totalBytes += chunk.byteLength;
+            progressLogger.progress(totalBytes);
+        }
+
+        await writer.end();
+    } catch (error) {
+        try {
+            await writer.end();
+        } catch {}
+
+        await rm(targetPath, { force: true });
+        throw error;
     }
 
-    await writer.end();
-    progressLogger.complete(totalBytes);
+    if (typeof contentLength === 'number' && totalBytes !== contentLength) {
+        await rm(targetPath, { force: true });
+        throw new Error(
+            `S3 download incomplete: expected ${contentLength} bytes, received ${totalBytes} for key: ${key}`
+        );
+    }
 
+    progressLogger.complete(totalBytes);
     return totalBytes;
 }

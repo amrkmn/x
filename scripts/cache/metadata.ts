@@ -1,4 +1,4 @@
-import type { S3Client } from '@aws-sdk/client-s3';
+import type { S3Client } from './client';
 import { exists } from 'node:fs/promises';
 import { join } from 'node:path';
 import { logger } from '../log';

@@ -1,4 +1,4 @@
-import type { S3Client } from '@aws-sdk/client-s3';
+import type { S3Client } from './client';
 import { logger } from '../log';
 import { deleteObject, fileExists } from './client';
 import { findCacheByKey, findCachesByPrefix, loadManifest, removeCacheEntry } from './manifest';

@@ -1,4 +1,4 @@
-import type { S3Client } from '@aws-sdk/client-s3';
+import type { S3Client } from './client';
 import { hostname } from 'node:os';
 import { logger } from '../log';
 import { deleteObject, fileExists, getObject } from './s3';

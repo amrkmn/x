@@ -91,6 +91,12 @@ class TerminalWriter {
         console.log(message);
     }
 
+    endProgressLine(): void {
+        if (this.interactive) {
+            process.stdout.write('\n');
+        }
+    }
+
     get isInteractive(): boolean {
         return this.interactive;
     }
@@ -118,6 +124,7 @@ abstract class ThrottledProgressLogger {
 
 class TransferLogger extends ThrottledProgressLogger {
     private readonly startTime = Date.now();
+    private lastRenderedBytes?: number;
 
     constructor(
         writer: TerminalWriter,
@@ -134,15 +141,22 @@ class TransferLogger extends ThrottledProgressLogger {
 
     progress(bytes: number): this {
         if (this.shouldLog()) {
+            this.lastRenderedBytes = bytes;
             this.write(this.message(bytes));
         }
         return this;
     }
 
     complete(bytes: number): void {
-        if (bytes > 0) {
-            this.write(this.message(bytes), true);
+        if (bytes <= 0) return;
+
+        if (this.lastRenderedBytes === bytes) {
+            this.writer.endProgressLine();
+            return;
         }
+
+        this.lastRenderedBytes = bytes;
+        this.write(this.message(bytes), true);
     }
 }
 

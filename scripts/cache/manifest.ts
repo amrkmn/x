@@ -1,4 +1,4 @@
-import type { S3Client } from '@aws-sdk/client-s3';
+import type { S3Client } from './client';
 import { fileExists, getObject } from './client';
 import type { CacheEntry, CacheManifest } from './utils';
 import { writeJsonToS3 } from './utils';
