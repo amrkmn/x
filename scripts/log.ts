@@ -75,15 +75,22 @@ class ScopeFormatter {
 }
 
 class TerminalWriter {
+    private progressActive = false;
+
     constructor(private readonly interactive = isInteractiveTerminal()) {}
 
     log(level: LogLevel, message: string, ...args: unknown[]): void {
+        if (this.progressActive) {
+            this.endProgressLine();
+        }
+
         const fn = level === 'info' ? console.log : level === 'warn' ? console.warn : console.error;
         fn(message, ...args);
     }
 
     progress(message: string, newline = false): void {
         if (this.interactive) {
+            this.progressActive = !newline;
             process.stdout.write(`\r\x1b[K${message}${newline ? '\n' : ''}`);
             return;
         }
@@ -93,6 +100,7 @@ class TerminalWriter {
 
     endProgressLine(): void {
         if (this.interactive) {
+            this.progressActive = false;
             process.stdout.write('\n');
         }
     }

@@ -2,6 +2,7 @@ import { Meilisearch } from 'meilisearch';
 import { join } from 'node:path';
 import type { SearchIndexEntry } from '../src/lib/types';
 import { parseSearchIndex } from '../src/lib/validation';
+import { logger } from './log';
 
 export async function updateMeilisearch() {
     const env = {
@@ -10,11 +11,11 @@ export async function updateMeilisearch() {
     };
 
     if (!env.host || !env.apiKey) {
-        console.log('Skipping Meilisearch update (not configured)');
+        logger.info('search', 'index update skipped reason="not_configured"');
         return;
     }
 
-    console.log('Updating Meilisearch index...');
+    logger.info('search', 'index update start');
     const STATIC_DIR = join(process.cwd(), 'static');
     const searchIndexFile = join(STATIC_DIR, 'indexes.json');
 
@@ -41,7 +42,7 @@ export async function updateMeilisearch() {
         const allExtensions = parseSearchIndex(await Bun.file(searchIndexFile).json());
 
         if (!allExtensions.length) {
-            console.warn('No extension files found for Meilisearch');
+            logger.warn('search', 'index update skipped reason="no_documents"');
             return;
         }
 
@@ -60,7 +61,7 @@ export async function updateMeilisearch() {
         const idsToDelete = Array.from(existingIds).filter((id) => !newIds.has(id));
 
         if (idsToDelete.length > 0) {
-            console.log(`Deleting ${idsToDelete.length} removed extensions from Meilisearch`);
+            logger.info('search', `index delete removed_documents=${idsToDelete.length}`);
             await index.deleteDocuments(idsToDelete);
         }
 
@@ -72,12 +73,15 @@ export async function updateMeilisearch() {
 
         if (result.status === 'succeeded') {
             const stats = await index.getStats();
-            console.log(`Meilisearch updated: ${stats.numberOfDocuments} documents indexed`);
+            logger.info('search', `index update complete documents=${stats.numberOfDocuments}`);
         } else {
-            console.error('Meilisearch indexing failed:', result.error);
+            logger.error('search', `index update failed error=${JSON.stringify(result.error)}`);
         }
     } catch (error) {
-        console.error('Meilisearch update error:', error);
+        logger.error(
+            'search',
+            `index update error=${JSON.stringify(error instanceof Error ? error.message : error)}`
+        );
     }
 }
 
