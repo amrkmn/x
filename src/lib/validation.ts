@@ -47,14 +47,6 @@ function asNsfw(value: unknown, path: string): number {
     throw new Error(`Invalid ${path}: expected boolean or number`);
 }
 
-function withOptionalStringProperty<K extends string>(
-    key: K,
-    value: string | undefined
-): Partial<Record<K, string>> {
-    if (!value) return {};
-    return { [key]: value } as Partial<Record<K, string>>;
-}
-
 export function parseExtension(value: unknown, path: string): Extension {
     const record = asRecord(value, path);
     const sourceName = asOptionalString(record.sourceName, `${path}.sourceName`);
@@ -66,7 +58,7 @@ export function parseExtension(value: unknown, path: string): Extension {
         lang: asString(record.lang, `${path}.lang`),
         apk: asString(record.apk, `${path}.apk`),
         nsfw: asNsfw(record.nsfw, `${path}.nsfw`),
-        ...withOptionalStringProperty('sourceName', sourceName)
+        ...(sourceName ? { sourceName } : {})
     };
 }
 
@@ -78,7 +70,7 @@ function parseExtensionRepo(value: unknown, path: string): ExtensionRepo {
         source: asString(record.source, `${path}.source`),
         name: asString(record.name, `${path}.name`),
         path: asString(record.path, `${path}.path`),
-        ...withOptionalStringProperty('commit', commit)
+        ...(commit ? { commit } : {})
     };
 }
 
