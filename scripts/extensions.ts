@@ -4,6 +4,7 @@ import { appendFile, cp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SearchIndexEntry } from '../src/lib/types';
 import { parseAppData, parseExtension } from '../src/lib/validation';
+import { formatSourceName } from '../src/lib/search/utils';
 import { config } from './config';
 import { logger } from './log';
 import type { ExtensionConfig } from './types';
@@ -65,10 +66,6 @@ export async function saveExtensionsData(
     path = EXTENSIONS_FILE
 ): Promise<void> {
     await Bun.write(path, JSON.stringify(data, null, 4));
-}
-
-function formatSourceName(sourceName: string): string {
-    return sourceName.toLowerCase().replace(/\s+/g, '.');
 }
 
 function toExtensionList(

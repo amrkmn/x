@@ -37,7 +37,11 @@ function isInteractiveTerminal(): boolean {
     return true;
 }
 
-function formatTransferStats(bytes: number, elapsedSeconds: number, totalBytes?: number): string {
+export function formatTransferStats(
+    bytes: number,
+    elapsedSeconds: number,
+    totalBytes?: number
+): string {
     const sizeMB = (bytes / (1024 * 1024)).toFixed(2);
     const speedMBps =
         elapsedSeconds > 0 ? (bytes / (1024 * 1024) / elapsedSeconds).toFixed(2) : '0.00';
@@ -170,6 +174,7 @@ class TransferLogger extends ThrottledProgressLogger {
 
 class ValidationLogger extends ThrottledProgressLogger {
     private readonly prefix: string;
+    private readonly scope: string;
 
     constructor(
         writer: TerminalWriter,
@@ -179,6 +184,8 @@ class ValidationLogger extends ThrottledProgressLogger {
     ) {
         super(writer, writer.isInteractive ? 100 : 500);
         this.prefix = `${prefix} (${totalItems} files)`;
+        const match = prefix.match(/^\[([^\]]+)\]/);
+        this.scope = match ? match[1] : 'cache';
     }
 
     progress(current: number, total: number): this {
@@ -191,9 +198,9 @@ class ValidationLogger extends ThrottledProgressLogger {
     complete(current: number, valid: number, invalid: number, missing: number): void {
         const message =
             valid === current
-                ? this.formatter.message('cache', `cache is valid files_matched=${valid}`)
+                ? this.formatter.message(this.scope, `cache is valid files_matched=${valid}`)
                 : this.formatter.message(
-                      'cache',
+                      this.scope,
                       `cache validation failed valid=${valid} invalid=${invalid} missing=${missing} total=${current}`
                   );
 

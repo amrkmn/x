@@ -66,24 +66,6 @@ async function persistQuickUpdates(updated: boolean): Promise<void> {
     await setGithubOutput('updated', String(updated));
 }
 
-function logCacheModeDisabled(quick: boolean): void {
-    logger.info('cache', quick ? 'cache disabled mode="quick"' : 'cache disabled mode="command"');
-}
-
-async function maybeRestoreStaticCache(useCache: boolean, quick: boolean): Promise<void> {
-    if (useCache) {
-        await restoreStaticCache();
-        return;
-    }
-
-    logCacheModeDisabled(quick);
-}
-
-async function handleNoUpdates(): Promise<void> {
-    logger.info('task', 'update check result="no_updates"');
-    await persistQuickUpdates(false);
-}
-
 async function handleQuickUpdates(
     data: Awaited<ReturnType<typeof loadExtensionsData>>,
     updates: Awaited<ReturnType<typeof findExtensionUpdates>>
@@ -145,13 +127,21 @@ async function updateExtensions(
     const quick = command === 'check';
     const useCache = command === 'full' && !args.includes('--no-cache');
 
-    await maybeRestoreStaticCache(useCache, quick);
+    if (useCache) {
+        await restoreStaticCache();
+    } else {
+        logger.info(
+            'cache',
+            quick ? 'cache disabled mode="quick"' : 'cache disabled mode="command"'
+        );
+    }
 
     const data = await loadExtensionsData();
     const updates = await findExtensionUpdates(data, { quick });
 
     if (updates.length === 0) {
-        await handleNoUpdates();
+        logger.info('task', 'update check result="no_updates"');
+        await persistQuickUpdates(false);
         return;
     }
 
