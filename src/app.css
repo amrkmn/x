@@ -1,3 +1,7 @@
+html {
+    scrollbar-gutter: stable both-edges;
+}
+
 html,
 body {
     height: 100%;
