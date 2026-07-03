@@ -1,5 +1,5 @@
 import { exists, mkdir, readdir, rm } from 'node:fs/promises';
-import { join, posix } from 'node:path';
+import { dirname, join, posix } from 'node:path';
 
 import { logger } from '../log';
 import type { CacheMetadata, FileMetadata } from './utils';
@@ -48,7 +48,36 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
     const compressedData = await Bun.file(tarPath).arrayBuffer();
     const decompressed = Bun.zstdDecompressSync(new Uint8Array(compressedData));
     const archive = new Bun.Archive(decompressed);
-    await archive.extract(destPath);
+    const files = await archive.files();
+    const entries = Array.from(files.entries());
+
+    const totalBytes = entries.reduce((sum, [, file]) => sum + file.size, 0);
+    const totalFiles = entries.length;
+    const transfer = logger.transfer('[cache] restore extract progress', totalBytes);
+
+    logger.info(
+        'cache',
+        `restore extract files start total_files=${totalFiles} total_bytes=${totalBytes}`
+    );
+
+    let extractedBytes = 0;
+    for (const [index, [relativePath, file]] of entries.entries()) {
+        const outputPath = join(destPath, relativePath);
+        await mkdir(dirname(outputPath), { recursive: true });
+        await Bun.write(outputPath, file);
+
+        extractedBytes += file.size;
+        transfer.progress(extractedBytes);
+
+        if ((index + 1) % 250 === 0 || index + 1 === totalFiles) {
+            logger.info(
+                'cache',
+                `restore extract files progress current=${index + 1} total=${totalFiles}`
+            );
+        }
+    }
+
+    transfer.complete(extractedBytes);
 }
 
 async function collectFileEntries(

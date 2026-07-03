@@ -13,6 +13,7 @@ export const config = {
     filesToCopy: [
         'index.json', //
         'index.min.json',
+        'index.pb',
         'repo.json',
         'apk',
         'icon'

@@ -52,6 +52,29 @@ interface FindExtensionUpdatesOptions {
     loadSyncedCommits?: () => Promise<Map<string, string>>;
 }
 
+function isRepoMaterialized(dest: string): boolean {
+    return existsSync(dest) && config.filesToCopy.every((file) => existsSync(join(dest, file)));
+}
+
+async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<void> {
+    const url = `${(process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '')}/${key}`;
+    try {
+        const idx = await Bun.file(join(dest, 'index.json')).json();
+        for (const ext of idx?.extensionList?.extensions || []) {
+            const res = ext?.resources;
+            if (res?.apkUrl) res.apkUrl = `${url}/apk/${res.apkUrl.split('/').pop()}`;
+            if (res?.iconUrl) res.iconUrl = `${url}/icon/${res.iconUrl.split('/').pop()}`;
+        }
+        await Bun.write(join(dest, 'index.json'), JSON.stringify(idx));
+    } catch {}
+
+    try {
+        const repo = await Bun.file(join(dest, 'repo.json')).json();
+        repo.index_v2 = `${url}/index.pb`;
+        await Bun.write(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
+    } catch {}
+}
+
 export async function setGithubOutput(key: string, value: string): Promise<void> {
     if (!process.env.GITHUB_OUTPUT) return;
     await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
@@ -206,7 +229,11 @@ export async function findExtensionUpdates(
                 const dest = join(staticDir, key);
                 const syncedHash = synced.get(ext.path);
 
-                if (!options.quick && !existsSync(dest)) {
+                if (!options.quick && existsSync(dest)) {
+                    await rewriteMirroredIndexFiles(dest, key);
+                }
+
+                if (!options.quick && !isRepoMaterialized(dest)) {
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
@@ -296,6 +323,8 @@ export async function materializeExtensions(
                         await cp(srcPath, join(dest, file), { recursive: true });
                     }
                 }
+
+                await rewriteMirroredIndexFiles(dest, key);
 
                 data[category][key].commit = hash;
                 changed = true;
