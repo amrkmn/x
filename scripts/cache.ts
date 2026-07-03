@@ -131,11 +131,9 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         await ensureDir(TMP_DIR);
 
         // Compress and calculate checksums
-        logger.info('cache', 'save compress start');
         const compressStartTime = Date.now();
         const files = await compressToTar(paths, CACHE_FILE_PATH);
         const compressTime = Date.now() - compressStartTime;
-        logger.info('cache', `save compress complete seconds=${(compressTime / 1000).toFixed(2)}`);
 
         const cache = Bun.file(CACHE_FILE_PATH);
         const sizeInBytes = cache.size;

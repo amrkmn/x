@@ -18,7 +18,8 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     const totalFiles = fileEntries.length;
     const totalBytes = Object.values(metadata.files).reduce((sum, f) => sum + f.size, 0);
     const progress = logger.counter(
-        '[cache] validating cache',
+        'cache',
+        'validating cache',
         totalFiles,
         totalBytes,
         'restore validate'
@@ -59,7 +60,8 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
     const totalBytes = entries.reduce((sum, [, file]) => sum + file.size, 0);
     const totalFiles = entries.length;
     const progress = logger.counter(
-        '[cache] restore extract progress',
+        'cache',
+        'restore extract progress',
         totalFiles,
         totalBytes,
         'restore extract'
@@ -104,16 +106,31 @@ export async function compressToTar(
 ): Promise<Record<string, FileMetadata>> {
     const checksums: Record<string, FileMetadata> = {};
     const files: Record<string, Uint8Array> = {};
+    const entries = await collectFileEntries(paths);
+    const total = entries.length;
+    const totalBytes = entries.reduce((sum, e) => sum + e.size, 0);
+    const progress = logger.counter(
+        'cache',
+        'save compress progress',
+        total,
+        totalBytes,
+        'save compress'
+    );
 
-    for (const { fullPath, relativePath, size } of await collectFileEntries(paths)) {
+    let processedBytes = 0;
+    for (const [index, { fullPath, relativePath, size }] of entries.entries()) {
         const fileData = await Bun.file(fullPath).arrayBuffer();
         const checksum = await calculateFileChecksum(fullPath);
         checksums[relativePath] = { checksum, size };
         files[relativePath] = new Uint8Array(fileData);
+        processedBytes += size;
+        progress.progress(index + 1, processedBytes);
     }
 
     const archive = new Bun.Archive(files);
     await Bun.write(outputPath, Bun.zstdCompressSync(await archive.bytes()));
+
+    progress.complete({ bytes: totalBytes });
 
     return checksums;
 }
@@ -124,7 +141,8 @@ export async function checksumFiles(paths: string[]): Promise<Record<string, Fil
     const total = allEntries.length;
     const totalBytes = allEntries.reduce((sum, e) => sum + e.size, 0);
     const progress = logger.counter(
-        '[cache] hashing extracted files',
+        'cache',
+        'hashing extracted files',
         total,
         totalBytes,
         'restore metadata'

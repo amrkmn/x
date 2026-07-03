@@ -175,6 +175,7 @@ class TransferLogger extends ThrottledProgressLogger {
 class CounterLogger extends ThrottledProgressLogger {
     private readonly startTime = Date.now();
     private readonly scope: string;
+    private readonly prefix: string;
     private lastLoggedBucket = 0;
     private readonly bucketSize: number;
     private readonly isInteractive: boolean;
@@ -182,7 +183,8 @@ class CounterLogger extends ThrottledProgressLogger {
     constructor(
         writer: TerminalWriter,
         private readonly formatter: ScopeFormatter,
-        private readonly prefix: string,
+        scope: string,
+        label: string,
         private readonly totalItems: number,
         private readonly totalBytes?: number,
         private readonly action?: string
@@ -190,8 +192,8 @@ class CounterLogger extends ThrottledProgressLogger {
         super(writer, 200);
         this.isInteractive = writer.isInteractive;
         this.bucketSize = this.isInteractive ? 0 : 10;
-        const match = prefix.match(/^\[([^\]]+)\]/);
-        this.scope = match ? match[1] : 'cache';
+        this.scope = scope;
+        this.prefix = this.formatter.progressPrefix(`[${scope}] ${label}`);
     }
 
     private elapsedSeconds(): number {
@@ -280,7 +282,8 @@ export class Logger {
     }
 
     counter(
-        prefix: string,
+        scope: string,
+        label: string,
         totalItems: number,
         totalBytes?: number,
         action?: string
@@ -288,7 +291,8 @@ export class Logger {
         return new CounterLogger(
             this.writer,
             this.formatter,
-            this.formatter.progressPrefix(prefix),
+            scope,
+            label,
             totalItems,
             totalBytes,
             action
