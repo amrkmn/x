@@ -54,13 +54,13 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
     const totalBytes = entries.reduce((sum, [, file]) => sum + file.size, 0);
     const totalFiles = entries.length;
     const transfer = logger.transfer('[cache] restore extract progress', totalBytes);
+    const startTime = Date.now();
 
-    logger.info(
-        'cache',
-        `restore extract files start total_files=${totalFiles} total_bytes=${totalBytes}`
-    );
+    logger.info('cache', `restore extract files start total_files=${totalFiles}`);
 
     let extractedBytes = 0;
+    let lastLoggedBucket = 0;
+
     for (const [index, [relativePath, file]] of entries.entries()) {
         const outputPath = join(destPath, relativePath);
         await mkdir(dirname(outputPath), { recursive: true });
@@ -69,15 +69,26 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
         extractedBytes += file.size;
         transfer.progress(extractedBytes);
 
-        if ((index + 1) % 250 === 0 || index + 1 === totalFiles) {
+        const currentBucket = Math.floor(((extractedBytes / totalBytes) * 100) / 5);
+        if (currentBucket > lastLoggedBucket) {
+            const currentFiles = index + 1;
+            const pct = (extractedBytes / totalBytes) * 100;
+            const elapsedSec = (Date.now() - startTime) / 1000;
+            const speedMiBs = extractedBytes / elapsedSec / (1024 * 1024);
             logger.info(
                 'cache',
-                `restore extract files progress current=${index + 1} total=${totalFiles}`
+                `restore extract progress ${currentFiles}/${totalFiles}(${pct.toFixed(2)}%) ${speedMiBs.toFixed(2)}MiB/s`
             );
+            lastLoggedBucket = currentBucket;
         }
     }
 
     transfer.complete(extractedBytes);
+
+    const elapsedMs = Date.now() - startTime;
+    const sizeInMiB = (totalBytes / (1024 * 1024)).toFixed(2);
+    logger.info('cache', `restore extract size_mib=${sizeInMiB} bytes=${totalBytes}`);
+    logger.info('cache', `restore extract complete seconds=${(elapsedMs / 1000).toFixed(2)}`);
 }
 
 async function collectFileEntries(
