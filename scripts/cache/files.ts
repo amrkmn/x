@@ -16,32 +16,37 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
 
     const fileEntries = Object.entries(metadata.files);
     const totalFiles = fileEntries.length;
-    const progressLogger = logger.validation('[cache] validating cache', totalFiles);
+    const totalBytes = Object.values(metadata.files).reduce((sum, f) => sum + f.size, 0);
+    const progress = logger.counter(
+        '[cache] validating cache',
+        totalFiles,
+        totalBytes,
+        'restore validate'
+    );
 
+    let processedBytes = 0;
     for (const [index, [filePath, fileInfo]] of fileEntries.entries()) {
         const fullPath = join('.', filePath);
 
         if (!(await exists(fullPath))) {
             missing++;
-            progressLogger.progress(index + 1, totalFiles);
-            continue;
+        } else {
+            try {
+                const actualChecksum = await calculateFileChecksum(fullPath);
+                if (actualChecksum === fileInfo.checksum) valid++;
+                else invalid++;
+            } catch {
+                invalid++;
+            }
         }
 
-        try {
-            const actualChecksum = await calculateFileChecksum(fullPath);
-            if (actualChecksum === fileInfo.checksum) valid++;
-            else invalid++;
-        } catch {
-            invalid++;
-        }
-
-        progressLogger.progress(index + 1, totalFiles);
+        processedBytes += fileInfo.size;
+        progress.progress(index + 1, processedBytes);
     }
 
-    const isValid = invalid === 0 && missing === 0;
-    progressLogger.complete(totalFiles, valid, invalid, missing);
+    progress.complete({ valid, invalid, missing });
 
-    return isValid;
+    return invalid === 0 && missing === 0;
 }
 
 export async function extractTar(tarPath: string, destPath = '.'): Promise<void> {
@@ -53,42 +58,24 @@ export async function extractTar(tarPath: string, destPath = '.'): Promise<void>
 
     const totalBytes = entries.reduce((sum, [, file]) => sum + file.size, 0);
     const totalFiles = entries.length;
-    const transfer = logger.transfer('[cache] restore extract progress', totalBytes);
-    const startTime = Date.now();
-
-    logger.info('cache', `restore extract files start total_files=${totalFiles}`);
+    const progress = logger.counter(
+        '[cache] restore extract progress',
+        totalFiles,
+        totalBytes,
+        'restore extract'
+    );
 
     let extractedBytes = 0;
-    let lastLoggedBucket = 0;
-
     for (const [index, [relativePath, file]] of entries.entries()) {
         const outputPath = join(destPath, relativePath);
         await mkdir(dirname(outputPath), { recursive: true });
         await Bun.write(outputPath, file);
 
         extractedBytes += file.size;
-        transfer.progress(extractedBytes);
-
-        const currentBucket = Math.floor(((extractedBytes / totalBytes) * 100) / 5);
-        if (currentBucket > lastLoggedBucket) {
-            const currentFiles = index + 1;
-            const pct = (extractedBytes / totalBytes) * 100;
-            const elapsedSec = (Date.now() - startTime) / 1000;
-            const speedMiBs = extractedBytes / elapsedSec / (1024 * 1024);
-            logger.info(
-                'cache',
-                `restore extract progress ${currentFiles}/${totalFiles}(${pct.toFixed(2)}%) ${speedMiBs.toFixed(2)}MiB/s`
-            );
-            lastLoggedBucket = currentBucket;
-        }
+        progress.progress(index + 1, extractedBytes);
     }
 
-    transfer.complete(extractedBytes);
-
-    const elapsedMs = Date.now() - startTime;
-    const sizeInMiB = (totalBytes / (1024 * 1024)).toFixed(2);
-    logger.info('cache', `restore extract size_mib=${sizeInMiB} bytes=${totalBytes}`);
-    logger.info('cache', `restore extract complete seconds=${(elapsedMs / 1000).toFixed(2)}`);
+    progress.complete({ bytes: extractedBytes });
 }
 
 async function collectFileEntries(
@@ -135,15 +122,23 @@ export async function checksumFiles(paths: string[]): Promise<Record<string, Fil
     const result: Record<string, FileMetadata> = {};
     const allEntries = await collectFileEntries(paths);
     const total = allEntries.length;
-    const progressLogger = logger.validation('[cache] hashing extracted files', total);
+    const totalBytes = allEntries.reduce((sum, e) => sum + e.size, 0);
+    const progress = logger.counter(
+        '[cache] hashing extracted files',
+        total,
+        totalBytes,
+        'restore metadata'
+    );
 
+    let processedBytes = 0;
     for (const [index, { fullPath, relativePath, size }] of allEntries.entries()) {
         const checksum = await calculateFileChecksum(fullPath);
         result[relativePath] = { checksum, size };
-        progressLogger.progress(index + 1, total);
+        processedBytes += size;
+        progress.progress(index + 1, processedBytes);
     }
 
-    progressLogger.complete(total, total, 0, 0);
+    progress.complete({ valid: total, invalid: 0, missing: 0 });
 
     return result;
 }

@@ -172,39 +172,90 @@ class TransferLogger extends ThrottledProgressLogger {
     }
 }
 
-class ValidationLogger extends ThrottledProgressLogger {
-    private readonly prefix: string;
+class CounterLogger extends ThrottledProgressLogger {
+    private readonly startTime = Date.now();
     private readonly scope: string;
+    private lastLoggedBucket = 0;
+    private readonly bucketSize: number;
+    private readonly isInteractive: boolean;
 
     constructor(
         writer: TerminalWriter,
         private readonly formatter: ScopeFormatter,
-        prefix: string,
-        totalItems: number
+        private readonly prefix: string,
+        private readonly totalItems: number,
+        private readonly totalBytes?: number,
+        private readonly action?: string
     ) {
-        super(writer, writer.isInteractive ? 100 : 500);
-        this.prefix = `${prefix} (${totalItems} files)`;
+        super(writer, 200);
+        this.isInteractive = writer.isInteractive;
+        this.bucketSize = this.isInteractive ? 0 : 10;
         const match = prefix.match(/^\[([^\]]+)\]/);
         this.scope = match ? match[1] : 'cache';
     }
 
-    progress(current: number, total: number): this {
-        if (this.shouldLog()) {
-            this.write(`${this.prefix}: ${current}/${total} files validated`);
+    private elapsedSeconds(): number {
+        return (Date.now() - this.startTime) / 1000;
+    }
+
+    progress(current: number, bytes?: number): this {
+        const percent = (current / this.totalItems) * 100;
+        const bucket = this.bucketSize > 0 ? Math.floor(percent / this.bucketSize) : 0;
+
+        if (bytes !== undefined && this.totalBytes !== undefined) {
+            const shouldLog = this.isInteractive
+                ? this.shouldLog()
+                : bucket > this.lastLoggedBucket;
+            if (shouldLog) {
+                const elapsed = this.elapsedSeconds();
+                const speedMiBs = bytes / (1024 * 1024) / elapsed;
+                const pctFormatted = percent.toFixed(2);
+                this.write(
+                    `${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
+                    false
+                );
+                if (this.bucketSize > 0) this.lastLoggedBucket = bucket;
+            }
+        } else if (this.shouldLog()) {
+            const pctFormatted = percent.toFixed(2);
+            this.write(`${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%)`, false);
         }
         return this;
     }
 
-    complete(current: number, valid: number, invalid: number, missing: number): void {
-        const message =
-            valid === current
+    complete(stats: { valid?: number; invalid?: number; missing?: number; bytes?: number }): void {
+        this.writer.endProgressLine();
+        const elapsed = this.elapsedSeconds();
+        const { valid, invalid, missing, bytes } = stats;
+
+        if (valid !== undefined && invalid !== undefined && missing !== undefined) {
+            const isValid = invalid === 0 && missing === 0;
+            const message = isValid
                 ? this.formatter.message(this.scope, `cache is valid files_matched=${valid}`)
                 : this.formatter.message(
                       this.scope,
-                      `cache validation failed valid=${valid} invalid=${invalid} missing=${missing} total=${current}`
+                      `cache validation failed valid=${valid} invalid=${invalid} missing=${missing} total=${this.totalItems}`
                   );
+            this.writer.log('info', message);
+        }
 
-        this.write(message, true);
+        if (bytes !== undefined && this.action) {
+            const sizeMiB = (bytes / (1024 * 1024)).toFixed(2);
+            this.writer.log(
+                'info',
+                this.formatter.message(
+                    this.scope,
+                    `${this.action} size_mib=${sizeMiB} bytes=${bytes}`
+                )
+            );
+            this.writer.log(
+                'info',
+                this.formatter.message(
+                    this.scope,
+                    `${this.action} complete seconds=${elapsed.toFixed(2)}`
+                )
+            );
+        }
     }
 }
 
@@ -228,12 +279,19 @@ export class Logger {
         return new TransferLogger(this.writer, this.formatter.progressPrefix(prefix), totalBytes);
     }
 
-    validation(prefix: string, totalItems: number): ValidationLogger {
-        return new ValidationLogger(
+    counter(
+        prefix: string,
+        totalItems: number,
+        totalBytes?: number,
+        action?: string
+    ): CounterLogger {
+        return new CounterLogger(
             this.writer,
             this.formatter,
             this.formatter.progressPrefix(prefix),
-            totalItems
+            totalItems,
+            totalBytes,
+            action
         );
     }
 }

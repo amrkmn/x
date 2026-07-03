@@ -86,7 +86,6 @@ export async function restoreCache(
         const extractStartTime = Date.now();
         await extractTar(CACHE_FILE_PATH, '.');
         const extractTime = Date.now() - extractStartTime;
-        logger.info('cache', `restore extract complete seconds=${(extractTime / 1000).toFixed(2)}`);
 
         // Recompute checksums from extracted files and update S3 metadata so
         // the next run can validate locally without re-downloading.
