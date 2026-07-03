@@ -177,6 +177,7 @@ class CounterLogger extends ThrottledProgressLogger {
     private readonly scope: string;
     private readonly prefix: string;
     private lastLoggedBucket = 0;
+    private lastLoggedCount = 0;
     private readonly bucketSize: number;
     private readonly isInteractive: boolean;
 
@@ -216,18 +217,36 @@ class CounterLogger extends ThrottledProgressLogger {
                     `${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
                     false
                 );
-                if (this.bucketSize > 0) this.lastLoggedBucket = bucket;
+                this.lastLoggedBucket = bucket;
+                this.lastLoggedCount = current;
             }
         } else if (this.shouldLog()) {
             const pctFormatted = percent.toFixed(2);
             this.write(`${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%)`, false);
+            this.lastLoggedCount = current;
         }
         return this;
     }
 
     complete(stats: { valid?: number; invalid?: number; missing?: number; bytes?: number }): void {
+        // emit final 100% progress line if the last progress() call didn't already
+        if (this.lastLoggedCount < this.totalItems) {
+            const elapsed = this.elapsedSeconds();
+            const pctFormatted = '100.00';
+            if (this.totalBytes !== undefined) {
+                const speedMiBs = this.totalBytes / (1024 * 1024) / elapsed;
+                this.write(
+                    `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
+                    false
+                );
+            } else {
+                this.write(
+                    `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%)`,
+                    false
+                );
+            }
+        }
         this.writer.endProgressLine();
-        const elapsed = this.elapsedSeconds();
         const { valid, invalid, missing, bytes } = stats;
 
         if (valid !== undefined && invalid !== undefined && missing !== undefined) {

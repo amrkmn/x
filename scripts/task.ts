@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { $ } from 'bun';
-import { restoreCache, saveCache } from './cache';
+import { refreshMetadata, restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import {
     applyCommitUpdates,
@@ -95,6 +95,7 @@ async function finalizeFullUpdate(
 
     if (command === 'full') {
         await generateDataJson(data);
+        if (useCache) await refreshMetadata(await generateCacheKey(), CACHE_PATHS);
         await updateMeilisearch();
         if (useCache) await saveStaticCache();
     }

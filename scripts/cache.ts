@@ -12,7 +12,13 @@ import { withLock } from './cache/lock';
 import { addCacheEntry } from './cache/manifest';
 import { loadMetadata, saveMetadata, updateBothAccessTimes } from './cache/metadata';
 import { cleanupOldCaches, ENABLED, fileExists, getClient, resolveCacheKey } from './cache/s3';
-import { CACHE_FILE_NAME, downloadFileFromS3, TMP_DIR, uploadFileToS3 } from './cache/utils';
+import {
+    CACHE_FILE_NAME,
+    downloadFileFromS3,
+    TMP_DIR,
+    uploadFileToS3,
+    writeJsonToS3
+} from './cache/utils';
 import { logger } from './log';
 
 const CACHE_FILE_PATH = join(TMP_DIR, CACHE_FILE_NAME);
@@ -27,6 +33,35 @@ async function downloadCache(s3: S3Client, key: string, targetPath: string): Pro
 
 async function uploadCache(key: string, sourcePath: string): Promise<number> {
     return uploadFileToS3(key, sourcePath);
+}
+
+// ponytail: refresh metadata after pipeline mutates cached files, skip full re-upload
+export async function refreshMetadata(key: string, paths: string[]): Promise<void> {
+    if (!ENABLED) return;
+
+    const s3 = getClient();
+    if (!s3) return;
+
+    const metadata = await loadMetadata(s3, key);
+    if (!metadata) {
+        logger.info(
+            'cache',
+            `metadata refresh skipped reason="no_metadata" key=${JSON.stringify(key)}`
+        );
+        return;
+    }
+
+    const files = await checksumFiles(paths);
+    metadata.files = files;
+    metadata.lastAccessed = Date.now();
+
+    const metadataKey = `${key}.meta.json`;
+    await writeJsonToS3(metadataKey, metadata);
+
+    logger.info(
+        'cache',
+        `metadata refreshed key=${JSON.stringify(key)} files=${Object.keys(files).length}`
+    );
 }
 
 export async function restoreCache(

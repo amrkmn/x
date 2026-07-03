@@ -52,10 +52,6 @@ interface FindExtensionUpdatesOptions {
     loadSyncedCommits?: () => Promise<Map<string, string>>;
 }
 
-function isRepoMaterialized(dest: string): boolean {
-    return existsSync(dest) && config.filesToCopy.every((file) => existsSync(join(dest, file)));
-}
-
 async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<void> {
     const url = `${(process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '')}/${key}`;
     try {
@@ -233,7 +229,7 @@ export async function findExtensionUpdates(
                     await rewriteMirroredIndexFiles(dest, key);
                 }
 
-                if (!options.quick && !isRepoMaterialized(dest)) {
+                if (!options.quick && !existsSync(dest)) {
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
