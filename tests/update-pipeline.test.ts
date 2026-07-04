@@ -124,7 +124,8 @@ test('findExtensionUpdates marks repos with missing required files for materiali
     await mkdir(join(alphaDir, 'apk'), { recursive: true });
     await mkdir(join(alphaDir, 'icon'), { recursive: true });
     await writeFile(join(alphaDir, 'index.json'), '{}');
-    await writeFile(join(alphaDir, 'index.min.json'), '[]');
+    // index.min.json omitted — triggers re-materialization
+    await writeFile(join(alphaDir, 'index.pb'), 'pb');
     await writeFile(join(alphaDir, 'repo.json'), '{}');
 
     await setupTestRepo(betaDir);

@@ -185,8 +185,24 @@ export async function generateDataJson(
     logger.info('data', `data generate complete commit=${commit.substring(0, 7)}`);
 }
 
-async function getRemoteHead(url: string): Promise<string> {
-    const output = (await $`git ls-remote ${url} HEAD`.text()).trim();
+interface ParsedSource {
+    url: string;
+    branch?: string;
+}
+
+function parseSourceUrl(source: string): ParsedSource {
+    const idx = source.lastIndexOf('@');
+    if (idx === -1) return { url: source };
+    const url = source.slice(0, idx);
+    const branch = source.slice(idx + 1);
+    if (!branch) return { url };
+    return { url, branch };
+}
+
+async function getRemoteHead(source: string): Promise<string> {
+    const { url, branch } = parseSourceUrl(source);
+    const ref = branch ? `refs/heads/${branch}` : 'HEAD';
+    const output = (await $`git ls-remote ${url} ${ref}`.text()).trim();
     return output.split(/\s+/)[0] ?? '';
 }
 
@@ -233,6 +249,10 @@ export async function findExtensionUpdates(
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
+                if (!options.quick && !existsSync(join(dest, 'index.min.json'))) {
+                    return { category, key, ext, hash: ext.commit || 'HEAD' };
+                }
+
                 const remoteHash = await remoteHead(ext.source);
 
                 if (options.quick && remoteHash !== ext.commit) {
@@ -270,13 +290,15 @@ export function applyCommitUpdates(data: ExtensionsData, updates: ExtensionUpdat
 }
 
 async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {
+    const { url, branch } = parseSourceUrl(source);
+    const branchArgs = branch ? ['--branch', branch] : [];
     try {
-        await $`git clone --depth 1 --filter=blob:none --sparse ${source} ${temp}`.quiet();
+        await $`git clone --depth 1 --filter=blob:none --sparse ${branchArgs} ${url} ${temp}`.quiet();
         await $`git -C ${temp} sparse-checkout set --no-cone ${config.filesToCopy}`.quiet();
         return 'sparse';
     } catch {
         await rm(temp, { recursive: true, force: true });
-        await $`git clone --depth 1 ${source} ${temp}`.quiet();
+        await $`git clone --depth 1 ${branchArgs} ${url} ${temp}`.quiet();
         return 'full';
     }
 }

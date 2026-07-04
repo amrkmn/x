@@ -1,21 +1,21 @@
 {
     "mihon": {
         "keiyoushi": {
-            "source": "https://github.com/keiyoushi/extensions",
+            "source": "https://github.com/keiyoushi/extensions@repo",
             "name": "Keiyoushi",
             "path": "/keiyoushi/index.min.json",
             "category": "mihon",
             "commit": "2efd28e5f544eefbb8312cfd8cad2f40b042ab14"
         },
         "yuzono/cursed": {
-            "source": "https://github.com/yuzono/cursed-manga-repo",
+            "source": "https://github.com/yuzono/cursed-manga-repo@repo",
             "name": "Yuzono Cursed",
             "path": "/yuzono/cursed/index.min.json",
             "category": "mihon",
             "commit": "47ca2171e4b0ff068e5ff36650a9b48b93bb5da9"
         },
         "yuzono/manga": {
-            "source": "https://github.com/yuzono/manga-repo",
+            "source": "https://github.com/yuzono/manga-repo@repo",
             "name": "Yuzono Manga",
             "path": "/yuzono/manga/index.min.json",
             "category": "mihon",
@@ -30,8 +30,15 @@
             "category": "aniyomi",
             "commit": "6f4cf9e2c907e6a35fbb9bd3506e6e06ab6c44be"
         },
+        "secozzi": {
+            "source": "https://github.com/Secozzi/aniyomi-extensions@repo",
+            "name": "Secozzi",
+            "path": "/secozzi/index.min.json",
+            "category": "aniyomi",
+            "commit": "613fdffca07e771d268bfffb7cd91201ae8109b4"
+        },
         "yuzono/anime": {
-            "source": "https://github.com/yuzono/anime-repo",
+            "source": "https://github.com/yuzono/anime-repo@repo",
             "name": "Yuzono Anime",
             "path": "/yuzono/anime/index.min.json",
             "category": "aniyomi",
