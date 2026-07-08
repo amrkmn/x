@@ -8,12 +8,6 @@ async function main(): Promise<void> {
     if (args.includes('--use-cache')) await runTask(['cache', 'restore']);
     if (args.includes('--restore-cache-only')) return;
 
-    if (process.env.SYNC_DUFS_URL || process.env.SYNC_DUFS_AUTH) {
-        console.warn(
-            'Direct DUFS sync has been replaced by rclone. This command only prepares static/.'
-        );
-    }
-
     if (args.includes('--update-if-needed') || args.includes('--sync') || args.length === 0) {
         await runTask(['static']);
         return;
