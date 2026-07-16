@@ -12,7 +12,7 @@
             "name": "Yuzono Cursed",
             "path": "/yuzono/cursed/index.min.json",
             "category": "mihon",
-            "commit": "ae855cd20c6442bec4139d638dea9712eba50706"
+            "commit": "6ca9f953f38204b425f1c347df323bfc4d8343ec"
         },
         "yuzono/manga": {
             "source": "https://github.com/yuzono/manga-repo@repo",
