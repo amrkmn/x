@@ -19,7 +19,7 @@
             "name": "Yuzono Manga",
             "path": "/yuzono/manga/index.min.json",
             "category": "mihon",
-            "commit": "e51995b620a62261ee6ebec911f4f644b0bc98b1"
+            "commit": "ed33cc4608572ec10c28723b0fe9bd46bb46773e"
         }
     },
     "aniyomi": {
@@ -42,7 +42,7 @@
             "name": "Yuzono Anime",
             "path": "/yuzono/anime/index.min.json",
             "category": "aniyomi",
-            "commit": "77a27cdd004b06e9ddfc32b07df70fdb1448a4ed"
+            "commit": "65da6b69f7384068d8d938f220547303c69c3e2e"
         }
     }
 }
