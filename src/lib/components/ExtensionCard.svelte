@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { stripBranchSuffix } from '$lib/search/utils';
+
     interface Props {
         repo: {
             source: string;
@@ -11,18 +13,20 @@
     }
 
     let { repo, protocol, selectedDomain }: Props = $props();
+
+    const repoUrl = $derived(stripBranchSuffix(repo.source));
 </script>
 
 <div class="card">
     <div class="card-header">
-        <a href={repo.source} target="_blank" rel="noopener noreferrer" class="card-title">
+        <a href={repoUrl} target="_blank" rel="noopener noreferrer" class="card-title">
             {repo.name}
         </a>
         <div class="card-meta">
             {#if repo.commit}
                 Commit:{' '}
                 <a
-                    href={`${repo.source}/commit/${repo.commit}`}
+                    href={`${repoUrl}/commit/${repo.commit}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="commit-link"

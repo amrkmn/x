@@ -16,6 +16,7 @@ export const config = {
         'index.pb',
         'repo.json',
         'apk',
-        'icon'
+        'icon',
+        'jar'
     ]
 };

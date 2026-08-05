@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { Extension } from '$lib/types';
+    import type { SearchIndexEntry } from '$lib/types';
 
     interface Props {
-        extension: Extension;
+        extension: SearchIndexEntry;
         repoUrl: string;
     }
 
@@ -43,5 +43,13 @@
     </td>
     <td class="action-cell" data-label="Action">
         <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> Download </a>
+        {#if extension.category === 'mihon' && extension.apk}
+            <a
+                href={`${repoUrl}/jar/${extension.apk.replace(/\.apk$/, '.jar')}`}
+                class="btn btn-secondary btn-sm"
+            >
+                Jar
+            </a>
+        {/if}
     </td>
 </tr>

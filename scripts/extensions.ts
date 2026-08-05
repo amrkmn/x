@@ -103,6 +103,66 @@ function toExtensionList(
     );
 }
 
+// mihon repos ship a modern `index.json` wrapper ({ extensionList: { extensions: [...] } })
+// and no longer publish the legacy flat-array `index.min.json`. aniyomi still uses
+// `index.min.json`. Read per-category so each source is indexed and the old format
+// isn't silently skipped for mihon.
+function isMihonIndex(category: string): boolean {
+    return category === 'mihon';
+}
+
+async function loadRepoExtensions(
+    category: string,
+    repoPath: string,
+    staticDir: string
+): Promise<unknown[]> {
+    if (isMihonIndex(category)) {
+        // repo.path is the canonical `index.pb` (gzipped protobuf); search parses the
+        // JSON wrapper `index.json` in the same repo dir.
+        const repoFile = join(
+            staticDir,
+            repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
+        );
+        if (!existsSync(repoFile)) return [];
+        const wrapper = await Bun.file(repoFile).json();
+        const list = (wrapper as { extensionList?: { extensions?: unknown[] } })?.extensionList
+            ?.extensions;
+        if (!Array.isArray(list)) {
+            throw new Error(
+                `Invalid extension index at ${repoPath}: expected extensionList.extensions`
+            );
+        }
+        return list;
+    }
+
+    const repoFile = join(staticDir, repoPath.replace(/^\//, ''));
+    if (!existsSync(repoFile)) return [];
+    const rawIndex = await Bun.file(repoFile).json();
+    if (!Array.isArray(rawIndex)) {
+        throw new Error(`Invalid extension index at ${repoPath}: expected array`);
+    }
+    return rawIndex;
+}
+
+// Map a modern mihon wrapper entry to the search shape. The wrapper uses
+// packageName/resources/versionName/versionCode/contentWarning/sources.language.
+function entryFromMihon(raw: Record<string, unknown>): SearchIndexEntry {
+    const resources = (raw.resources ?? {}) as { apkUrl?: string };
+    const apkUrl = resources.apkUrl ?? '';
+    const source = (raw.sources as Array<{ language?: string }> | undefined)?.[0];
+    const warning = (raw.contentWarning ?? '') as string;
+
+    return {
+        pkg: String(raw.packageName),
+        name: String(raw.name),
+        version: String(raw.versionName ?? ''),
+        lang: source?.language ?? '',
+        apk: apkUrl.split('/').pop() ?? '',
+        nsfw: warning === 'CONTENT_WARNING_NSFW' || warning === 'CONTENT_WARNING_MIXED' ? 1 : 0,
+        code: raw.versionCode !== undefined ? Number(raw.versionCode) : undefined
+    } as unknown as SearchIndexEntry;
+}
+
 async function generateSearchIndexJson(
     data: ExtensionsData,
     staticDir = STATIC_DIR,
@@ -115,10 +175,8 @@ async function generateSearchIndexJson(
 
     for (const [category, repos] of Object.entries(data)) {
         for (const [, repo] of Object.entries(repos)) {
-            const normalizedPath = repo.path.replace(/^\//, '');
-            const repoFile = join(staticDir, normalizedPath);
-
-            if (!existsSync(repoFile)) {
+            const rawIndex = await loadRepoExtensions(category, repo.path, staticDir);
+            if (rawIndex.length === 0) {
                 logger.warn(
                     'search',
                     `index source skip reason="missing_file" path=${JSON.stringify(repo.path)}`
@@ -127,17 +185,15 @@ async function generateSearchIndexJson(
             }
 
             reposScanned += 1;
-            const rawIndex = await Bun.file(repoFile).json();
-            if (!Array.isArray(rawIndex)) {
-                throw new Error(`Invalid extension index at ${repo.path}: expected array`);
-            }
 
             const repoUrl = repo.path.substring(0, repo.path.lastIndexOf('/'));
             const sourceName = repo.name;
             const formattedSourceName = formatSourceName(sourceName);
 
             for (const [index, rawExtension] of rawIndex.entries()) {
-                const extension = parseExtension(rawExtension, `${repo.path}[${index}]`);
+                const extension = isMihonIndex(category)
+                    ? entryFromMihon(rawExtension as Record<string, unknown>)
+                    : parseExtension(rawExtension, `${repo.path}[${index}]`);
                 entries.push({
                     ...extension,
                     repoUrl,
