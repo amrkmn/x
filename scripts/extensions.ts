@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { appendFile, cp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SearchIndexEntry } from '../src/lib/types';
-import { parseAppData, parseExtension } from '../src/lib/validation';
+import { parseAppData, parseExtension, parseSearchIndex } from '../src/lib/validation';
 import { formatSourceName } from '../src/lib/search/utils';
 import { config } from './config';
 import { logger } from './log';
@@ -205,6 +205,9 @@ async function generateSearchIndexJson(
         }
     }
 
+    // Fail loudly on a bad upstream wrapper entry instead of shipping a poisoned
+    // index that breaks every consumer (minisearch + meilisearch) at runtime.
+    parseSearchIndex(entries);
     await Bun.write(searchIndexFile, JSON.stringify(entries));
     logger.info(
         'search',
@@ -305,7 +308,8 @@ export async function findExtensionUpdates(
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
-                if (!options.quick && !existsSync(join(dest, 'index.min.json'))) {
+                const sentinel = isMihonIndex(category) ? 'index.json' : 'index.min.json';
+                if (!options.quick && !existsSync(join(dest, sentinel))) {
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 

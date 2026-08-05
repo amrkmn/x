@@ -123,8 +123,8 @@ test('findExtensionUpdates marks repos with missing required files for materiali
 
     await mkdir(join(alphaDir, 'apk'), { recursive: true });
     await mkdir(join(alphaDir, 'icon'), { recursive: true });
-    await writeFile(join(alphaDir, 'index.json'), '{}');
-    // index.min.json omitted — triggers re-materialization
+    // index.json omitted (mihon sentinel) — triggers re-materialization
+    await writeFile(join(alphaDir, 'index.min.json'), '[]');
     await writeFile(join(alphaDir, 'index.pb'), 'pb');
     await writeFile(join(alphaDir, 'repo.json'), '{}');
 
@@ -197,17 +197,22 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
     await mkdir(betaDir, { recursive: true });
 
     await writeFile(
-        join(alphaDir, 'index.min.json'),
-        JSON.stringify([
-            {
-                name: 'Alpha Extension',
-                pkg: 'alpha.pkg',
-                version: '1.0.0',
-                lang: 'en',
-                apk: 'alpha.apk',
-                nsfw: 0
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Alpha Extension',
+                        packageName: 'alpha.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: 'https://mirror.example.com/alpha/apk/alpha.apk' },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
             }
-        ])
+        })
     );
 
     await writeFile(
@@ -238,5 +243,6 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
     expect(appData.extensions.mihon[0].name).toBe('Alpha Source');
     expect(searchIndex).toHaveLength(2);
     expect(searchIndex[0].formattedSourceName).toBe('alpha.source');
+    expect(searchIndex[0].apk).toBe('alpha.apk');
     expect(searchIndex[1].nsfw).toBe(1);
 });
