@@ -59,7 +59,22 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<voi
         for (const ext of idx?.extensionList?.extensions || []) {
             const res = ext?.resources;
             if (res?.apkUrl) res.apkUrl = `${url}/apk/${res.apkUrl.split('/').pop()}`;
-            if (res?.iconUrl) res.iconUrl = `${url}/icon/${res.iconUrl.split('/').pop()}`;
+            if (res?.jarUrl) {
+                const jar = res.jarUrl.split('/').pop();
+                if (jar && existsSync(join(dest, 'jar', jar))) {
+                    res.jarUrl = `${url}/jar/${jar}`;
+                } else if (res.jarUrl.startsWith(`${url}/jar/`)) {
+                    delete res.jarUrl;
+                }
+            }
+            if (res?.iconUrl && typeof ext?.packageName === 'string' && ext.packageName) {
+                const icon = `${ext.packageName}.png`;
+                if (existsSync(join(dest, 'icon', icon))) {
+                    res.iconUrl = `${url}/icon/${icon}`;
+                } else if (res.iconUrl.startsWith(`${url}/icon/`)) {
+                    delete res.iconUrl;
+                }
+            }
         }
         await Bun.write(join(dest, 'index.json'), JSON.stringify(idx));
     } catch {}
@@ -147,7 +162,7 @@ async function loadRepoExtensions(
 // Map a modern mihon wrapper entry to the search shape. The wrapper uses
 // packageName/resources/versionName/versionCode/contentWarning/sources.language.
 function entryFromMihon(raw: Record<string, unknown>): SearchIndexEntry {
-    const resources = (raw.resources ?? {}) as { apkUrl?: string };
+    const resources = (raw.resources ?? {}) as { apkUrl?: string; iconUrl?: string };
     const apkUrl = resources.apkUrl ?? '';
     const source = (raw.sources as Array<{ language?: string }> | undefined)?.[0];
     const warning = (raw.contentWarning ?? '') as string;
@@ -158,6 +173,7 @@ function entryFromMihon(raw: Record<string, unknown>): SearchIndexEntry {
         version: String(raw.versionName ?? ''),
         lang: source?.language ?? '',
         apk: apkUrl.split('/').pop() ?? '',
+        ...(resources.iconUrl ? { iconUrl: resources.iconUrl } : {}),
         nsfw: warning === 'CONTENT_WARNING_NSFW' || warning === 'CONTENT_WARNING_MIXED' ? 1 : 0,
         code: raw.versionCode !== undefined ? Number(raw.versionCode) : undefined
     } as unknown as SearchIndexEntry;

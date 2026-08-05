@@ -158,8 +158,10 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
             extensionList: {
                 extensions: [
                     {
+                        packageName: 'eu.kanade.tachiyomi.extension.alpha',
                         resources: {
                             apkUrl: 'https://raw.githubusercontent.com/example/repo/apk/tachiyomi-alpha.apk',
+                            jarUrl: 'https://raw.githubusercontent.com/example/repo/jar/tachiyomi-alpha.jar',
                             iconUrl:
                                 'https://raw.githubusercontent.com/example/repo/icon/eu.kanade.tachiyomi.extension.alpha.png'
                         }
@@ -171,6 +173,9 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
             index_v2: 'https://raw.githubusercontent.com/example/repo/index.pb'
         })
     });
+    await writeFile(join(alphaDir, 'icon', 'eu.kanade.tachiyomi.extension.alpha.png'), 'icon');
+    await mkdir(join(alphaDir, 'jar'), { recursive: true });
+    await writeFile(join(alphaDir, 'jar', 'tachiyomi-alpha.jar'), 'jar');
 
     const updates = await findExtensionUpdates(data, {
         quick: false,
@@ -180,6 +185,14 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
     });
 
     expect(updates).toHaveLength(1);
+
+    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(
+        'https://mirror.example.com/alpha/icon/eu.kanade.tachiyomi.extension.alpha.png'
+    );
+    expect(indexJson.extensionList.extensions[0].resources.jarUrl).toBe(
+        'https://mirror.example.com/alpha/jar/tachiyomi-alpha.jar'
+    );
 
     const repoJson = await Bun.file(join(alphaDir, 'repo.json')).json();
     expect(repoJson.index_v2).toBe('https://mirror.example.com/alpha/index.pb');
