@@ -57,6 +57,9 @@ export function parseExtension(value: unknown, path: string): Extension {
         version: asString(record.version, `${path}.version`),
         lang: asString(record.lang, `${path}.lang`),
         apk: asString(record.apk, `${path}.apk`),
+        ...(asOptionalString(record.iconUrl, `${path}.iconUrl`)
+            ? { iconUrl: record.iconUrl as string }
+            : {}),
         nsfw: asNsfw(record.nsfw, `${path}.nsfw`),
         ...(sourceName ? { sourceName } : {})
     };

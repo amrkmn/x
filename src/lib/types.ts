@@ -4,6 +4,7 @@ export interface Extension {
     version: string;
     lang: string;
     apk: string;
+    iconUrl?: string;
     nsfw: number;
     sourceName?: string;
 }

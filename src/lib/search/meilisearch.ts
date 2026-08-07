@@ -53,6 +53,7 @@ export function transformMeilisearchHit(hit: MeilisearchHit): SearchIndexEntry {
         name: hit.name,
         pkg: hit.pkg,
         apk: hit.apk,
+        ...(hit.iconUrl ? { iconUrl: hit.iconUrl } : {}),
         lang: hit.lang,
         code: hit.code,
         version: hit.version,
