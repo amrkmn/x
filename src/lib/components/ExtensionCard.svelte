@@ -15,6 +15,33 @@
     let { repo, protocol, selectedDomain }: Props = $props();
 
     const repoUrl = $derived(stripBranchSuffix(repo.source));
+    const isMihon = $derived(protocol === 'tachiyomi');
+    let copied = $state(false);
+
+    async function copyIndexUrl() {
+        const indexUrl = `${selectedDomain}${repo.path}`;
+
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(indexUrl);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = indexUrl;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                const copiedToClipboard = document.execCommand('copy');
+                textarea.remove();
+                if (!copiedToClipboard) throw new Error('Copy failed');
+            }
+
+            copied = true;
+            setTimeout(() => (copied = false), 1500);
+        } catch {
+            copied = false;
+        }
+    }
 </script>
 
 <div class="card">
@@ -45,13 +72,19 @@
         >
             Add Repo
         </a>
-        <a
-            href={`${selectedDomain}${repo.path}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn btn-secondary"
-        >
-            JSON
-        </a>
+        {#if isMihon}
+            <button type="button" class="btn btn-secondary" onclick={copyIndexUrl}>
+                {copied ? 'Copied' : 'Copy Index URL'}
+            </button>
+        {:else}
+            <a
+                href={`${selectedDomain}${repo.path}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-secondary"
+            >
+                JSON
+            </a>
+        {/if}
     </div>
 </div>

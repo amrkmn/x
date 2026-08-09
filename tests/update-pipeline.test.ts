@@ -198,6 +198,38 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
     expect(repoJson.index_v2).toBe('https://mirror.example.com/alpha/index.pb');
 });
 
+test('findExtensionUpdates preserves external Mihon icon URLs without local icons', async () => {
+    process.env.PUBLIC_SITE_URL = 'https://mirror.example.com/';
+
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const iconUrl = 'https://cdn.example.com/extensions-source/alpha/ic_launcher.png';
+
+    await setupTestRepo(alphaDir, {
+        'index.json': JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        packageName: 'eu.kanade.tachiyomi.extension.alpha',
+                        resources: { iconUrl }
+                    }
+                ]
+            }
+        })
+    });
+
+    await findExtensionUpdates(data, {
+        quick: false,
+        staticDir,
+        getRemoteHead: async () => 'oldhash1',
+        loadSyncedCommits: async () => new Map([['/alpha/index.min.json', 'oldhash1']])
+    });
+
+    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(iconUrl);
+});
+
 test('generateDataJson writes data.json and indexes.json from mirrored static files', async () => {
     const data = createExtensionsData();
     const staticDir = join(testDir, 'static');
