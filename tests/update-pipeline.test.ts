@@ -123,8 +123,8 @@ test('findExtensionUpdates marks repos with missing required files for materiali
 
     await mkdir(join(alphaDir, 'apk'), { recursive: true });
     await mkdir(join(alphaDir, 'icon'), { recursive: true });
-    await writeFile(join(alphaDir, 'index.json'), '{}');
-    // index.min.json omitted — triggers re-materialization
+    // index.json omitted (mihon sentinel) — triggers re-materialization
+    await writeFile(join(alphaDir, 'index.min.json'), '[]');
     await writeFile(join(alphaDir, 'index.pb'), 'pb');
     await writeFile(join(alphaDir, 'repo.json'), '{}');
 
@@ -158,8 +158,10 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
             extensionList: {
                 extensions: [
                     {
+                        packageName: 'eu.kanade.tachiyomi.extension.alpha',
                         resources: {
                             apkUrl: 'https://raw.githubusercontent.com/example/repo/apk/tachiyomi-alpha.apk',
+                            jarUrl: 'https://raw.githubusercontent.com/example/repo/jar/tachiyomi-alpha.jar',
                             iconUrl:
                                 'https://raw.githubusercontent.com/example/repo/icon/eu.kanade.tachiyomi.extension.alpha.png'
                         }
@@ -171,6 +173,9 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
             index_v2: 'https://raw.githubusercontent.com/example/repo/index.pb'
         })
     });
+    await writeFile(join(alphaDir, 'icon', 'eu.kanade.tachiyomi.extension.alpha.png'), 'icon');
+    await mkdir(join(alphaDir, 'jar'), { recursive: true });
+    await writeFile(join(alphaDir, 'jar', 'tachiyomi-alpha.jar'), 'jar');
 
     const updates = await findExtensionUpdates(data, {
         quick: false,
@@ -181,8 +186,48 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
 
     expect(updates).toHaveLength(1);
 
+    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(
+        'https://mirror.example.com/alpha/icon/eu.kanade.tachiyomi.extension.alpha.png'
+    );
+    expect(indexJson.extensionList.extensions[0].resources.jarUrl).toBe(
+        'https://mirror.example.com/alpha/jar/tachiyomi-alpha.jar'
+    );
+
     const repoJson = await Bun.file(join(alphaDir, 'repo.json')).json();
     expect(repoJson.index_v2).toBe('https://mirror.example.com/alpha/index.pb');
+});
+
+test('findExtensionUpdates preserves external Mihon icon URLs without local icons', async () => {
+    process.env.PUBLIC_SITE_URL = 'https://mirror.example.com/';
+
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const iconUrl = 'https://cdn.example.com/extensions-source/alpha/ic_launcher.png';
+
+    await setupTestRepo(alphaDir, {
+        'index.json': JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        packageName: 'eu.kanade.tachiyomi.extension.alpha',
+                        resources: { iconUrl }
+                    }
+                ]
+            }
+        })
+    });
+
+    await findExtensionUpdates(data, {
+        quick: false,
+        staticDir,
+        getRemoteHead: async () => 'oldhash1',
+        loadSyncedCommits: async () => new Map([['/alpha/index.min.json', 'oldhash1']])
+    });
+
+    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(iconUrl);
 });
 
 test('generateDataJson writes data.json and indexes.json from mirrored static files', async () => {
@@ -197,17 +242,22 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
     await mkdir(betaDir, { recursive: true });
 
     await writeFile(
-        join(alphaDir, 'index.min.json'),
-        JSON.stringify([
-            {
-                name: 'Alpha Extension',
-                pkg: 'alpha.pkg',
-                version: '1.0.0',
-                lang: 'en',
-                apk: 'alpha.apk',
-                nsfw: 0
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Alpha Extension',
+                        packageName: 'alpha.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: 'https://mirror.example.com/alpha/apk/alpha.apk' },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
             }
-        ])
+        })
     );
 
     await writeFile(
@@ -238,5 +288,6 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
     expect(appData.extensions.mihon[0].name).toBe('Alpha Source');
     expect(searchIndex).toHaveLength(2);
     expect(searchIndex[0].formattedSourceName).toBe('alpha.source');
+    expect(searchIndex[0].apk).toBe('alpha.apk');
     expect(searchIndex[1].nsfw).toBe(1);
 });

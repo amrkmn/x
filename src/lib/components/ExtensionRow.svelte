@@ -1,12 +1,15 @@
 <script lang="ts">
-    import type { Extension } from '$lib/types';
+    import type { SearchIndexEntry } from '$lib/types';
 
     interface Props {
-        extension: Extension;
+        extension: SearchIndexEntry;
         repoUrl: string;
     }
 
     let { extension, repoUrl }: Props = $props();
+
+    const fallbackIcon =
+        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiMyYzNlNTAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzZjOGI5ZiIgZm9udC1zaXplPSIxMiI+TjwvdGV4dD48L3N2Zz4=';
 
     function handleImageError(e: Event) {
         const target = e.target as HTMLImageElement;
@@ -18,7 +21,10 @@
 <tr class="extension-row">
     <td class="icon-cell" data-label="Icon">
         <img
-            src={`${repoUrl}/icon/${extension.pkg}.png`}
+            src={extension.iconUrl ||
+                (extension.category === 'mihon'
+                    ? fallbackIcon
+                    : `${repoUrl}/icon/${extension.pkg}.png`)}
             alt={extension.name}
             class="extension-icon-small"
             loading="lazy"
@@ -42,6 +48,14 @@
         <span class="lang">{extension.lang}</span>
     </td>
     <td class="action-cell" data-label="Action">
-        <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> Download </a>
+        <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> APK </a>
+        {#if extension.category === 'mihon' && extension.apk}
+            <a
+                href={`${repoUrl}/jar/${extension.apk.replace(/\.apk$/, '.jar')}`}
+                class="btn btn-secondary btn-sm"
+            >
+                Jar
+            </a>
+        {/if}
     </td>
 </tr>

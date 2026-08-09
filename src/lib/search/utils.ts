@@ -15,3 +15,13 @@ export function findSourceByFormattedName(
     if (formattedName === 'all') return 'all';
     return availableSources.find((source) => formatSourceName(source) === formattedName) ?? 'all';
 }
+
+/**
+ * Strips a trailing `@branch` suffix from a repository source URL so it
+ * points at the repo root rather than a non-URL `github.com/owner/repo@branch`.
+ * e.g. `https://github.com/keiyoushi/extensions@repo` -> `https://github.com/keiyoushi/extensions`
+ */
+export function stripBranchSuffix(source: string): string {
+    const at = source.lastIndexOf('@');
+    return at === -1 ? source : source.slice(0, at);
+}
