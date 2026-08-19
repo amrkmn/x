@@ -57,28 +57,51 @@ interface FindExtensionUpdatesOptions {
     loadSyncedCommits?: () => Promise<Map<string, string>>;
 }
 
-async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<void> {
+// Point resource URLs at the mirror only when the file is actually mirrored;
+// otherwise keep the upstream URL (e.g. GitHub releases). Returns true when a
+// mirror reference points at a missing file (stale mirror).
+async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boolean> {
     const url = `${(process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '')}/${key}`;
+    let staleMirror = false;
+
+    const rewrite = (
+        res: Record<string, unknown> | undefined,
+        resUrl: string | undefined,
+        subdir: string,
+        fileName: string
+    ): void => {
+        if (!resUrl || !res) return;
+        if (fileName && existsSync(join(dest, subdir, fileName))) {
+            res[resUrl] = `${url}/${subdir}/${fileName}`;
+        } else if (String(res[resUrl]).startsWith(`${url}/${subdir}/`)) {
+            delete res[resUrl];
+            staleMirror = true;
+        }
+    };
+
     try {
         const idx = await Bun.file(join(dest, 'index.json')).json();
         for (const ext of idx?.extensionList?.extensions || []) {
             const res = ext?.resources;
-            if (res?.apkUrl) res.apkUrl = `${url}/apk/${res.apkUrl.split('/').pop()}`;
-            if (res?.jarUrl) {
-                const jar = res.jarUrl.split('/').pop();
-                if (jar && existsSync(join(dest, 'jar', jar))) {
-                    res.jarUrl = `${url}/jar/${jar}`;
-                } else if (res.jarUrl.startsWith(`${url}/jar/`)) {
-                    delete res.jarUrl;
-                }
-            }
-            if (res?.iconUrl && typeof ext?.packageName === 'string' && ext.packageName) {
-                const icon = `${ext.packageName}.png`;
-                if (existsSync(join(dest, 'icon', icon))) {
-                    res.iconUrl = `${url}/icon/${icon}`;
-                } else if (res.iconUrl.startsWith(`${url}/icon/`)) {
-                    delete res.iconUrl;
-                }
+            if (!res) continue;
+            rewrite(
+                res,
+                'apkUrl',
+                'apk',
+                String(res.apkUrl ?? '')
+                    .split('/')
+                    .pop() ?? ''
+            );
+            rewrite(
+                res,
+                'jarUrl',
+                'jar',
+                String(res.jarUrl ?? '')
+                    .split('/')
+                    .pop() ?? ''
+            );
+            if (typeof ext.packageName === 'string' && ext.packageName) {
+                rewrite(res, 'iconUrl', 'icon', `${ext.packageName}.png`);
             }
         }
         await Bun.write(join(dest, 'index.json'), JSON.stringify(idx));
@@ -89,6 +112,8 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<voi
         repo.index_v2 = `${url}/index.pb`;
         await Bun.write(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
     } catch {}
+
+    return staleMirror;
 }
 
 export async function setGithubOutput(key: string, value: string): Promise<void> {
@@ -123,10 +148,7 @@ function toExtensionList(
     );
 }
 
-// mihon repos ship a modern `index.json` wrapper ({ extensionList: { extensions: [...] } })
-// and no longer publish the legacy flat-array `index.min.json`. aniyomi still uses
-// `index.min.json`. Read per-category so each source is indexed and the old format
-// isn't silently skipped for mihon.
+// mihon uses the index.json wrapper; aniyomi the flat index.min.json array.
 function isMihonIndex(category: string): boolean {
     return category === 'mihon';
 }
@@ -137,8 +159,7 @@ async function loadRepoExtensions(
     staticDir: string
 ): Promise<unknown[]> {
     if (isMihonIndex(category)) {
-        // repo.path is the canonical `index.pb` (gzipped protobuf); search parses the
-        // JSON wrapper `index.json` in the same repo dir.
+        // index.pb path maps to the JSON wrapper index.json beside it.
         const repoFile = join(
             staticDir,
             repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
@@ -164,8 +185,7 @@ async function loadRepoExtensions(
     return rawIndex;
 }
 
-// Map a modern mihon wrapper entry to the search shape. The wrapper uses
-// packageName/resources/versionName/versionCode/contentWarning/sources.language.
+// Map a mihon wrapper entry to the search shape (packageName/resources/…).
 function entryFromMihon(raw: Record<string, unknown>): SearchIndexEntry {
     const resources = (raw.resources ?? {}) as { apkUrl?: string; iconUrl?: string };
     const apkUrl = resources.apkUrl ?? '';
@@ -212,9 +232,7 @@ async function generateSearchIndexJson(
             const formattedSourceName = formatSourceName(sourceName);
 
             for (const [index, rawExtension] of rawIndex.entries()) {
-                // Upstream indexes can contain entries that aren't installable from this
-                // mirror (e.g. deprecation stubs whose apkUrl is a directory URL). Skip
-                // those individually instead of failing the whole update.
+                // Skip uninstallable entries (e.g. deprecation stubs) individually.
                 const entryPath = `${repo.path}[${index}]`;
                 let extension: SearchIndexEntry;
                 try {
@@ -243,8 +261,7 @@ async function generateSearchIndexJson(
         }
     }
 
-    // Fail loudly on a bad upstream wrapper entry instead of shipping a poisoned
-    // index that breaks every consumer (minisearch + meilisearch) at runtime.
+    // Reject a poisoned index outright instead of breaking every consumer at runtime.
     parseSearchIndex(entries);
     await Bun.write(searchIndexFile, JSON.stringify(entries));
     logger.info(
@@ -339,7 +356,16 @@ export async function findExtensionUpdates(
                 const syncedHash = synced.get(ext.path);
 
                 if (!options.quick && existsSync(dest)) {
-                    await rewriteMirroredIndexFiles(dest, key);
+                    const staleMirror = await rewriteMirroredIndexFiles(dest, key);
+                    if (staleMirror) {
+                        // Binaries moved to GitHub releases; rebuild the mirror fresh.
+                        logger.info(
+                            'extensions',
+                            `stale mirror detected key=${JSON.stringify(key)}`
+                        );
+                        await rm(dest, { recursive: true, force: true });
+                        return { category, key, ext, hash: ext.commit || 'HEAD' };
+                    }
                 }
 
                 if (!options.quick && !existsSync(dest)) {
@@ -405,12 +431,8 @@ export function shouldFailOnMaterializeErrors(): boolean {
     return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 }
 
-// Remove mirrored repo directories that are no longer configured in extensions.json.
-// Without this, files for a removed source would be resurrected by cache restore and
-// keep being served from the Astro publicDir on every full/prepare-dist run.
-// Keys may be nested ("yuzono/manga") or flat ("kohi-den"); a repo dir is kept when
-// it equals a key or is a path prefix of one, and only prefix dirs are recursed into
-// (so the apk/icon/jar subdirs of a flat repo are never touched).
+// Remove static dirs no longer configured in extensions.json, so removed sources
+// aren't resurrected by cache restore. Keeps keys and their nesting prefixes.
 export async function pruneRemovedRepos(
     data: ExtensionsData,
     staticDir = STATIC_DIR
