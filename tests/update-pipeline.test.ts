@@ -1,9 +1,14 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { exists, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ExtensionsData } from '../scripts/extensions';
-import { findExtensionUpdates, generateDataJson, loadExtensionsData } from '../scripts/extensions';
+import {
+    findExtensionUpdates,
+    generateDataJson,
+    loadExtensionsData,
+    pruneRemovedRepos
+} from '../scripts/extensions';
 
 let testDir: string;
 const savedEnv = { PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL };
@@ -290,4 +295,119 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
     expect(searchIndex[0].formattedSourceName).toBe('alpha.source');
     expect(searchIndex[0].apk).toBe('alpha.apk');
     expect(searchIndex[1].nsfw).toBe(1);
+});
+
+test('generateDataJson skips mihon wrapper entries without an installable apk', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+
+    await mkdir(alphaDir, { recursive: true });
+
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Please migrate to Keiyoushi',
+                        packageName: 'migrate.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: 'https://mirror.example.com/alpha/apk/' },
+                        sources: [{ language: 'all' }]
+                    },
+                    {
+                        name: 'Alpha Extension',
+                        packageName: 'alpha.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: 'https://mirror.example.com/alpha/apk/alpha.apk' },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+
+    const searchIndex = await Bun.file(searchIndexFile).json();
+
+    expect(searchIndex).toHaveLength(1);
+    expect(searchIndex[0].name).toBe('Alpha Extension');
+    expect(searchIndex[0].apk).toBe('alpha.apk');
+});
+
+test('pruneRemovedRepos removes mirrored dirs not configured in extensions.json', async () => {
+    const staticDir = join(testDir, 'static');
+    await mkdir(join(staticDir, 'keiyoushi', 'apk'), { recursive: true });
+    await mkdir(join(staticDir, 'keiyoushi', 'icon'), { recursive: true });
+    await mkdir(join(staticDir, 'yuzono', 'cursed'), { recursive: true });
+    await mkdir(join(staticDir, 'yuzono', 'manga'), { recursive: true });
+    await writeFile(join(staticDir, 'data.json'), '{}');
+    await writeFile(join(staticDir, 'keiyoushi', 'repo.json'), '{}');
+
+    const data: ExtensionsData = {
+        mihon: {
+            keiyoushi: {
+                source: 'https://github.com/example/keiyoushi',
+                name: 'Keiyoushi',
+                path: '/keiyoushi/index.pb',
+                category: 'mihon',
+                commit: 'abc'
+            },
+            'yuzono/cursed': {
+                source: 'https://github.com/example/cursed',
+                name: 'Yuzono Cursed',
+                path: '/yuzono/cursed/index.pb',
+                category: 'mihon',
+                commit: 'abc'
+            }
+        }
+    };
+
+    const pruned = await pruneRemovedRepos(data, staticDir);
+
+    expect(pruned).toBe(1);
+    expect(await exists(join(staticDir, 'keiyoushi'))).toBe(true);
+    expect(await exists(join(staticDir, 'keiyoushi', 'apk'))).toBe(true);
+    expect(await exists(join(staticDir, 'keiyoushi', 'icon'))).toBe(true);
+    expect(await exists(join(staticDir, 'yuzono', 'cursed'))).toBe(true);
+    expect(await exists(join(staticDir, 'yuzono', 'manga'))).toBe(false);
+    expect(await exists(join(staticDir, 'data.json'))).toBe(true);
+    expect(await exists(join(staticDir, 'keiyoushi', 'repo.json'))).toBe(true);
+});
+
+test('pruneRemovedRepos removes an entire removed top-level group', async () => {
+    const staticDir = join(testDir, 'static');
+    await mkdir(join(staticDir, 'yuzono', 'manga'), { recursive: true });
+    await mkdir(join(staticDir, 'yuzono', 'anime'), { recursive: true });
+
+    const data: ExtensionsData = {
+        mihon: {
+            keiyoushi: {
+                source: 'https://github.com/example/keiyoushi',
+                name: 'Keiyoushi',
+                path: '/keiyoushi/index.pb',
+                category: 'mihon',
+                commit: 'abc'
+            }
+        }
+    };
+
+    const pruned = await pruneRemovedRepos(data, staticDir);
+
+    expect(pruned).toBe(1);
+    expect(await exists(join(staticDir, 'yuzono'))).toBe(false);
+    expect(await exists(join(staticDir, 'keiyoushi'))).toBe(false);
 });

@@ -9,6 +9,7 @@ import {
     generateDataJson,
     loadExtensionsData,
     materializeExtensions,
+    pruneRemovedRepos,
     saveExtensionsData,
     setGithubOutput,
     shouldFailOnMaterializeErrors
@@ -138,11 +139,16 @@ async function updateExtensions(
     }
 
     const data = await loadExtensionsData();
+    const pruned = !quick ? await pruneRemovedRepos(data) : 0;
+
     const updates = await findExtensionUpdates(data, { quick });
 
     if (updates.length === 0) {
-        logger.info('task', 'update check result="no_updates"');
         await persistQuickUpdates(false);
+        // Persist removed sources in the cache even without repo updates, so
+        // the next restore doesn't resurrect files for deleted extensions.json
+        // entries (e.g. a deprecated repo removed after a cache was saved).
+        if (pruned > 0 && useCache) await saveStaticCache();
         return;
     }
 

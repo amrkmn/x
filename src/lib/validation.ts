@@ -104,7 +104,7 @@ export function parseAppData(value: unknown): AppData {
     };
 }
 
-function parseSearchIndexEntry(value: unknown, path: string): SearchIndexEntry {
+export function parseSearchIndexEntry(value: unknown, path: string): SearchIndexEntry {
     const record = asRecord(value, path);
     const extension = parseExtension(record, path);
 

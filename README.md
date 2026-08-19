@@ -15,7 +15,6 @@ Extension repository aggregator that syncs from multiple upstream sources. Updat
 ### Mihon
 
 - Keiyoushi
-- Yuzono Manga
 - Yuzono Cursed
 
 ### Aniyomi

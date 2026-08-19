@@ -1,9 +1,14 @@
 import { $ } from 'bun';
 import { existsSync } from 'node:fs';
-import { appendFile, cp, mkdir, rm } from 'node:fs/promises';
+import { appendFile, cp, mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SearchIndexEntry } from '../src/lib/types';
-import { parseAppData, parseExtension, parseSearchIndex } from '../src/lib/validation';
+import {
+    parseAppData,
+    parseExtension,
+    parseSearchIndex,
+    parseSearchIndexEntry
+} from '../src/lib/validation';
 import { formatSourceName } from '../src/lib/search/utils';
 import { config } from './config';
 import { logger } from './log';
@@ -207,16 +212,33 @@ async function generateSearchIndexJson(
             const formattedSourceName = formatSourceName(sourceName);
 
             for (const [index, rawExtension] of rawIndex.entries()) {
-                const extension = isMihonIndex(category)
-                    ? entryFromMihon(rawExtension as Record<string, unknown>)
-                    : parseExtension(rawExtension, `${repo.path}[${index}]`);
-                entries.push({
-                    ...extension,
-                    repoUrl,
-                    sourceName,
-                    formattedSourceName,
-                    category
-                });
+                // Upstream indexes can contain entries that aren't installable from this
+                // mirror (e.g. deprecation stubs whose apkUrl is a directory URL). Skip
+                // those individually instead of failing the whole update.
+                const entryPath = `${repo.path}[${index}]`;
+                let extension: SearchIndexEntry;
+                try {
+                    const parsed = isMihonIndex(category)
+                        ? entryFromMihon(rawExtension as Record<string, unknown>)
+                        : parseExtension(rawExtension, entryPath);
+                    extension = parseSearchIndexEntry(
+                        {
+                            ...parsed,
+                            repoUrl,
+                            sourceName,
+                            formattedSourceName,
+                            category
+                        },
+                        entryPath
+                    );
+                } catch (error) {
+                    logger.warn(
+                        'search',
+                        `index entry skip reason="invalid_entry" path=${JSON.stringify(entryPath)} error=${JSON.stringify(error instanceof Error ? error.message : String(error))}`
+                    );
+                    continue;
+                }
+                entries.push(extension);
             }
         }
     }
@@ -381,6 +403,45 @@ async function cloneRepository(source: string, temp: string): Promise<'sparse' |
 
 export function shouldFailOnMaterializeErrors(): boolean {
     return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+}
+
+// Remove mirrored repo directories that are no longer configured in extensions.json.
+// Without this, files for a removed source would be resurrected by cache restore and
+// keep being served from the Astro publicDir on every full/prepare-dist run.
+// Keys may be nested ("yuzono/manga") or flat ("kohi-den"); a repo dir is kept when
+// it equals a key or is a path prefix of one, and only prefix dirs are recursed into
+// (so the apk/icon/jar subdirs of a flat repo are never touched).
+export async function pruneRemovedRepos(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR
+): Promise<number> {
+    if (!existsSync(staticDir)) return 0;
+
+    const keys = Object.values(data).flatMap((group) => Object.keys(group));
+    const isRepoDir = (relative: string) => keys.includes(relative);
+    const isPrefix = (relative: string) => keys.some((key) => key.startsWith(`${relative}/`));
+    let pruned = 0;
+
+    const pruneEntry = async (current: string): Promise<void> => {
+        const full = join(staticDir, current);
+        const entries = await readdir(full, { withFileTypes: true });
+        for (const entry of entries) {
+            if (!entry.isDirectory()) continue;
+
+            const relative = current ? `${current}/${entry.name}` : entry.name;
+            if (isRepoDir(relative) || isPrefix(relative)) {
+                if (isPrefix(relative)) await pruneEntry(relative);
+                continue;
+            }
+
+            await rm(join(full, entry.name), { recursive: true, force: true });
+            logger.info('extensions', `prune dir=${JSON.stringify(relative)}`);
+            pruned += 1;
+        }
+    };
+
+    await pruneEntry('');
+    return pruned;
 }
 
 export async function materializeExtensions(
