@@ -180,8 +180,11 @@ class CounterLogger extends ThrottledProgressLogger {
     private lastLoggedCount = 0;
     private readonly bucketSize: number;
     private readonly isInteractive: boolean;
-    private lastLoggedBytes = 0;
-    private lastLoggedTime = this.startTime;
+    private lastMeasuredBytes = 0;
+    private lastMeasuredTime = this.startTime;
+    /** Minimum measured window used for speed calculations, to avoid 0 speed
+     * artifacts when progress updates arrive faster than clock resolution. */
+    private readonly minMeasuredWindow = 0.01;
 
     constructor(
         writer: TerminalWriter,
@@ -203,14 +206,20 @@ class CounterLogger extends ThrottledProgressLogger {
         return (Date.now() - this.startTime) / 1000;
     }
 
-    private intervalSpeed(bytes: number): number {
+    private measureInterval(bytes: number, reset: boolean): void {
         const now = Date.now();
-        const elapsed = (now - this.lastLoggedTime) / 1000;
-        const deltaBytes = Math.max(bytes - this.lastLoggedBytes, 0);
-        this.lastLoggedTime = now;
-        this.lastLoggedBytes = bytes;
-        return elapsed > 0 ? deltaBytes / (1024 * 1024) / elapsed : 0;
+        const deltaBytes = Math.max(bytes - this.lastMeasuredBytes, 0);
+        const deltaTime = (now - this.lastMeasuredTime) / 1000;
+        this.lastMeasuredBytes = bytes;
+        this.lastMeasuredTime = now;
+        if (reset) {
+            this.lastIntervalBytes = deltaBytes;
+            this.lastIntervalTime = deltaTime;
+        }
     }
+
+    private lastIntervalBytes = 0;
+    private lastIntervalTime = 0;
 
     progress(current: number, bytes?: number): this {
         const percent = (current / this.totalItems) * 100;
@@ -220,8 +229,10 @@ class CounterLogger extends ThrottledProgressLogger {
             const shouldLog = this.isInteractive
                 ? this.shouldLog()
                 : bucket > this.lastLoggedBucket;
+            this.measureInterval(bytes, shouldLog);
             if (shouldLog) {
-                const speedMiBs = this.intervalSpeed(bytes);
+                const elapsed = Math.max(this.lastIntervalTime, this.minMeasuredWindow);
+                const speedMiBs = this.lastIntervalBytes / (1024 * 1024) / elapsed;
                 const pctFormatted = percent.toFixed(2);
                 this.write(
                     `${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
@@ -245,7 +256,9 @@ class CounterLogger extends ThrottledProgressLogger {
         if (this.lastLoggedCount < this.totalItems) {
             const pctFormatted = '100.00';
             if (this.totalBytes !== undefined) {
-                const speedMiBs = this.intervalSpeed(this.totalBytes);
+                this.measureInterval(this.totalBytes, true);
+                const elapsed = Math.max(this.lastIntervalTime, this.minMeasuredWindow);
+                const speedMiBs = this.lastIntervalBytes / (1024 * 1024) / elapsed;
                 this.write(
                     `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
                     false
