@@ -180,6 +180,8 @@ class CounterLogger extends ThrottledProgressLogger {
     private lastLoggedCount = 0;
     private readonly bucketSize: number;
     private readonly isInteractive: boolean;
+    private lastLoggedBytes = 0;
+    private lastLoggedTime = this.startTime;
 
     constructor(
         writer: TerminalWriter,
@@ -201,6 +203,15 @@ class CounterLogger extends ThrottledProgressLogger {
         return (Date.now() - this.startTime) / 1000;
     }
 
+    private intervalSpeed(bytes: number): number {
+        const now = Date.now();
+        const elapsed = (now - this.lastLoggedTime) / 1000;
+        const deltaBytes = Math.max(bytes - this.lastLoggedBytes, 0);
+        this.lastLoggedTime = now;
+        this.lastLoggedBytes = bytes;
+        return elapsed > 0 ? deltaBytes / (1024 * 1024) / elapsed : 0;
+    }
+
     progress(current: number, bytes?: number): this {
         const percent = (current / this.totalItems) * 100;
         const bucket = this.bucketSize > 0 ? Math.floor(percent / this.bucketSize) : 0;
@@ -210,8 +221,7 @@ class CounterLogger extends ThrottledProgressLogger {
                 ? this.shouldLog()
                 : bucket > this.lastLoggedBucket;
             if (shouldLog) {
-                const elapsed = this.elapsedSeconds();
-                const speedMiBs = bytes / (1024 * 1024) / elapsed;
+                const speedMiBs = this.intervalSpeed(bytes);
                 const pctFormatted = percent.toFixed(2);
                 this.write(
                     `${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
@@ -235,7 +245,7 @@ class CounterLogger extends ThrottledProgressLogger {
         if (this.lastLoggedCount < this.totalItems) {
             const pctFormatted = '100.00';
             if (this.totalBytes !== undefined) {
-                const speedMiBs = this.totalBytes / (1024 * 1024) / elapsed;
+                const speedMiBs = this.intervalSpeed(this.totalBytes);
                 this.write(
                     `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
                     false
