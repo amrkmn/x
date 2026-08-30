@@ -1,4 +1,5 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
+
 import { formatTransferStats, Logger } from '../scripts/log';
 
 test('formatTransferStats formats bytes without totalBytes', () => {

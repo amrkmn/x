@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { runTask } from './task';
 
@@ -15,7 +15,7 @@ async function main(): Promise<void> {
 
     console.error(`Unknown sync arguments: ${args.join(' ')}`);
     console.error(
-        'Use `bun run update:static` to populate static/, or `bun run cache:restore` to restore cache.'
+        'Use `nub run update:static` to populate static/, or `nub run cache:restore` to restore cache.'
     );
     process.exit(1);
 }

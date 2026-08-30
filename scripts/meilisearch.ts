@@ -1,5 +1,8 @@
-import { Meilisearch } from 'meilisearch';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { Meilisearch } from 'meilisearch';
+
 import type { SearchIndexEntry } from '../src/lib/types';
 import { parseSearchIndex } from '../src/lib/validation';
 import { logger } from './log';
@@ -39,7 +42,7 @@ export async function updateMeilisearch() {
             pagination: { maxTotalHits: 10000 }
         });
 
-        const allExtensions = parseSearchIndex(await Bun.file(searchIndexFile).json());
+        const allExtensions = parseSearchIndex(JSON.parse(await readFile(searchIndexFile, 'utf8')));
 
         if (!allExtensions.length) {
             logger.warn('search', 'index update skipped reason="no_documents"');

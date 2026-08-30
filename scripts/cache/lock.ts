@@ -1,6 +1,8 @@
-import type { S3Client } from './client';
 import { hostname } from 'node:os';
+import { setTimeout as sleep } from 'node:timers/promises';
+
 import { logger } from '../log';
+import type { S3Client } from './client';
 import { deleteObject, fileExists, getObject } from './s3';
 import type { CacheLock } from './utils';
 import {
@@ -87,7 +89,7 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
                         'cache',
                         `lock busy retry seconds=${retryDelay / 1000} attempt=${attempt + 1}/${LOCK_MAX_RETRIES}`
                     );
-                    await Bun.sleep(retryDelay);
+                    await sleep(retryDelay);
 
                     // Exponential backoff: double delay each time, up to max
                     retryDelay = Math.min(retryDelay * 2, LOCK_RETRY_MAX_MS);
@@ -110,7 +112,7 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
 
             // Step 3: Wait for double-check delay (Restic's waitBeforeLockCheck pattern)
             // This allows any racing processes to also write their locks
-            await Bun.sleep(LOCK_DOUBLE_CHECK_MS);
+            await sleep(LOCK_DOUBLE_CHECK_MS);
 
             // Step 4: Verify we still own the lock (detect race conditions)
             if (await fileExists(s3, LOCK_KEY)) {
@@ -127,11 +129,11 @@ export async function acquireLock(s3: S3Client, instanceId: string): Promise<str
             // Lost the race - another process overwrote our lock
             // Retry with exponential backoff
             logger.info('cache', `lock race lost retry seconds=${retryDelay / 1000}`);
-            await Bun.sleep(retryDelay);
+            await sleep(retryDelay);
             retryDelay = Math.min(retryDelay * 2, LOCK_RETRY_MAX_MS);
         } catch (e) {
             logger.error('cache', 'lock acquire failed', e);
-            await Bun.sleep(retryDelay);
+            await sleep(retryDelay);
             retryDelay = Math.min(retryDelay * 2, LOCK_RETRY_MAX_MS);
         }
     }

@@ -24,13 +24,16 @@ Extension repository aggregator that syncs from multiple upstream sources. Updat
 
 ## Development
 
+Requires Node.js 24 LTS. Nub provisions the project runtime automatically.
+
 ```bash
-bun install
-bun run dev            # Start dev server
-bun run update:check   # Check upstream repos and update extensions.json
-bun run update:static  # Populate static/ from upstream repos
-bun run build          # Generate data.json and build dist/
-bun run check          # Type-check
+nub install
+nub run dev            # Start dev server
+nub run update:check   # Check upstream repos and update extensions.json
+nub run update:static  # Populate static/ from upstream repos
+nub run build          # Generate data.json and build dist/
+nub run check          # Type-check
+nub run lint            # Run Oxlint
 ```
 
 ## Environment

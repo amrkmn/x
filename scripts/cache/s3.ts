@@ -1,5 +1,5 @@
-import type { S3Client } from './client';
 import { logger } from '../log';
+import type { S3Client } from './client';
 import { deleteObject, fileExists } from './client';
 import { findCacheByKey, findCachesByPrefix, loadManifest, removeCacheEntry } from './manifest';
 import { deleteMetadata } from './metadata';

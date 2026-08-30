@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { $ } from 'bun';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import $ from 'dax';
+import { afterEach, beforeEach, expect, test } from 'vitest';
 
 let testDir: string;
 let remoteDir: string;
@@ -96,7 +97,12 @@ test('parseSourceUrl extracts branch from @branch syntax', async () => {
 });
 
 // Minimal inline copy of parseSourceUrl since it's module-private
-function parseSourceUrlExt(source: string): { url: string; branch?: string } {
+interface ParsedSource {
+    url: string;
+    branch?: string;
+}
+
+function parseSourceUrlExt(source: string): ParsedSource {
     const idx = source.lastIndexOf('@');
     if (idx === -1) return { url: source };
     const url = source.slice(0, idx);

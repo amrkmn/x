@@ -1,7 +1,5 @@
 <script lang="ts">
     import ExtensionRow from '$lib/components/ExtensionRow.svelte';
-    import { onMount } from 'svelte';
-
     import { debounce } from '$lib/search/debounce.js';
     import {
         getFilterOptions,
@@ -19,6 +17,7 @@
     import { findSourceByFormattedName, formatSourceName } from '$lib/search/utils.js';
     import type { AppData } from '$lib/types.js';
     import { parseSearchIndex } from '$lib/validation.js';
+    import { onMount } from 'svelte';
 
     interface Props {
         data: AppData;

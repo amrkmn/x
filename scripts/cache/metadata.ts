@@ -1,7 +1,10 @@
-import type { S3Client } from './client';
-import { exists } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { logger } from '../log';
+import type { S3Client } from './client';
 import { deleteObject, fileExists, getObject } from './client';
 import { calculateFileChecksum } from './files';
 import type { CacheMetadata, FileMetadata } from './utils';
@@ -17,8 +20,8 @@ export async function saveMetadata(
     cacheFilePath: string,
     timestamp?: number
 ): Promise<string> {
-    const content = await Bun.file(cacheFilePath).arrayBuffer();
-    const hash = Bun.hash(content).toString(16);
+    const content = await readFile(cacheFilePath);
+    const hash = createHash('sha256').update(content).digest('hex');
 
     const metadata: CacheMetadata = {
         key,
@@ -42,7 +45,7 @@ async function migrateMetadata(
 ): Promise<CacheMetadata | null> {
     // Only migrate if all files are already present locally
     for (const filePath of Object.keys(old.files)) {
-        if (!(await exists(join('.', filePath)))) {
+        if (!existsSync(join('.', filePath))) {
             logger.info(
                 'cache',
                 `metadata migrate skipped reason="missing_file" path=${JSON.stringify(filePath)}`

@@ -1,20 +1,26 @@
 {
-    "extends": "astro/tsconfigs/strict",
     "compilerOptions": {
-        "rewriteRelativeImportExtensions": true,
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "strict": true,
         "allowJs": true,
         "checkJs": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
         "skipLibCheck": true,
         "sourceMap": true,
-        "moduleResolution": "bundler",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "types": ["bun"],
+        "types": ["node"],
         "paths": {
             "$lib/*": ["./src/lib/*"]
         }
-    }
+    },
+    "exclude": ["dist"]
 }

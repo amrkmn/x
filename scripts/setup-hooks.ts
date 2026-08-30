@@ -1,25 +1,33 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
-bun run lint
+nub run format:check
 if [ $? -ne 0 ]; then
     echo ""
-    echo "Formatting check failed. Run 'bun run format' to fix formatting issues."
+    echo "Formatting check failed. Run 'nub run format' to fix formatting issues."
+    exit 1
+fi
+
+nub run lint
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Lint check failed."
     exit 1
 fi
 `;
 
 function getGitDir(): string | null {
-    const result = Bun.spawnSync(['git', 'rev-parse', '--git-dir'], {
-        stdout: 'pipe',
-        stderr: 'ignore'
+    const result = spawnSync('git', ['rev-parse', '--git-dir'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore']
     });
 
-    if (result.exitCode !== 0) return null;
+    if (result.status !== 0) return null;
 
-    const gitDir = new TextDecoder().decode(result.stdout).trim();
+    const gitDir = result.stdout.trim();
     return gitDir || null;
 }
 
@@ -40,8 +48,8 @@ async function setupHooks() {
     await chmod(hookPath, 0o755);
 
     console.log(`Git pre-commit hook installed at ${hookPath}`);
-    console.log('  Runs "bun run lint" before each commit');
-    console.log('  If formatting issues are found, run "bun run format" to fix them');
+    console.log('  Runs "nub run format:check" and "nub run lint" before each commit');
+    console.log('  If formatting issues are found, run "nub run format" to fix them');
 }
 
 await setupHooks();

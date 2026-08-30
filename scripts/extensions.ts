@@ -1,15 +1,13 @@
-import { $ } from 'bun';
 import { existsSync } from 'node:fs';
-import { appendFile, cp, mkdir, readdir, rm } from 'node:fs/promises';
+import { appendFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { SearchIndexEntry } from '../src/lib/types';
-import {
-    parseAppData,
-    parseExtension,
-    parseSearchIndex,
-    parseSearchIndexEntry
-} from '../src/lib/validation';
+
+import $ from 'dax';
+
 import { formatSourceName } from '../src/lib/search/utils';
+import type { Extension, SearchIndexEntry } from '../src/lib/types';
+import type { JsonObject, JsonValue } from '../src/lib/validation';
+import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
 import { logger } from './log';
 import type { ExtensionConfig } from './types';
@@ -57,6 +55,25 @@ interface FindExtensionUpdatesOptions {
     loadSyncedCommits?: () => Promise<Map<string, string>>;
 }
 
+function isJsonObject(value: JsonValue | undefined): value is JsonObject {
+    return (
+        value !== undefined &&
+        value !== null &&
+        !Array.isArray(value) &&
+        Object.getPrototypeOf(value) === Object.prototype
+    );
+}
+
+function isStringValue(value: JsonValue | undefined): value is string {
+    return value !== undefined && value !== null && String(value) === value;
+}
+
+function getMihonExtensions(index: JsonObject): JsonValue[] | undefined {
+    const wrapper = index.extensionList;
+    if (!isJsonObject(wrapper) || !Array.isArray(wrapper.extensions)) return undefined;
+    return wrapper.extensions;
+}
+
 // Point resource URLs at the mirror only when the file is actually mirrored;
 // otherwise keep the upstream URL (e.g. GitHub releases). Returns true when a
 // mirror reference points at a missing file (stale mirror).
@@ -65,24 +82,25 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
     let staleMirror = false;
 
     const rewrite = (
-        res: Record<string, unknown> | undefined,
-        resUrl: string | undefined,
+        res: JsonObject | undefined,
+        resUrl: string,
         subdir: string,
         fileName: string
     ): void => {
         if (!resUrl || !res) return;
         if (fileName && existsSync(join(dest, subdir, fileName))) {
             res[resUrl] = `${url}/${subdir}/${fileName}`;
-        } else if (String(res[resUrl]).startsWith(`${url}/${subdir}/`)) {
+        } else if (String(res[resUrl] ?? '').startsWith(`${url}/${subdir}/`)) {
             delete res[resUrl];
             staleMirror = true;
         }
     };
 
     try {
-        const idx = await Bun.file(join(dest, 'index.json')).json();
-        for (const ext of idx?.extensionList?.extensions || []) {
-            const res = ext?.resources;
+        const idx: JsonObject = JSON.parse(await readFile(join(dest, 'index.json'), 'utf8'));
+        for (const ext of getMihonExtensions(idx) ?? []) {
+            const res =
+                isJsonObject(ext) && isJsonObject(ext.resources) ? ext.resources : undefined;
             if (!res) continue;
             rewrite(
                 res,
@@ -100,17 +118,17 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
                     .split('/')
                     .pop() ?? ''
             );
-            if (typeof ext.packageName === 'string' && ext.packageName) {
+            if (isJsonObject(ext) && isStringValue(ext.packageName)) {
                 rewrite(res, 'iconUrl', 'icon', `${ext.packageName}.png`);
             }
         }
-        await Bun.write(join(dest, 'index.json'), JSON.stringify(idx));
+        await writeFile(join(dest, 'index.json'), JSON.stringify(idx));
     } catch {}
 
     try {
-        const repo = await Bun.file(join(dest, 'repo.json')).json();
+        const repo: JsonObject = JSON.parse(await readFile(join(dest, 'repo.json'), 'utf8'));
         repo.index_v2 = `${url}/index.pb`;
-        await Bun.write(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
+        await writeFile(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
     } catch {}
 
     return staleMirror;
@@ -122,14 +140,14 @@ export async function setGithubOutput(key: string, value: string): Promise<void>
 }
 
 export async function loadExtensionsData(path = EXTENSIONS_FILE): Promise<ExtensionsData> {
-    return parseExtensionsData(await Bun.file(path).json());
+    return parseExtensionsData(JSON.parse(await readFile(path, 'utf8')));
 }
 
 export async function saveExtensionsData(
     data: ExtensionsData,
     path = EXTENSIONS_FILE
 ): Promise<void> {
-    await Bun.write(path, JSON.stringify(data, null, 4));
+    await writeFile(path, JSON.stringify(data, null, 4));
 }
 
 function toExtensionList(
@@ -138,12 +156,15 @@ function toExtensionList(
     return Object.fromEntries(
         Object.entries(data).map(([category, extensions]) => [
             category,
-            Object.values(extensions).map(({ source, name, path, commit }) => ({
-                source,
-                name,
-                path,
-                ...(commit ? { commit } : {})
-            }))
+            Object.values(extensions).map(({ source, name, path, commit }) => {
+                const entry: Pick<ExtensionConfig, 'source' | 'name' | 'path' | 'commit'> = {
+                    source,
+                    name,
+                    path
+                };
+                if (commit) entry.commit = commit;
+                return entry;
+            })
         ])
     );
 }
@@ -157,7 +178,7 @@ async function loadRepoExtensions(
     category: string,
     repoPath: string,
     staticDir: string
-): Promise<unknown[]> {
+): Promise<JsonValue[]> {
     if (isMihonIndex(category)) {
         // index.pb path maps to the JSON wrapper index.json beside it.
         const repoFile = join(
@@ -165,10 +186,9 @@ async function loadRepoExtensions(
             repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
         );
         if (!existsSync(repoFile)) return [];
-        const wrapper = await Bun.file(repoFile).json();
-        const list = (wrapper as { extensionList?: { extensions?: unknown[] } })?.extensionList
-            ?.extensions;
-        if (!Array.isArray(list)) {
+        const wrapper: JsonObject = JSON.parse(await readFile(repoFile, 'utf8'));
+        const list = getMihonExtensions(wrapper);
+        if (!list) {
             throw new Error(
                 `Invalid extension index at ${repoPath}: expected extensionList.extensions`
             );
@@ -178,7 +198,7 @@ async function loadRepoExtensions(
 
     const repoFile = join(staticDir, repoPath.replace(/^\//, ''));
     if (!existsSync(repoFile)) return [];
-    const rawIndex = await Bun.file(repoFile).json();
+    const rawIndex: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
     if (!Array.isArray(rawIndex)) {
         throw new Error(`Invalid extension index at ${repoPath}: expected array`);
     }
@@ -186,22 +206,28 @@ async function loadRepoExtensions(
 }
 
 // Map a mihon wrapper entry to the search shape (packageName/resources/…).
-function entryFromMihon(raw: Record<string, unknown>): SearchIndexEntry {
-    const resources = (raw.resources ?? {}) as { apkUrl?: string; iconUrl?: string };
-    const apkUrl = resources.apkUrl ?? '';
-    const source = (raw.sources as Array<{ language?: string }> | undefined)?.[0];
-    const warning = (raw.contentWarning ?? '') as string;
-
-    return {
+function entryFromMihon(raw: JsonObject): JsonObject {
+    const resources = isJsonObject(raw.resources) ? raw.resources : {};
+    const sources = raw.sources;
+    const source = Array.isArray(sources) && isJsonObject(sources[0]) ? sources[0] : undefined;
+    const entry: JsonObject = {
         pkg: String(raw.packageName),
         name: String(raw.name),
         version: String(raw.versionName ?? ''),
-        lang: source?.language ?? '',
-        apk: apkUrl.split('/').pop() ?? '',
-        ...(resources.iconUrl ? { iconUrl: resources.iconUrl } : {}),
-        nsfw: warning === 'CONTENT_WARNING_NSFW' || warning === 'CONTENT_WARNING_MIXED' ? 1 : 0,
-        code: raw.versionCode !== undefined ? Number(raw.versionCode) : undefined
-    } as unknown as SearchIndexEntry;
+        lang: isStringValue(source?.language) ? source.language : '',
+        apk:
+            String(resources.apkUrl ?? '')
+                .split('/')
+                .pop() ?? '',
+        nsfw:
+            raw.contentWarning === 'CONTENT_WARNING_NSFW' ||
+            raw.contentWarning === 'CONTENT_WARNING_MIXED'
+                ? 1
+                : 0
+    };
+    if (isStringValue(resources.iconUrl)) entry.iconUrl = resources.iconUrl;
+    if (raw.versionCode !== undefined) entry.code = Number(raw.versionCode);
+    return entry;
 }
 
 async function generateSearchIndexJson(
@@ -236,9 +262,15 @@ async function generateSearchIndexJson(
                 const entryPath = `${repo.path}[${index}]`;
                 let extension: SearchIndexEntry;
                 try {
-                    const parsed = isMihonIndex(category)
-                        ? entryFromMihon(rawExtension as Record<string, unknown>)
-                        : parseExtension(rawExtension, entryPath);
+                    let parsed: JsonObject | Extension;
+                    if (isMihonIndex(category)) {
+                        if (!isJsonObject(rawExtension)) {
+                            throw new Error(`Invalid Mihon entry at ${entryPath}`);
+                        }
+                        parsed = entryFromMihon(rawExtension);
+                    } else {
+                        parsed = parseExtension(rawExtension, entryPath);
+                    }
                     extension = parseSearchIndexEntry(
                         {
                             ...parsed,
@@ -261,9 +293,7 @@ async function generateSearchIndexJson(
         }
     }
 
-    // Reject a poisoned index outright instead of breaking every consumer at runtime.
-    parseSearchIndex(entries);
-    await Bun.write(searchIndexFile, JSON.stringify(entries));
+    await writeFile(searchIndexFile, JSON.stringify(entries));
     logger.info(
         'search',
         `index generate complete records=${entries.length} repos=${reposScanned} output=${JSON.stringify(searchIndexFile)}`
@@ -284,7 +314,7 @@ export async function generateDataJson(
     const { owner, repo } = config.github;
     const source = `https://github.com/${owner}/${repo}`;
 
-    await Bun.write(
+    await writeFile(
         dataFile,
         JSON.stringify({
             extensions: toExtensionList(extensionsData),
@@ -324,7 +354,7 @@ async function loadSyncedCommits(dataFile = DATA_FILE): Promise<Map<string, stri
     const synced = new Map<string, string>();
 
     try {
-        const data = parseAppData(await Bun.file(dataFile).json());
+        const data = parseAppData(JSON.parse(await readFile(dataFile, 'utf8')));
         Object.values(data.extensions)
             .flat()
             .forEach((entry) => {

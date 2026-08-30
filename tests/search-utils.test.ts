@@ -1,4 +1,5 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
+
 import { findSourceByFormattedName, formatSourceName } from '../src/lib/search/utils';
 
 test('formatSourceName converts to lowercase and replaces spaces with dots', () => {

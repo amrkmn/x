@@ -1,7 +1,10 @@
-import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { exists, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { afterEach, beforeEach, expect, test } from 'vitest';
+
 import type { ExtensionsData } from '../scripts/extensions';
 import {
     findExtensionUpdates,
@@ -191,7 +194,7 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
 
     expect(updates).toHaveLength(1);
 
-    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    const indexJson = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
     expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(
         'https://mirror.example.com/alpha/icon/eu.kanade.tachiyomi.extension.alpha.png'
     );
@@ -199,7 +202,7 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
         'https://mirror.example.com/alpha/jar/tachiyomi-alpha.jar'
     );
 
-    const repoJson = await Bun.file(join(alphaDir, 'repo.json')).json();
+    const repoJson = JSON.parse(await readFile(join(alphaDir, 'repo.json'), 'utf8'));
     expect(repoJson.index_v2).toBe('https://mirror.example.com/alpha/index.pb');
 });
 
@@ -231,7 +234,7 @@ test('findExtensionUpdates preserves external Mihon icon URLs without local icon
         loadSyncedCommits: async () => new Map([['/alpha/index.min.json', 'oldhash1']])
     });
 
-    const indexJson = await Bun.file(join(alphaDir, 'index.json')).json();
+    const indexJson = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
     expect(indexJson.extensionList.extensions[0].resources.iconUrl).toBe(iconUrl);
 });
 
@@ -286,8 +289,8 @@ test('generateDataJson writes data.json and indexes.json from mirrored static fi
         staticDir
     });
 
-    const appData = await Bun.file(dataFile).json();
-    const searchIndex = await Bun.file(searchIndexFile).json();
+    const appData = JSON.parse(await readFile(dataFile, 'utf8'));
+    const searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
 
     expect(appData.latestCommitHash).toBe('abcdef1');
     expect(appData.extensions.mihon[0].name).toBe('Alpha Source');
@@ -341,7 +344,7 @@ test('generateDataJson skips mihon wrapper entries without an installable apk', 
         staticDir
     });
 
-    const searchIndex = await Bun.file(searchIndexFile).json();
+    const searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
 
     expect(searchIndex).toHaveLength(1);
     expect(searchIndex[0].name).toBe('Alpha Extension');
@@ -379,13 +382,13 @@ test('pruneRemovedRepos removes mirrored dirs not configured in extensions.json'
     const pruned = await pruneRemovedRepos(data, staticDir);
 
     expect(pruned).toBe(1);
-    expect(await exists(join(staticDir, 'keiyoushi'))).toBe(true);
-    expect(await exists(join(staticDir, 'keiyoushi', 'apk'))).toBe(true);
-    expect(await exists(join(staticDir, 'keiyoushi', 'icon'))).toBe(true);
-    expect(await exists(join(staticDir, 'yuzono', 'cursed'))).toBe(true);
-    expect(await exists(join(staticDir, 'yuzono', 'manga'))).toBe(false);
-    expect(await exists(join(staticDir, 'data.json'))).toBe(true);
-    expect(await exists(join(staticDir, 'keiyoushi', 'repo.json'))).toBe(true);
+    expect(existsSync(join(staticDir, 'keiyoushi'))).toBe(true);
+    expect(existsSync(join(staticDir, 'keiyoushi', 'apk'))).toBe(true);
+    expect(existsSync(join(staticDir, 'keiyoushi', 'icon'))).toBe(true);
+    expect(existsSync(join(staticDir, 'yuzono', 'cursed'))).toBe(true);
+    expect(existsSync(join(staticDir, 'yuzono', 'manga'))).toBe(false);
+    expect(existsSync(join(staticDir, 'data.json'))).toBe(true);
+    expect(existsSync(join(staticDir, 'keiyoushi', 'repo.json'))).toBe(true);
 });
 
 test('pruneRemovedRepos removes an entire removed top-level group', async () => {
@@ -408,6 +411,6 @@ test('pruneRemovedRepos removes an entire removed top-level group', async () => 
     const pruned = await pruneRemovedRepos(data, staticDir);
 
     expect(pruned).toBe(1);
-    expect(await exists(join(staticDir, 'yuzono'))).toBe(false);
-    expect(await exists(join(staticDir, 'keiyoushi'))).toBe(false);
+    expect(existsSync(join(staticDir, 'yuzono'))).toBe(false);
+    expect(existsSync(join(staticDir, 'keiyoushi'))).toBe(false);
 });

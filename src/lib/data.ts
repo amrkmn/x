@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+
 import type { AppData } from './types';
 import { parseAppData } from './validation';
 

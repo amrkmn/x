@@ -1,10 +1,13 @@
-import { expect, test } from 'bun:test';
+import { setTimeout as sleep } from 'node:timers/promises';
+
+import { expect, test } from 'vitest';
+
 import { debounce } from '../src/lib/search/debounce';
 
 async function expectSingleDebouncedResult(results: number[], expected: number): Promise<void> {
     expect(results.length).toBe(0);
 
-    await Bun.sleep(150);
+    await sleep(150);
     expect(results.length).toBe(1);
     expect(results[0]).toBe(expected);
 }
@@ -25,11 +28,11 @@ test('debounce resets timer on repeated calls', async () => {
     const debouncedFn = debounce((value: number) => results.push(value), 100);
 
     debouncedFn(1);
-    await Bun.sleep(50);
+    await sleep(50);
     debouncedFn(2);
-    await Bun.sleep(50);
+    await sleep(50);
     debouncedFn(3);
-    await Bun.sleep(50);
+    await sleep(50);
 
     await expectSingleDebouncedResult(results, 3);
 });
@@ -39,10 +42,10 @@ test('debounce allows multiple executions over time', async () => {
     const debouncedFn = debounce((value: number) => results.push(value), 50);
 
     debouncedFn(1);
-    await Bun.sleep(100);
+    await sleep(100);
 
     debouncedFn(2);
-    await Bun.sleep(100);
+    await sleep(100);
 
     expect(results.length).toBe(2);
     expect(results).toEqual([1, 2]);
@@ -53,7 +56,7 @@ test('debounce passes arguments correctly', async () => {
     const debouncedFn = debounce((text: string, num: number) => results.push([text, num]), 50);
 
     debouncedFn('hello', 42);
-    await Bun.sleep(100);
+    await sleep(100);
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual(['hello', 42]);

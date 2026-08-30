@@ -37,6 +37,19 @@ interface MeilisearchClient {
     apiKey: string;
 }
 
+interface SearchRequest {
+    q: string;
+    limit: number;
+    offset: number;
+    filter?: string[];
+}
+
+interface FacetRequest {
+    q: string;
+    limit: 0;
+    facets: string[];
+}
+
 let client: MeilisearchClient | null = null;
 
 export function initMeilisearch(config: MeilisearchConfig) {
@@ -49,11 +62,10 @@ export function initMeilisearch(config: MeilisearchConfig) {
 }
 
 export function transformMeilisearchHit(hit: MeilisearchHit): SearchIndexEntry {
-    return {
+    const extension: SearchIndexEntry = {
         name: hit.name,
         pkg: hit.pkg,
         apk: hit.apk,
-        ...(hit.iconUrl ? { iconUrl: hit.iconUrl } : {}),
         lang: hit.lang,
         code: hit.code,
         version: hit.version,
@@ -63,6 +75,8 @@ export function transformMeilisearchHit(hit: MeilisearchHit): SearchIndexEntry {
         formattedSourceName: hit.formattedSourceName,
         category: hit.category
     };
+    if (hit.iconUrl) extension.iconUrl = hit.iconUrl;
+    return extension;
 }
 
 export async function searchExtensions(filters: SearchFilters): Promise<MeilisearchSearchResponse> {
@@ -89,7 +103,7 @@ export async function searchExtensions(filters: SearchFilters): Promise<Meilisea
     const limit = filters.limit || 50;
     const offset = (page - 1) * limit;
 
-    const body: Record<string, unknown> = {
+    const body: SearchRequest = {
         q: filters.query || '',
         limit,
         offset
@@ -110,6 +124,7 @@ export async function searchExtensions(filters: SearchFilters): Promise<Meilisea
         throw new Error(`Meilisearch error: ${response.status} ${response.statusText}`);
     }
 
+    // SAFETY: Meilisearch returned a successful search response; its API contract matches this type.
     return (await response.json()) as MeilisearchSearchResponse;
 }
 
@@ -132,13 +147,14 @@ export async function getFilterOptions(): Promise<{
             q: '',
             limit: 0,
             facets: ['formattedSourceName', 'category', 'lang']
-        })
+        } satisfies FacetRequest)
     });
 
     if (!response.ok) {
         throw new Error(`Meilisearch error: ${response.status} ${response.statusText}`);
     }
 
+    // SAFETY: Meilisearch returned a successful facet response; its API contract matches this type.
     const result = (await response.json()) as MeilisearchFacetResponse;
 
     return {

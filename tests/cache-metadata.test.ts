@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
 
 // The getMetadataKey function is internal to metadata.ts
 // This test verifies the expected behavior/format

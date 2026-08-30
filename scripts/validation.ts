@@ -1,18 +1,28 @@
 import type { ExtensionConfig } from './types';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
+type JsonPrimitive = string | number | boolean | null;
+type JsonValue = JsonPrimitive | JsonValue[] | JsonObject;
+interface JsonObject {
+    [key: string]: JsonValue;
 }
 
-function asString(value: unknown, path: string): string {
-    if (typeof value !== 'string' || value.length === 0) {
+function isRecord(value: JsonValue): value is JsonObject {
+    return value !== null && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function isString(value: JsonValue): value is string {
+    return value !== null && value !== undefined && String(value) === value;
+}
+
+function asString(value: JsonValue, path: string): string {
+    if (!isString(value) || value.length === 0) {
         throw new Error(`Invalid ${path}: expected non-empty string`);
     }
     return value;
 }
 
 export function parseExtensionConfig(
-    value: unknown,
+    value: JsonValue,
     path: string,
     category: string
 ): ExtensionConfig {
@@ -22,22 +32,21 @@ export function parseExtensionConfig(
     if (!isRecord(value)) throw new Error(`Invalid ${path}: expected object`);
 
     const commit = value.commit;
-    if (commit !== undefined && typeof commit !== 'string') {
+    if (commit !== undefined && !isString(commit)) {
         throw new Error(`Invalid ${path}.commit: expected string`);
     }
 
-    return {
+    const result: ExtensionConfig = {
         source: asString(value.source, `${path}.source`),
         name: asString(value.name, `${path}.name`),
         path: asString(value.path, `${path}.path`),
-        category,
-        ...(commit ? { commit } : {})
+        category
     };
+    if (commit) result.commit = commit;
+    return result;
 }
 
-export function parseExtensionsData(
-    value: unknown
-): Record<string, Record<string, ExtensionConfig>> {
+export function parseExtensionsData(value: JsonValue) {
     if (!isRecord(value)) throw new Error('Invalid extensions data: expected object');
 
     const result: Record<string, Record<string, ExtensionConfig>> = {};

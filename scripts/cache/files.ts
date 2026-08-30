@@ -1,12 +1,19 @@
-import { exists, mkdir, readdir, rm } from 'node:fs/promises';
-import { dirname, join, posix } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { join, posix } from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { zstdCompressSync, zstdDecompressSync } from 'node:zlib';
+
+import * as tar from 'tar';
 
 import { logger } from '../log';
 import type { CacheMetadata, FileMetadata } from './utils';
 
 export async function calculateFileChecksum(filePath: string): Promise<string> {
-    const data = await Bun.file(filePath).arrayBuffer();
-    return Bun.hash.rapidhash(data).toString(16);
+    const data = await readFile(filePath);
+    return createHash('sha256').update(data).digest('hex');
 }
 
 export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
@@ -29,7 +36,7 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     for (const [index, [filePath, fileInfo]] of fileEntries.entries()) {
         const fullPath = join('.', filePath);
 
-        if (!(await exists(fullPath))) {
+        if (!existsSync(fullPath)) {
             missing++;
         } else {
             try {
@@ -50,33 +57,64 @@ export async function validateCache(metadata: CacheMetadata): Promise<boolean> {
     return invalid === 0 && missing === 0;
 }
 
-export async function extractTar(tarPath: string, destPath = '.'): Promise<void> {
-    const compressedData = await Bun.file(tarPath).arrayBuffer();
-    const decompressed = Bun.zstdDecompressSync(new Uint8Array(compressedData));
-    const archive = new Bun.Archive(decompressed);
-    const files = await archive.files();
-    const entries = Array.from(files.entries());
+async function collectStream(stream: AsyncIterable<Uint8Array>): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+    return Buffer.concat(chunks);
+}
 
-    const totalBytes = entries.reduce((sum, [, file]) => sum + file.size, 0);
-    const totalFiles = entries.length;
+interface TarEntryInfo {
+    path: string;
+    size: number;
+    type: string;
+}
+
+async function listTarEntries(data: Uint8Array): Promise<TarEntryInfo[]> {
+    const entries: TarEntryInfo[] = [];
+    const parser = tar.t({
+        onReadEntry(entry) {
+            entries.push({ path: entry.path, size: entry.size, type: entry.type });
+        }
+    });
+    await pipeline(Readable.from(data), parser);
+    return entries;
+}
+
+function isRegularTarEntry(type: string): boolean {
+    return type === 'File' || type === 'Directory';
+}
+
+export async function extractTar(tarPath: string, destPath = '.'): Promise<void> {
+    const compressedData = await readFile(tarPath);
+    const decompressed = zstdDecompressSync(compressedData);
+    const entries = await listTarEntries(decompressed);
+    const files = entries.filter((entry) => entry.type === 'File');
+    const totalBytes = files.reduce((sum, entry) => sum + entry.size, 0);
     const progress = logger.counter(
         'cache',
         'restore extract progress',
-        totalFiles,
+        files.length,
         totalBytes,
         'restore extract'
     );
 
+    let extractedFiles = 0;
     let extractedBytes = 0;
-    for (const [index, [relativePath, file]] of entries.entries()) {
-        const outputPath = join(destPath, relativePath);
-        await mkdir(dirname(outputPath), { recursive: true });
-        await Bun.write(outputPath, file);
+    const extractor = tar.x({
+        cwd: destPath,
+        strict: true,
+        filter(_path, entry) {
+            return 'type' in entry && isRegularTarEntry(entry.type);
+        },
+        onReadEntry(entry) {
+            if (entry.type !== 'File') return;
+            extractedFiles += 1;
+            extractedBytes += entry.size;
+            progress.progress(extractedFiles, extractedBytes);
+        }
+    });
 
-        extractedBytes += file.size;
-        progress.progress(index + 1, extractedBytes);
-    }
-
+    await pipeline(Readable.from(decompressed), extractor);
     progress.complete({ bytes: extractedBytes });
 }
 
@@ -92,7 +130,7 @@ async function collectFileEntries(
 
             const fullPath = join(entry.parentPath, entry.name);
             const relativePath = posix.relative('.', fullPath);
-            const size = Bun.file(fullPath).size;
+            const size = (await stat(fullPath)).size;
             allEntries.push({ fullPath, relativePath, size });
         }
     }
@@ -119,16 +157,17 @@ export async function compressToTar(
 
     let processedBytes = 0;
     for (const [index, { fullPath, relativePath, size }] of entries.entries()) {
-        const fileData = await Bun.file(fullPath).arrayBuffer();
+        const fileData = await readFile(fullPath);
         const checksum = await calculateFileChecksum(fullPath);
         checksums[relativePath] = { checksum, size };
-        files[relativePath] = new Uint8Array(fileData);
+        files[relativePath] = fileData;
         processedBytes += size;
         progress.progress(index + 1, processedBytes);
     }
 
-    const archive = new Bun.Archive(files);
-    await Bun.write(outputPath, Bun.zstdCompressSync(await archive.bytes()));
+    const archive = tar.c({ cwd: '.', portable: true }, Object.keys(files));
+    const tarData = await collectStream(archive);
+    await writeFile(outputPath, zstdCompressSync(tarData));
 
     progress.complete({ bytes: totalBytes });
 
@@ -162,7 +201,7 @@ export async function checksumFiles(paths: string[]): Promise<Record<string, Fil
 }
 
 export async function ensureDir(dir: string): Promise<void> {
-    if (!(await exists(dir))) {
+    if (!existsSync(dir)) {
         await mkdir(dir, { recursive: true });
     }
 }

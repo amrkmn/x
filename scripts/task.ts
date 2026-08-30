@@ -1,6 +1,7 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
-import { $ } from 'bun';
+import $ from 'dax';
+
 import { refreshMetadata, restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import {
@@ -162,10 +163,7 @@ async function updateExtensions(
     reportMaterializeFailures(failures);
 }
 
-const commandHandlers: Record<
-    Exclude<TaskCommand, 'check' | 'static' | 'full'>,
-    (args: string[]) => Promise<void>
-> = {
+const commandHandlers = {
     data: async () => {
         await generateDataJson();
     },
@@ -182,9 +180,12 @@ const commandHandlers: Record<
     'prepare-dist': async (args) => {
         await restoreStaticCache();
         await updateExtensions('static', args);
-        await $`bun run build`;
+        await $`nub run build`;
     }
-};
+} satisfies Record<
+    Exclude<TaskCommand, 'check' | 'static' | 'full'>,
+    (args: string[]) => Promise<void>
+>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
     const command = parseTask(args);

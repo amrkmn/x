@@ -1,4 +1,5 @@
 import MiniSearch from 'minisearch';
+
 import type { SearchFilters } from './meilisearch.js';
 import type { EnrichedExtension } from './types.js';
 
@@ -52,10 +53,7 @@ export function isMinisearchReady(): boolean {
  * Search extensions using MiniSearch with same filters as Meilisearch.
  * Returns same shape: { hits, estimatedTotalHits }
  */
-export function searchExtensionsFallback(filters: SearchFilters): {
-    hits: EnrichedExtension[];
-    estimatedTotalHits: number;
-} {
+export function searchExtensionsFallback(filters: SearchFilters) {
     if (!miniSearch) {
         throw new Error('MiniSearch not initialized');
     }
@@ -96,11 +94,7 @@ export function searchExtensionsFallback(filters: SearchFilters): {
  * Derive filter options from the loaded extension data.
  * Replaces Meilisearch facet queries when in fallback mode.
  */
-export function getFilterOptionsFallback(): {
-    sources: string[];
-    categories: string[];
-    languages: string[];
-} {
+export function getFilterOptionsFallback() {
     const sources = [...new Set(allExtensions.map((e) => e.formattedSourceName))];
     const categories = [...new Set(allExtensions.map((e) => e.category))];
     // Deduplicate case-insensitively but preserve original casing (e.g. zh-Hant, pt-BR)

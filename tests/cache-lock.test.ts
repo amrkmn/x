@@ -1,10 +1,11 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
+
 import { generateInstanceId } from '../scripts/cache/lock';
 import type { CacheLock } from '../scripts/cache/utils';
 
 test('generateInstanceId returns non-empty string', () => {
     const id = generateInstanceId();
-    expect(typeof id).toBe('string');
+    expect(id).toBeTypeOf('string');
     expect(id.length).toBeGreaterThan(0);
 });
 

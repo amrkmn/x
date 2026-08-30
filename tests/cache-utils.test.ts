@@ -1,11 +1,12 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
+
 import { CACHE_KEY_PREFIX, generateCacheKey } from '../scripts/cache/utils';
 
 test('generateCacheKey returns key with correct prefix', async () => {
     const key = await generateCacheKey();
 
-    expect(key).toStartWith(CACHE_KEY_PREFIX);
-    expect(key).toEndWith('.tzst');
+    expect(key.startsWith(CACHE_KEY_PREFIX)).toBe(true);
+    expect(key.endsWith('.tzst')).toBe(true);
 });
 
 test('generateCacheKey produces consistent hash for same content', async () => {

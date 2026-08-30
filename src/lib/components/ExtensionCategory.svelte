@@ -1,6 +1,7 @@
 <script lang="ts">
     import { selectedDomain } from '$lib/stores/mirror';
     import type { ExtensionRepo } from '$lib/types';
+
     import ExtensionCard from './ExtensionCard.svelte';
 
     interface Props {

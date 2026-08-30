@@ -1,4 +1,5 @@
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
+
 import { parseExtensionsData } from '../scripts/validation';
 import { parseAppData, parseSearchIndex } from '../src/lib/validation';
 

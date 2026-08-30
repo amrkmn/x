@@ -1,5 +1,7 @@
-import type { S3Client } from './cache/client';
+import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import type { S3Client } from './cache/client';
 import {
     checksumFiles,
     cleanupDir,
@@ -170,8 +172,7 @@ export async function saveCache(paths: string[], key: string): Promise<void> {
         const files = await compressToTar(paths, CACHE_FILE_PATH);
         const compressTime = Date.now() - compressStartTime;
 
-        const cache = Bun.file(CACHE_FILE_PATH);
-        const sizeInBytes = cache.size;
+        const sizeInBytes = (await stat(CACHE_FILE_PATH)).size;
         const sizeInMB = formatBytes(sizeInBytes);
 
         logger.info('cache', `save archive size_mib=${sizeInMB} bytes=${sizeInBytes}`);

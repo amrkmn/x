@@ -1,12 +1,12 @@
 type LogLevel = 'info' | 'warn' | 'error';
 
-const SCOPE_COLORS: Record<string, string> = {
-    cache: '\x1b[36m',
-    extensions: '\x1b[35m',
-    task: '\x1b[34m',
-    search: '\x1b[32m',
-    data: '\x1b[33m'
-};
+const SCOPE_COLORS = new Map([
+    ['cache', '\x1b[36m'],
+    ['extensions', '\x1b[35m'],
+    ['task', '\x1b[34m'],
+    ['search', '\x1b[32m'],
+    ['data', '\x1b[33m']
+]);
 
 function supportsColor(): boolean {
     return process.stdout.isTTY && process.env.NO_COLOR === undefined;
@@ -45,7 +45,7 @@ export function formatTransferStats(
     const sizeMB = (bytes / (1024 * 1024)).toFixed(2);
     const speedMBps =
         elapsedSeconds > 0 ? (bytes / (1024 * 1024) / elapsedSeconds).toFixed(2) : '0.00';
-    const hasTotal = typeof totalBytes === 'number' && totalBytes > 0;
+    const hasTotal = totalBytes !== undefined && totalBytes > 0;
     const percentage = hasTotal ? Math.min((bytes / totalBytes) * 100, 100).toFixed(2) : '0.00';
 
     if (hasTotal) {
@@ -61,7 +61,7 @@ class ScopeFormatter {
 
     prefix(scope: string): string {
         if (!this.useColor) return `[${scope}]`;
-        const color = SCOPE_COLORS[scope] || '\x1b[37m';
+        const color = SCOPE_COLORS.get(scope) || '\x1b[37m';
         return `${color}[${scope}]\x1b[0m`;
     }
 

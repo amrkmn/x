@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { afterEach, beforeEach, expect, test } from 'vitest';
+
 import { calculateFileChecksum, cleanupDir, ensureDir } from '../scripts/cache/files';
 
-const testDir = join(tmpdir(), 'bun-test-cache');
+const testDir = join(tmpdir(), 'node-test-cache');
 
 beforeEach(async () => {
     await mkdir(testDir, { recursive: true });
@@ -22,7 +24,7 @@ test('calculateFileChecksum returns consistent hash for same content', async () 
     const hash2 = await calculateFileChecksum(filePath);
 
     expect(hash1).toBe(hash2);
-    expect(hash1.length).toBeLessThanOrEqual(16); // wyhash produces up to 16 hex characters
+    expect(hash1).toHaveLength(64); // SHA-256 produces 64 hexadecimal characters
 });
 
 test('calculateFileChecksum returns different hashes for different content', async () => {
@@ -43,7 +45,7 @@ test('calculateFileChecksum handles empty file', async () => {
     await writeFile(filePath, '');
 
     const hash = await calculateFileChecksum(filePath);
-    expect(hash.length).toBeLessThanOrEqual(16);
+    expect(hash).toHaveLength(64);
 });
 
 test('calculateFileChecksum handles larger file', async () => {
@@ -52,7 +54,7 @@ test('calculateFileChecksum handles larger file', async () => {
     await writeFile(filePath, content);
 
     const hash = await calculateFileChecksum(filePath);
-    expect(hash.length).toBeLessThanOrEqual(16);
+    expect(hash).toHaveLength(64);
 });
 
 test('ensureDir creates directory if it does not exist', async () => {
