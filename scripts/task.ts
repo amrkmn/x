@@ -180,7 +180,7 @@ const commandHandlers = {
     'prepare-dist': async (args) => {
         await restoreStaticCache();
         await updateExtensions('static', args);
-        await $`nub run build`;
+        await $`pnpm run build`;
     }
 } satisfies Record<
     Exclude<TaskCommand, 'check' | 'static' | 'full'>,

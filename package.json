@@ -13,24 +13,24 @@
     "type": "module",
     "scripts": {
         "dev": "astro dev",
-        "build": "nub run data:generate && astro build",
+        "build": "pnpm run data:generate && astro build",
         "preview": "astro preview",
         "check": "astro check",
         "format": "oxfmt",
         "format:check": "oxfmt --check",
         "lint": "oxlint",
-        "update": "nub scripts/task.ts full",
-        "update:check": "nub scripts/task.ts check",
-        "update:static": "nub scripts/task.ts static",
-        "data:generate": "nub scripts/task.ts data",
-        "search:update": "nub scripts/task.ts search",
-        "cache:restore": "nub scripts/task.ts cache restore",
-        "cache:save": "nub scripts/task.ts cache save",
-        "prepare:dist": "nub scripts/task.ts prepare-dist",
-        "sync": "nub run update:static",
+        "update": "tsx scripts/task.ts full",
+        "update:check": "tsx scripts/task.ts check",
+        "update:static": "tsx scripts/task.ts static",
+        "data:generate": "tsx scripts/task.ts data",
+        "search:update": "tsx scripts/task.ts search",
+        "cache:restore": "tsx scripts/task.ts cache restore",
+        "cache:save": "tsx scripts/task.ts cache save",
+        "prepare:dist": "tsx scripts/task.ts prepare-dist",
+        "sync": "pnpm run update:static",
         "test": "vitest run",
-        "prepare": "nub scripts/setup-hooks.ts",
-        "setup-hooks": "nub scripts/setup-hooks.ts"
+        "prepare": "tsx scripts/setup-hooks.ts",
+        "setup-hooks": "tsx scripts/setup-hooks.ts"
     },
     "devDependencies": {
         "@astrojs/check": "^0.9.10",
@@ -46,6 +46,7 @@
         "oxlint": "^1.80.0",
         "svelte": "^5.56.10",
         "tar": "^7.5.22",
+        "tsx": "^4.23.12",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
         "wrangler": "^4.125.0"
@@ -58,5 +59,6 @@
     },
     "engines": {
         "node": ">=24.0.0 <25"
-    }
+    },
+    "packageManager": "pnpm@11.24.0"
 }

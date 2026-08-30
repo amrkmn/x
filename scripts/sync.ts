@@ -15,7 +15,7 @@ async function main(): Promise<void> {
 
     console.error(`Unknown sync arguments: ${args.join(' ')}`);
     console.error(
-        'Use `nub run update:static` to populate static/, or `nub run cache:restore` to restore cache.'
+        'Use `pnpm run update:static` to populate static/, or `pnpm run cache:restore` to restore cache.'
     );
     process.exit(1);
 }
