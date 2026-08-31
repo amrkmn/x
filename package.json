@@ -19,14 +19,14 @@
         "format": "oxfmt",
         "format:check": "oxfmt --check",
         "lint": "oxlint",
-        "update": "tsx scripts/task.ts full",
-        "update:check": "tsx scripts/task.ts check",
-        "update:static": "tsx scripts/task.ts static",
-        "data:generate": "tsx scripts/task.ts data",
-        "search:update": "tsx scripts/task.ts search",
-        "cache:restore": "tsx scripts/task.ts cache restore",
-        "cache:save": "tsx scripts/task.ts cache save",
-        "prepare:dist": "tsx scripts/task.ts prepare-dist",
+        "update": "tsx --env-file-if-exists=.env scripts/task.ts full",
+        "update:check": "tsx --env-file-if-exists=.env scripts/task.ts check",
+        "update:static": "tsx --env-file-if-exists=.env scripts/task.ts static",
+        "data:generate": "tsx --env-file-if-exists=.env scripts/task.ts data",
+        "search:update": "tsx --env-file-if-exists=.env scripts/task.ts search",
+        "cache:restore": "tsx --env-file-if-exists=.env scripts/task.ts cache restore",
+        "cache:save": "tsx --env-file-if-exists=.env scripts/task.ts cache save",
+        "prepare:dist": "tsx --env-file-if-exists=.env scripts/task.ts prepare-dist",
         "sync": "pnpm run update:static",
         "test": "vitest run",
         "prepare": "tsx scripts/setup-hooks.ts",
@@ -60,5 +60,5 @@
     "engines": {
         "node": ">=24.0.0 <25"
     },
-    "packageManager": "pnpm@11.24.0"
+    "packageManager": "pnpm@12.1.0"
 }
