@@ -20,6 +20,8 @@ export function initMinisearch(extensions: EnrichedExtension[]) {
             'name',
             'pkg',
             'apk',
+            'apkUrl',
+            'jarUrl',
             'lang',
             'code',
             'version',

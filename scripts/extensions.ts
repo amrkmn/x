@@ -225,6 +225,8 @@ function entryFromMihon(raw: JsonObject): JsonObject {
                 ? 1
                 : 0
     };
+    if (isStringValue(resources.apkUrl)) entry.apkUrl = resources.apkUrl;
+    if (isStringValue(resources.jarUrl)) entry.jarUrl = resources.jarUrl;
     if (isStringValue(resources.iconUrl)) entry.iconUrl = resources.iconUrl;
     if (raw.versionCode !== undefined) entry.code = Number(raw.versionCode);
     return entry;

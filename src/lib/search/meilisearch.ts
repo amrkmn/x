@@ -75,6 +75,8 @@ export function transformMeilisearchHit(hit: MeilisearchHit): SearchIndexEntry {
         formattedSourceName: hit.formattedSourceName,
         category: hit.category
     };
+    if (hit.apkUrl) extension.apkUrl = hit.apkUrl;
+    if (hit.jarUrl) extension.jarUrl = hit.jarUrl;
     if (hit.iconUrl) extension.iconUrl = hit.iconUrl;
     return extension;
 }

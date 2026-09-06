@@ -59,6 +59,8 @@ function asNsfw(value: JsonValue, path: string): number {
 
 export function parseExtension(value: JsonValue, path: string): Extension {
     const record = asRecord(value, path);
+    const apkUrl = asOptionalString(record.apkUrl, `${path}.apkUrl`);
+    const jarUrl = asOptionalString(record.jarUrl, `${path}.jarUrl`);
     const iconUrl = asOptionalString(record.iconUrl, `${path}.iconUrl`);
     const sourceName = asOptionalString(record.sourceName, `${path}.sourceName`);
     const extension: Extension = {
@@ -69,6 +71,8 @@ export function parseExtension(value: JsonValue, path: string): Extension {
         apk: asString(record.apk, `${path}.apk`),
         nsfw: asNsfw(record.nsfw, `${path}.nsfw`)
     };
+    if (apkUrl) extension.apkUrl = apkUrl;
+    if (jarUrl) extension.jarUrl = jarUrl;
     if (iconUrl) extension.iconUrl = iconUrl;
     if (sourceName) extension.sourceName = sourceName;
     return extension;

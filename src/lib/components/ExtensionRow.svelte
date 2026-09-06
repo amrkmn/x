@@ -49,10 +49,16 @@
         <span class="lang">{extension.lang}</span>
     </td>
     <td class="action-cell" data-label="Action">
-        <a href={`${repoUrl}/apk/${extension.apk}`} class="btn btn-primary btn-sm"> APK </a>
+        <a
+            href={extension.apkUrl || `${repoUrl}/apk/${extension.apk}`}
+            class="btn btn-primary btn-sm"
+        >
+            APK
+        </a>
         {#if extension.category === 'mihon' && extension.apk}
             <a
-                href={`${repoUrl}/jar/${extension.apk.replace(/\.apk$/, '.jar')}`}
+                href={extension.jarUrl ||
+                    `${repoUrl}/jar/${extension.apk.replace(/\.apk$/, '.jar')}`}
                 class="btn btn-secondary btn-sm"
             >
                 Jar
