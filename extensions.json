@@ -12,7 +12,7 @@
             "name": "Yuzono Cursed",
             "path": "/yuzono/cursed/index.pb",
             "category": "mihon",
-            "commit": "b7a9f8fe416b275c09876c0bee316a3e94d5be10"
+            "commit": "9b6d9aa29d2acc5a8d3f7a5d4c30bf9650af93ab"
         }
     },
     "aniyomi": {
@@ -35,7 +35,7 @@
             "name": "Yuzono Anime",
             "path": "/yuzono/anime/index.min.json",
             "category": "aniyomi",
-            "commit": "07aedbc27c0cec619d0f5c908552a9442852faf0"
+            "commit": "ea760cc73b566a02a5717a934a161b76a4b78347"
         }
     }
 }
