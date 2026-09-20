@@ -28,7 +28,7 @@
             "name": "Secozzi",
             "path": "/secozzi/index.min.json",
             "category": "aniyomi",
-            "commit": "613fdffca07e771d268bfffb7cd91201ae8109b4"
+            "commit": "c6459f10e99a318ef3bfd080ab358e8051ab87b5"
         },
         "yuzono/anime": {
             "source": "https://github.com/yuzono/anime-repo@repo",
