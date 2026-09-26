@@ -36,20 +36,20 @@
         "@astrojs/check": "^0.9.10",
         "@astrojs/svelte": "^9.0.1",
         "@bradenmacdonald/s3-lite-client": "^1.0.0",
-        "@oxlint/plugins": "^1.83.0",
+        "@oxlint/plugins": "^1.85.0",
         "@types/node": "^26.6.2",
-        "astro": "^7.3.3",
+        "astro": "^7.3.5",
         "dax": "^0.50.0",
         "meilisearch": "^0.62.0",
         "minisearch": "^7.2.0",
         "oxfmt": "^0.68.0",
-        "oxlint": "^1.83.0",
+        "oxlint": "^1.85.0",
         "svelte": "^5.57.1",
         "tar": "^7.5.22",
-        "tsx": "^4.23.14",
+        "tsx": "^4.23.15",
         "typescript": "^6.0.3",
         "vitest": "^4.1.11",
-        "wrangler": "^4.135.0"
+        "wrangler": "^4.140.0"
     },
     "devEngines": {
         "runtime": {
