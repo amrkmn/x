@@ -80,6 +80,7 @@ function getMihonExtensions(index: JsonObject): JsonValue[] | undefined {
 async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boolean> {
     const url = `${(process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '')}/${key}`;
     let staleMirror = false;
+    let indexChanged = false;
 
     const rewrite = (
         res: JsonObject | undefined,
@@ -89,9 +90,14 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
     ): void => {
         if (!resUrl || !res) return;
         if (fileName && existsSync(join(dest, subdir, fileName))) {
-            res[resUrl] = `${url}/${subdir}/${fileName}`;
+            const mirroredUrl = `${url}/${subdir}/${fileName}`;
+            if (res[resUrl] !== mirroredUrl) {
+                res[resUrl] = mirroredUrl;
+                indexChanged = true;
+            }
         } else if (String(res[resUrl] ?? '').startsWith(`${url}/${subdir}/`)) {
             delete res[resUrl];
+            indexChanged = true;
             staleMirror = true;
         }
     };
@@ -122,13 +128,16 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
                 rewrite(res, 'iconUrl', 'icon', `${ext.packageName}.png`);
             }
         }
-        await writeFile(join(dest, 'index.json'), JSON.stringify(idx));
+        if (indexChanged) await writeFile(join(dest, 'index.json'), JSON.stringify(idx));
     } catch {}
 
     try {
         const repo: JsonObject = JSON.parse(await readFile(join(dest, 'repo.json'), 'utf8'));
-        repo.index_v2 = `${url}/index.pb`;
-        await writeFile(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
+        const mirroredIndex = `${url}/index.pb`;
+        if (repo.index_v2 !== mirroredIndex) {
+            repo.index_v2 = mirroredIndex;
+            await writeFile(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
+        }
     } catch {}
 
     return staleMirror;

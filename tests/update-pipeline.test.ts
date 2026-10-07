@@ -206,6 +206,38 @@ test('findExtensionUpdates rewrites mirrored repo index_v2 without requiring ups
     expect(repoJson.index_v2).toBe('https://mirror.example.com/alpha/index.pb');
 });
 
+test('findExtensionUpdates preserves unchanged mirrored index formatting', async () => {
+    process.env.PUBLIC_SITE_URL = 'https://mirror.example.com/';
+
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const originalIndex = JSON.stringify({ extensionList: { extensions: [] } }, null, 4);
+    const originalRepo = JSON.stringify(
+        { index_v2: 'https://mirror.example.com/alpha/index.pb', name: 'Alpha' },
+        null,
+        4
+    );
+
+    await setupTestRepo(alphaDir, { 'index.json': originalIndex, 'repo.json': originalRepo });
+    await setupTestRepo(join(staticDir, 'beta'));
+
+    const updates = await findExtensionUpdates(data, {
+        quick: false,
+        staticDir,
+        getRemoteHead: async () => 'oldhash',
+        loadSyncedCommits: async () =>
+            new Map([
+                ['/alpha/index.min.json', 'oldhash'],
+                ['/beta/index.min.json', 'oldhash']
+            ])
+    });
+
+    expect(updates).toHaveLength(0);
+    expect(await readFile(join(alphaDir, 'index.json'), 'utf8')).toBe(originalIndex);
+    expect(await readFile(join(alphaDir, 'repo.json'), 'utf8')).toBe(originalRepo);
+});
+
 test('findExtensionUpdates preserves external Mihon icon URLs without local icons', async () => {
     process.env.PUBLIC_SITE_URL = 'https://mirror.example.com/';
 
