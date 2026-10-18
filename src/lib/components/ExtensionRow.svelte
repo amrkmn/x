@@ -49,20 +49,9 @@
         <span class="lang">{extension.lang}</span>
     </td>
     <td class="action-cell" data-label="Action">
-        <a
-            href={extension.apkUrl || `${repoUrl}/apk/${extension.apk}`}
-            class="btn btn-primary btn-sm"
-        >
-            APK
-        </a>
-        {#if extension.category === 'mihon' && extension.apk}
-            <a
-                href={extension.jarUrl ||
-                    `${repoUrl}/jar/${extension.apk.replace(/\.apk$/, '.jar')}`}
-                class="btn btn-secondary btn-sm"
-            >
-                Jar
-            </a>
+        <a href={extension.apkUrl} class="btn btn-primary btn-sm">APK</a>
+        {#if extension.jarUrl}
+            <a href={extension.jarUrl} class="btn btn-secondary btn-sm">Jar</a>
         {/if}
     </td>
 </tr>
