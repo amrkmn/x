@@ -1,0 +1,31 @@
+name: Mirror to Forgejo
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    sync-to-forgejo:
+        runs-on: ubuntu-latest
+        if: github.server_url == 'https://github.com'
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  fetch-depth: 0
+
+            - name: Push to Forgejo
+              run: |
+                  git remote add forgejo "${{ secrets.FORGEJO_MIRROR_URL }}"
+                  git push forgejo 'refs/remotes/origin/*:refs/heads/*'
+                  git push forgejo --tags
