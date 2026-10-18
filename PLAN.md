@@ -12,7 +12,7 @@ This PR starts as a plan-only change and will track the implementation. Keep the
 - [ ] Phase 5 — Remove the artifact cache and binary host sync
 - [ ] Phase 6 — Bootstrap, cut over, and verify
 
-Progress 2026-10-19: Phase 0 complete (`f8e0a52`, `f21d151`, `9704cf2`). The encoder decode-proof runs with Phase 4 implementation; the final recount runs at bootstrap per Phase 6. No other phase gate is met yet.
+Progress 2026-10-19: Phase 0 complete (`f8e0a52`, `f21d151`, `9704cf2`). The encoder decode-proof runs with Phase 4 implementation; the final recount runs at bootstrap per Phase 6. Phase 1 in-repo work is done (Kohi-den removal, Forgejo check workflow, GitHub workflow trim); its gate waits on Forgejo-side sync, the first scheduled run, and mirror-push verification. No phase gate beyond Phase 0 is met yet.
 
 ## Confirmed scope
 
@@ -30,8 +30,9 @@ The Forgejo schedule is set to `0 */4 * * *` in UTC (every four hours).
 
 ## Current implementation
 
-- `extensions.json` currently contains two Mihon and three Aniyomi sources, including Kohi-den via the owner's Forgejo mirror; the target configuration removes Kohi-den.
-- `.github/workflows/update.yml` currently schedules `pnpm run update:check`, commits `extensions.json`, mirrors to GitLab, and can build/sync the site to DUFS.
+- `extensions.json` now contains two Mihon and two Aniyomi sources; Kohi-den was removed in Phase 1. The Secozzi path switch to `/secozzi/index.json` is still pending (Phase 3).
+- `.forgejo/workflows/check.yml` runs `pnpm run update:check` on `0 */4 * * *` UTC, formats, and commits only `extensions.json`, pushing through the Forgejo→GitHub mirror.
+- `.github/workflows/update.yml` no longer schedules, checks, or commits; on `main` pushes that touch `extensions.json` it mirrors to GitLab and syncs the site to DUFS.
 - `scripts/extensions.ts` downloads source repository contents into `static/`, including index files, icons, APKs, and JARs; it also generates the website's catalog and search data.
 - `scripts/task.ts`, `scripts/cache.ts`, and `scripts/cache/` implement the S3-compatible cache used to avoid re-materializing those files.
 - The frontend prefers `apkUrl`/`jarUrl` but can fall back to paths under a hosted repository URL (`src/lib/components/ExtensionRow.svelte`).
