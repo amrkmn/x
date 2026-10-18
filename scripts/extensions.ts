@@ -555,6 +555,99 @@ export async function findBinaryArtifacts(dir: string): Promise<string[]> {
     return found;
 }
 
+// Phase 3 icon backfill: wrapper sources (Keiyoushi, Cursed, Secozzi)
+// reference icons from their upstream repos via iconUrl, but the mirrored
+// repo branches do not always ship the icon files (Keiyoushi ships ~2 of
+// 1439). Download missing icons into the per-source icon/ dir so the
+// mirror rewrite can point at them; failures keep the upstream URL.
+// Flat-array sources (Anime) carry no iconUrl and are skipped by
+// construction; their branch-shipped icons use the frontend fallback.
+export const ICON_FETCH_CONCURRENCY = 8;
+export const ICON_FETCH_TIMEOUT_MS = 30_000;
+export const ICON_MAX_BYTES = 1024 * 1024;
+
+export interface IconFetchResult {
+    fetched: number;
+    skipped: number;
+    failed: number;
+}
+
+export async function fetchMissingIcons(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR,
+    fetcher: typeof fetch = fetch,
+    onlyKeys?: string[]
+): Promise<IconFetchResult> {
+    const result: IconFetchResult = { fetched: 0, skipped: 0, failed: 0 };
+    const scope = onlyKeys ? new Set(onlyKeys) : undefined;
+    const tasks: Array<() => Promise<void>> = [];
+
+    for (const [category, group] of Object.entries(data)) {
+        for (const [key, repo] of Object.entries(group)) {
+            if (scope && !scope.has(key)) continue;
+            let entries: JsonValue[];
+            try {
+                entries = await loadRepoExtensions(category, repo.path, staticDir);
+            } catch {
+                continue;
+            }
+            for (const raw of entries) {
+                if (!isMihonEntry(raw)) continue;
+                const pkg = isStringValue(raw.packageName) ? raw.packageName : '';
+                const resources = isJsonObject(raw.resources) ? raw.resources : undefined;
+                const iconUrl =
+                    resources && isStringValue(resources.iconUrl) ? resources.iconUrl : '';
+                if (!pkg || !iconUrl || !/^https?:\/\//.test(iconUrl)) continue;
+                if (pkg.includes('/') || pkg.includes('\\') || pkg.includes('..')) continue;
+                const dest = join(staticDir, key, 'icon', `${pkg}.png`);
+                if (existsSync(dest)) {
+                    result.skipped += 1;
+                    continue;
+                }
+                tasks.push(async () => {
+                    try {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), ICON_FETCH_TIMEOUT_MS);
+                        let response: Response;
+                        try {
+                            response = await fetcher(iconUrl, { signal: controller.signal });
+                        } finally {
+                            clearTimeout(timer);
+                        }
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        if (!response.headers.get('content-type')?.startsWith('image/')) {
+                            throw new Error('non-image content-type');
+                        }
+                        const bytes = new Uint8Array(await response.arrayBuffer());
+                        if (bytes.length === 0 || bytes.length > ICON_MAX_BYTES) {
+                            throw new Error(`unexpected size ${bytes.length}`);
+                        }
+                        await mkdir(join(staticDir, key, 'icon'), { recursive: true });
+                        await writeFile(dest, bytes);
+                        result.fetched += 1;
+                    } catch (error) {
+                        result.failed += 1;
+                        logger.warn(
+                            'extensions',
+                            `icon fetch skip pkg=${JSON.stringify(pkg)} error=${JSON.stringify(error instanceof Error ? error.message : String(error))}`
+                        );
+                    }
+                });
+            }
+        }
+    }
+
+    for (let index = 0; index < tasks.length; index += ICON_FETCH_CONCURRENCY) {
+        await Promise.all(tasks.slice(index, index + ICON_FETCH_CONCURRENCY).map((run) => run()));
+    }
+
+    logger.info(
+        'extensions',
+        `icons fetch complete fetched=${result.fetched} skipped=${result.skipped} failed=${result.failed}`
+    );
+    return result;
+}
+
 async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {
     const { url, branch } = parseSourceUrl(source);
     const branchArgs = branch ? ['--branch', branch] : [];
@@ -643,6 +736,10 @@ export async function materializeExtensions(
                     }
                 }
 
+                // Fetch wrapper icons missing from the branch before the
+                // mirror rewrite, so freshly copied indexes can point at
+                // local icon files immediately.
+                await fetchMissingIcons(data, STATIC_DIR, fetch, [key]);
                 await rewriteMirroredIndexFiles(dest, key);
 
                 data[category][key].commit = hash;

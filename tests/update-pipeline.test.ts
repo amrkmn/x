@@ -1,5 +1,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -8,6 +10,7 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 import { config } from '../scripts/config';
 import type { ExtensionsData } from '../scripts/extensions';
 import {
+    fetchMissingIcons,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -624,4 +627,93 @@ test('generateDataJson overlays release manifest URLs and keeps upstream URLs wi
 
     searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
     expect(searchIndex[0].apkUrl).toBe(upstreamApk);
+});
+
+test('fetchMissingIcons mirrors wrapper iconUrls and keeps upstream URLs on failure', async () => {
+    const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+    const server = createServer((req, res) => {
+        if (req.url === '/good.png') {
+            res.writeHead(200, { 'content-type': 'image/png' });
+            res.end(png);
+        } else if (req.url === '/text.png') {
+            res.writeHead(200, { 'content-type': 'text/plain' });
+            res.end('not an image');
+        } else {
+            res.writeHead(404);
+            res.end();
+        }
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    // SAFETY: server is bound to a TCP port above, so address() is AddressInfo.
+    const port = (server.address() as AddressInfo).port;
+
+    try {
+        const data: ExtensionsData = {
+            mihon: {
+                alpha: {
+                    name: 'Alpha Source',
+                    source: 'https://github.com/example/alpha',
+                    path: '/alpha/index.pb',
+                    category: 'mihon',
+                    commit: 'abc'
+                }
+            },
+            aniyomi: {
+                beta: {
+                    name: 'Beta Source',
+                    source: 'https://github.com/example/beta',
+                    path: '/beta/index.min.json',
+                    category: 'aniyomi',
+                    commit: 'abc'
+                }
+            }
+        };
+        const staticDir = join(testDir, 'static');
+        const alphaDir = join(staticDir, 'alpha');
+        const betaDir = join(staticDir, 'beta');
+
+        await mkdir(alphaDir, { recursive: true });
+        await mkdir(betaDir, { recursive: true });
+        await writeFile(
+            join(alphaDir, 'index.json'),
+            JSON.stringify({
+                extensionList: {
+                    extensions: [
+                        {
+                            packageName: 'good.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/good.png` }
+                        },
+                        {
+                            packageName: 'gone.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/gone.png` }
+                        },
+                        {
+                            packageName: 'text.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/text.png` }
+                        }
+                    ]
+                }
+            })
+        );
+        // Flat-array source without iconUrls is skipped by construction.
+        await writeFile(
+            join(betaDir, 'index.min.json'),
+            JSON.stringify([{ name: 'Beta', pkg: 'beta.pkg', apk: 'beta.apk' }])
+        );
+
+        const result = await fetchMissingIcons(data, staticDir);
+
+        expect(result).toEqual({ fetched: 1, skipped: 0, failed: 2 });
+        expect(existsSync(join(alphaDir, 'icon', 'good.pkg.png'))).toBe(true);
+        expect(existsSync(join(alphaDir, 'icon', 'gone.pkg.png'))).toBe(false);
+        expect(existsSync(join(alphaDir, 'icon', 'text.pkg.png'))).toBe(false);
+        expect(existsSync(join(betaDir, 'icon'))).toBe(false);
+
+        const again = await fetchMissingIcons(data, staticDir);
+        expect(again.fetched).toBe(0);
+        expect(again.skipped).toBe(1);
+        expect(again.failed).toBe(2);
+    } finally {
+        server.close();
+    }
 });
