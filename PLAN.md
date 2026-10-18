@@ -84,10 +84,11 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 ### Phase 1 — Move scheduled update checks to Forgejo
 
 - [ ] Configure the Forgejo runner schedule as `0 */4 * * *` UTC.
-- [ ] Remove Kohi-den from `extensions.json` and stop checking its owner's Forgejo mirror; the original upstream has stopped.
-- [ ] Reuse or adapt the existing `update:check` behavior to compare refs for the four retained sources and update only `extensions.json`.
+- [x] Remove Kohi-den from `extensions.json` and stop checking its owner's Forgejo mirror; the original upstream has stopped. (Done 2026-10-19; four sources remain. Only favicon/robots/sitemap are tracked under `static/`, so no generated files needed committing.)
+- [x] Reuse or adapt the existing `update:check` behavior to compare refs for the four retained sources and update only `extensions.json`. (No code change needed 2026-10-19: quick mode compares remote heads and writes only `extensions.json`; Kohi-den removal leaves exactly the four retained sources.)
+    - Runner procedure (external Forgejo, `0 */4 * * *` UTC): fresh checkout; `pnpm install --frozen-lockfile`; `pnpm run update:check`; `pnpm run format`; if `git diff --quiet -- extensions.json` then stop with no commit, else commit just that file and push through the Forgejo→GitHub mirror. Never run materialization or commit anything else on the runner. Pre-condition: sync the Forgejo repo with GitHub `main` first (Kohi-den removal + this workflow change), or the runner works from stale config.
 - [ ] Commit only `extensions.json` when source commit values change; configure the Forgejo mirror to push that commit to GitHub `main`.
-- [ ] Remove the scheduled update-check and update-commit responsibility from `.github/workflows/update.yml`.
+- [x] Remove the scheduled update-check and update-commit responsibility from `.github/workflows/update.yml`. (Done 2026-10-19: schedule trigger and check/format/commit steps removed; `push` is paths-filtered to `extensions.json`; permissions dropped to `contents: read`; DUFS gate preserved via a `setup` job. GitHub no longer commits, so the mirror cannot diverge.)
 - [ ] Verify a real Forgejo mirror push produces a GitHub `push` event; do not have the release workflow commit generated state back to `main`.
 
 **Gate:** An upstream revision change produces one Forgejo commit limited to `extensions.json` and starts the intended GitHub workflow; an unchanged check produces no commit or release run.
