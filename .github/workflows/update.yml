@@ -1,12 +1,13 @@
 name: Update Extensions
 
 on:
-    push:
+    workflow_run:
+        workflows:
+            - Publish Release Artifacts
+        types:
+            - completed
         branches:
             - main
-        paths:
-            - extensions.json
-    workflow_dispatch:
 
 permissions:
     contents: read
@@ -18,7 +19,7 @@ concurrency:
 jobs:
     setup:
         runs-on: ubuntu-latest
-        if: github.server_url == 'https://github.com'
+        if: github.server_url == 'https://github.com' && github.event.workflow_run.conclusion == 'success'
         outputs:
             dufs_enabled: ${{ steps.dufs.outputs.enabled }}
 
@@ -37,13 +38,13 @@ jobs:
 
     sync-to-gitlab:
         runs-on: ubuntu-latest
-        if: github.server_url == 'https://github.com'
+        if: github.server_url == 'https://github.com' && github.event.workflow_run.conclusion == 'success'
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
-                  ref: main
+                  ref: ${{ github.event.workflow_run.head_sha || 'main' }}
                   fetch-depth: 0
 
             - name: Sync to GitLab
@@ -55,13 +56,13 @@ jobs:
     sync-to-dufs:
         runs-on: ubuntu-latest
         needs: setup
-        if: needs.setup.outputs.dufs_enabled == 'true' && github.server_url == 'https://github.com'
+        if: needs.setup.outputs.dufs_enabled == 'true' && github.server_url == 'https://github.com' && github.event.workflow_run.conclusion == 'success'
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
-                  ref: main
+                  ref: ${{ github.event.workflow_run.head_sha || 'main' }}
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
