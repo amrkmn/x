@@ -44,7 +44,7 @@ jobs:
               if: steps.update.outputs.updated == 'true'
               run: |
                   git config --local user.name "forgejo-actions[bot]"
-                  git config --local user.email "forgejo-actions[bot]@users.noreply.example.com"
+                  git config --local user.email "forgejo-actions[bot]@noreply.noz.one"
                   git add extensions.json
                   git diff-index --quiet HEAD || git commit -m "chore: update extensions.json"
                   git push
