@@ -6,6 +6,7 @@ import { refreshMetadata, restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import {
     applyCommitUpdates,
+    fetchMissingIcons,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -153,6 +154,9 @@ async function updateExtensions(
         // the next restore doesn't resurrect files for deleted extensions.json
         // entries (e.g. a deprecated repo removed after a cache was saved).
         if (pruned > 0 && useCache) await saveStaticCache();
+        // Backfill wrapper icons missing from the mirrored branches without
+        // requiring an upstream revision change.
+        await fetchMissingIcons(data);
         return;
     }
 
@@ -162,6 +166,9 @@ async function updateExtensions(
     }
 
     const { changed, failures } = await materializeExtensions(data, updates);
+    // Materialization fetches icons per updated key; cover unchanged keys
+    // whose branches never shipped their icons.
+    await fetchMissingIcons(data);
     await finalizeFullUpdate(command, useCache, data, changed);
     reportMaterializeFailures(failures);
 }
