@@ -18,12 +18,13 @@ This PR starts as a plan-only change and will track the implementation. Keep the
 - Retire Kohi-den: its original upstream has stopped, and its current mirror is served from the owner's Forgejo instance. Keep the other four sources (two Mihon and two Aniyomi).
 - Publish APKs and available Mihon JARs as GitHub Release assets in the existing `amrkmn/x` repository; do not create a second artifact repository.
 - Use immutable releases and upload only new or changed binary artifacts. Retain prior release assets.
-- Use the Forgejo runner for the scheduled upstream check. It commits changes to `extensions.json` and mirrors them to GitHub.
+- Use the Forgejo runner on the confirmed schedule `0 */4 * * *` UTC. It commits changes to `extensions.json` and mirrors them to GitHub.
 - Use GitHub Actions for release publication, triggered by a `main` push that changes `extensions.json`.
+- Preserve the upstream-signed Mihon `index.pb` unchanged. Website download buttons use mirrored Releases; Mihon app clients may continue downloading from upstream URLs in that signed index.
 - Remove the R2/S3 artifact cache and stop sending APK/JAR files to Cloudflare Workers, Render, or the VPS/DUFS deployment.
-- This initial change is documentation only. Do not start implementation until the plan is reviewed.
+- The PR began as plan-only; implementation changes will follow the reviewed phases and stay tracked in this PR.
 
-The exact Forgejo cron expression and timezone have not been chosen; do not carry over the current GitHub Actions schedule by default.
+The Forgejo schedule is set to `0 */4 * * *` in UTC (every four hours).
 
 ## Current implementation
 
@@ -52,7 +53,7 @@ These are current versions only, not all historical upstream releases, and count
 
 ## Target flow
 
-1. **Forgejo checks upstreams.** First remove Kohi-den from `extensions.json`; its original upstream has stopped, so do not poll or republish the owner's Forgejo mirror. The scheduled runner then checks the four retained sources, changes only their source commit values, and commits only when values changed. Forgejo's GitHub mirror push is the event that starts the GitHub workflow.
+1. **Forgejo checks upstreams.** First remove Kohi-den from `extensions.json`; its original upstream has stopped, so do not poll or republish the owner's Forgejo mirror. On `0 */4 * * *` UTC, the runner checks the four retained sources, changes only their source commit values, and commits only when values changed. Forgejo's GitHub mirror push is the event that starts the GitHub workflow.
 2. **GitHub publishes binaries.** A workflow on `main` runs only when `extensions.json` changes. It reads the updated source indexes, finds the current APKs and available Mihon JARs, hashes them, and compares them with the last published asset manifest.
 3. **GitHub creates immutable releases when binaries changed.** Upload only changed files; never replace an asset in an existing release. Include a full current `release-assets.json` snapshot with each release. The snapshot maps source/package/artifact kind to version, filename, SHA-256, and the immutable release URL. Keep the manifest in release assets rather than committing generated state back to `main`, so GitHub does not diverge from Forgejo's mirrored branch. The initial bootstrap is split across at least four releases for the current 3,144-file inventory, with no more than 999 binaries plus one manifest per release. Do not publish the catalog until all bootstrap releases are complete.
 4. **Catalog/site deployment follows publication.** Generate or refresh the lightweight site catalog and search data using the immutable URLs from the current asset manifest. Publish required repository indexes and site files only after their referenced release assets exist.
@@ -77,7 +78,7 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 ### Phase 1 — Move scheduled update checks to Forgejo
 
-- [ ] Configure the Forgejo runner schedule with an explicit cron expression and timezone.
+- [ ] Configure the Forgejo runner schedule as `0 */4 * * *` UTC.
 - [ ] Remove Kohi-den from `extensions.json` and stop checking its owner's Forgejo mirror; the original upstream has stopped.
 - [ ] Reuse or adapt the existing `update:check` behavior to compare refs for the four retained sources and update only `extensions.json`.
 - [ ] Commit only `extensions.json` when source commit values change; configure the Forgejo mirror to push that commit to GitHub `main`.
@@ -112,11 +113,11 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 - [ ] Make website APK and Mihon JAR links resolve to explicit immutable URLs from `release-assets.json`; remove fallback links to hosted `/apk/` or `/jar/` paths.
 - [ ] Preserve the existing Add Repo / Copy Index URL behavior, mirror selector, and hosted repository paths.
-- [ ] Verify the Mihon `index.pb` and `repo.json` behavior before changing their contents. The current code rewrites JSON metadata but serves the protobuf index to Mihon clients; do not rewrite a signed index unless a valid signing/regeneration path is available.
+- [ ] Preserve the upstream-signed Mihon `index.pb` and its repository endpoint unchanged. Route website APK/JAR buttons to the new Releases; document that Mihon app clients may still download directly from upstream URLs in the signed index.
 - [ ] Ensure the remaining Aniyomi index entries resolve to the release URLs without relying on hosted APK directories; Kohi-den must not appear in the current index.
 - [ ] Test direct downloads for representative Mihon and Aniyomi extensions, including one source with no JAR if applicable.
 
-**Gate:** Website downloads and app repository clients have documented, verified URL behavior; no advertised download points at a removed hosted binary path.
+**Gate:** Website download buttons resolve to immutable Releases; Mihon app clients continue to use the unchanged upstream-signed index; no website link points at a removed hosted binary path.
 
 ### Phase 5 — Remove the artifact cache and binary host sync
 
@@ -137,15 +138,15 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 - [ ] Run the existing checks (`pnpm test`, `pnpm check`, `pnpm lint`, and production build) and record results in the PR.
 - [ ] Update these phase checkboxes and the PR checklist as each phase is completed.
 
-**Gate:** Exactly four sources (two Mihon, two Aniyomi) remain advertised; Kohi-den is absent from current catalogs and is not polled or republished. Secozzi's selected index exposes the intended three APKs. All advertised APK/JAR URLs resolve to GitHub Releases; hosted output contains no APK/JAR files; no release exceeds 1,000 assets; repeated publishing of unchanged sources is a no-op.
+**Gate:** Exactly four sources (two Mihon, two Aniyomi) remain advertised; Kohi-den is absent from current catalogs and is not polled or republished. Secozzi's selected index exposes the intended three APKs. Website APK/JAR buttons resolve to GitHub Releases, while Mihon app clients use the unchanged source-signed index. Hosted output contains no APK/JAR files; no release exceeds 1,000 assets; repeated publishing of unchanged sources is a no-op.
 
 ## Risks and decisions to resolve
 
-- **Mihon protobuf/signing:** `repo.json` currently advertises `index.pb`. Verify whether its download URLs can be changed without the signing key and whether Mihon accepts the intended index. If not, preserve the upstream signed index and explicitly document that app-client downloads may remain upstream; do not make the site appear to provide a mirrored app repository when it does not.
+- **Mihon app downloads:** By choice, preserve the upstream-signed `index.pb`; Mihon app clients may continue downloading APKs from upstream. If mirrored in-app downloads become a requirement later, treat index signing/regeneration as a separate design change.
 - **Source differences:** The four retained sources may differ in artifact URL shape and JAR availability. Validate each source before standardizing the fetcher; skip JARs that are not offered rather than inventing URLs. Kohi-den is retired and must not be fetched from the owner's Forgejo mirror.
 - **Secozzi index path:** The configured `index.min.json` contains one obsolete placeholder, while `index.json` and `release-assets.json` contain three active APKs. Resolve this before implementing the fetcher or changing hosted catalog paths.
 - **Publish/deploy ordering:** Render, Workers, and the VPS may deploy on independent triggers. Ensure catalogs cannot advertise release assets before GitHub has published them.
 - **Release asset cap:** The current inventory estimate is 3,144 binaries, so the initial import cannot fit in one release; plan at least four bootstrap releases, with at most 999 binaries plus one manifest each, and recount before publishing.
 - **Release history:** Historical assets remain available. Current catalog entries should point to each asset's immutable release URL, not a mutable `latest` URL.
 - **Cutover safety:** Do not remove hosted APK/JAR files until the initial release and all generated URLs have been verified.
-- **Schedule:** The Forgejo cron/timezone is still to be chosen; the existing four-hour GitHub schedule is not an agreed target.
+- **Schedule:** Forgejo will check every four hours using `0 */4 * * *` UTC.
