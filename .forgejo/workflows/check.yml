@@ -30,7 +30,7 @@ jobs:
                   cache: pnpm
 
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+              run: pnpm ci
 
             - name: Check extension updates
               id: update
