@@ -12,6 +12,8 @@ This PR starts as a plan-only change and will track the implementation. Keep the
 - [ ] Phase 5 — Remove the artifact cache and binary host sync
 - [ ] Phase 6 — Bootstrap, cut over, and verify
 
+Progress 2026-10-19: Phase 0 is 8/10 items (`f8e0a52`, `f21d151`); remaining are the encoder decode-proof and the final recount at bootstrap. No phase gate is met yet, so all phase boxes stay unchecked.
+
 ## Confirmed scope
 
 - Keep the Mihon/Aniyomi website and its lightweight catalog, search data, indexes, and other required small files on the existing hosted sites.
@@ -35,9 +37,9 @@ The Forgejo schedule is set to `0 */4 * * *` in UTC (every four hours).
 - The frontend prefers `apkUrl`/`jarUrl` but can fall back to paths under a hosted repository URL (`src/lib/components/ExtensionRow.svelte`).
 - The local Keiyoushi artifact-repository example uses release URLs in its catalog and a `release-assets.json` index containing asset names and SHA-256 values. Use it as a reference, not as an assumption that all four retained sources expose artifacts identically.
 
-## Current artifact estimate
+## Current artifact inventory
 
-Inventory of the current/latest artifact set at the source commits currently pinned in `extensions.json` (excluding retired Kohi-den):
+Validated 2026-10-19 against the source commits currently pinned in `extensions.json` (excluding retired Kohi-den):
 
 | Source        | Pinned ref |      APKs |      JARs | Total files |
 | ------------- | ---------- | --------: | --------: | ----------: |
@@ -49,7 +51,7 @@ Inventory of the current/latest artifact set at the source commits currently pin
 
 These are current versions only, not all historical upstream releases, and count each source artifact separately without cross-source hash deduplication. Recount from the pinned source indexes immediately before the bootstrap.
 
-**Secozzi index discrepancy:** `extensions.json` currently selects `/secozzi/index.min.json`, which contains one outdated Animiru placeholder. At the same pinned ref, `index.json` and `release-assets.json` list three current APKs (Jellyfin, Stremio, Torbox). Resolve the correct catalog path or artifact-discovery source in Phase 0; do not silently treat the placeholder as those three artifacts.
+**Secozzi index path (resolved 2026-10-19):** `extensions.json` still selects `/secozzi/index.min.json`, a stale single Animiru placeholder. The authoritative catalog is `index.json` (a `NetworkExtensionStore` wrapper) plus `release-assets.json`, listing three current APKs (Jellyfin, Stremio, Torbox) at the pinned ref. Implementation must set the source path to `/secozzi/index.json` and parse the wrapper without changing the Aniyomi category.
 
 ## Target flow
 
@@ -147,10 +149,10 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 ## Risks and decisions to resolve
 
-- **Mihon index integrity:** The mirror may regenerate `index.pb` with Release URLs without the upstream private key, but must preserve the source store's APK `signingKey` and mirror APK bytes exactly. Mihon rejects APKs whose signatures do not match that key.
-- **Source differences:** The four retained sources may differ in artifact URL shape and JAR availability. Validate each source before standardizing the fetcher; skip JARs that are not offered rather than inventing URLs. Kohi-den is retired and must not be fetched from the owner's Forgejo mirror.
-- **Secozzi index path:** The configured `index.min.json` is a stale placeholder; `index.json` and `release-assets.json` contain three active APKs. Use the latter data and update the catalog parser/path.
-- **Publish/deploy ordering:** Render, Workers, and the VPS may deploy on independent triggers. Ensure catalogs cannot advertise release assets before GitHub has published them.
+- **Mihon index integrity:** The mirror may regenerate `index.pb` with Release URLs without the upstream private key, but must preserve the source store's APK `signingKey` and mirror APK bytes exactly. Mihon rejects APKs whose signatures do not match that key. Encoder selected (protobufjs, schema transcribed from `NetworkExtensionStore.kt`); the executable decode-proof is still required before cutover.
+- **Source differences:** The four retained sources differ in artifact URL shape and JAR availability. Layouts validated 2026-10-19 against pinned refs (Keiyoushi/Cursed: release-download APK+JAR URLs; Secozzi: release-download APKs, no JAR; Anime: `apk/` git-tree, no JAR); skip JARs that are not offered rather than inventing URLs. Kohi-den is retired and must not be fetched from the owner's Forgejo mirror.
+- **Secozzi index path:** Resolved 2026-10-19 — the configured `index.min.json` is a stale placeholder; `index.json` and `release-assets.json` contain the three active APKs. Use the latter data and update the catalog parser/path, keeping the Aniyomi category.
+- **Publish/deploy ordering:** Render, Workers, and the VPS may deploy on independent triggers. Rule decided 2026-10-19: the release publisher runs first; site deployments trigger only after referenced release assets exist, and site builds fetch the manifest from GitHub Releases, never from `main`. Catalogs must not advertise release assets before GitHub has published them.
 - **Release asset cap:** The current inventory estimate is 3,144 binaries, so the initial import cannot fit in one release; plan at least four bootstrap releases, with at most 999 binaries plus one manifest each, and recount before publishing.
 - **Release history:** Historical assets remain available. Current catalog entries should point to each asset's immutable release URL, not a mutable `latest` URL.
 - **Cutover safety:** Do not remove hosted APK/JAR files until the initial release and all generated URLs have been verified.
