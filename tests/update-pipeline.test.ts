@@ -16,8 +16,11 @@ import {
     generateDataJson,
     loadExtensionsData,
     pruneBinaryDirs,
-    pruneRemovedRepos
+    pruneRemovedRepos,
+    refreshMirrorIndexPb
 } from '../scripts/extensions';
+import { decodeIndexPb } from '../scripts/mihon-index';
+import { isRecord } from '../scripts/release-publisher/json';
 
 let testDir: string;
 const savedEnv = { PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL };
@@ -716,4 +719,161 @@ test('fetchMissingIcons mirrors wrapper iconUrls and keeps upstream URLs on fail
     } finally {
         server.close();
     }
+});
+
+test('generateDataJson synthesizes pinned upstream apkUrls for flat entries', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const betaDir = join(staticDir, 'beta');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+    const upstreamApk = 'https://raw.githubusercontent.com/example/beta/oldhash2/apk/beta.apk';
+
+    await mkdir(betaDir, { recursive: true });
+    await writeFile(
+        join(betaDir, 'index.min.json'),
+        JSON.stringify([
+            {
+                name: 'Beta Extension',
+                pkg: 'beta.pkg',
+                version: '2.0.0',
+                lang: 'ja',
+                apk: 'beta.apk',
+                nsfw: 0
+            }
+        ])
+    );
+
+    // No manifest: flat entries resolve to the pinned upstream file, never
+    // a hosted /apk/ path.
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+    let searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex).toHaveLength(1);
+    expect(searchIndex[0].apkUrl).toBe(upstreamApk);
+
+    // A manifest covering the package wins over the upstream URL.
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/beta-beta.apk';
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir,
+        manifest: {
+            beta: {
+                'beta.pkg': {
+                    apk: {
+                        name: 'beta-beta.apk',
+                        sha256: 'a'.repeat(64),
+                        version: '2.0.0',
+                        source: 'beta',
+                        kind: 'apk',
+                        url: releaseUrl
+                    }
+                }
+            }
+        }
+    });
+    searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(releaseUrl);
+});
+
+test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb for Mihon', async () => {
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const betaDir = join(staticDir, 'beta');
+    await mkdir(alphaDir, { recursive: true });
+    await mkdir(betaDir, { recursive: true });
+
+    const upstreamApk = 'https://upstream.example/alpha.apk';
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            name: 'Alpha',
+            badgeLabel: 'A',
+            signingKey: 'deadbeef',
+            contact: { website: 'https://example.test' },
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Covered',
+                        packageName: 'covered.pkg',
+                        resources: { apkUrl: upstreamApk },
+                        extensionLib: '1.6',
+                        versionCode: '106004',
+                        versionName: '1.0.0',
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        sources: [{ id: '1', name: 'Covered', language: 'en' }]
+                    },
+                    {
+                        name: 'Uncovered',
+                        packageName: 'uncovered.pkg',
+                        resources: { apkUrl: 'https://upstream.example/other.apk' },
+                        extensionLib: '1.6',
+                        versionCode: '106005',
+                        versionName: '1.0.0',
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        sources: [{ id: '2', name: 'Uncovered', language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-covered.apk';
+    const regenerated = await refreshMirrorIndexPb('mihon', 'alpha', staticDir, {
+        alpha: {
+            'covered.pkg': {
+                apk: {
+                    name: 'alpha-covered.apk',
+                    sha256: 'a'.repeat(64),
+                    version: '1.0.0',
+                    source: 'alpha',
+                    kind: 'apk',
+                    url: releaseUrl
+                }
+            }
+        }
+    });
+
+    expect(regenerated).toBe(true);
+    const index = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
+    const entries = index.extensionList.extensions;
+    expect(entries[0].resources.apkUrl).toBe(releaseUrl);
+    expect(entries[1].resources.apkUrl).toBe('https://upstream.example/other.apk');
+
+    const decoded = decodeIndexPb(await readFile(join(alphaDir, 'index.pb')));
+    expect(decoded.signingKey).toBe('deadbeef');
+    const decodedList = decoded.extensionList;
+    if (!isRecord(decodedList) || !Array.isArray(decodedList.extensions)) {
+        throw new Error('bad shape');
+    }
+    const decodedEntries = decodedList.extensions.filter(isRecord);
+    expect(decodedEntries).toHaveLength(2);
+    const decodedResources = decodedEntries.map((entry) => {
+        if (!isRecord(entry.resources)) throw new Error('bad shape');
+        return entry.resources;
+    });
+    expect(decodedResources[0].apkUrl).toBe(releaseUrl);
+    expect(decodedResources[1].apkUrl).toBe('https://upstream.example/other.apk');
+
+    // Aniyomi sources keep their copied index.pb; flat categories are skipped.
+    await writeFile(join(betaDir, 'index.min.json'), JSON.stringify([]));
+    expect(await refreshMirrorIndexPb('aniyomi', 'beta', staticDir)).toBe(false);
+    expect(existsSync(join(betaDir, 'index.pb'))).toBe(false);
+
+    // Without a manifest the pb still regenerates with upstream URLs kept.
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            name: 'Alpha',
+            extensionList: { extensions: [] }
+        })
+    );
+    expect(await refreshMirrorIndexPb('mihon', 'alpha', staticDir)).toBe(true);
+    expect(decodeIndexPb(await readFile(join(alphaDir, 'index.pb'))).name).toBe('Alpha');
 });

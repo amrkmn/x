@@ -10,6 +10,8 @@ import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
 import { logger } from './log';
+import { encodeIndexPb } from './mihon-index';
+import { flatUpstreamApkUrl } from './release-publisher/sources';
 import { manifestAsset, parseReleaseManifest } from './release-publisher/manifest';
 import type { ReleaseManifest } from './release-publisher/types';
 import type { ExtensionConfig } from './types';
@@ -272,7 +274,7 @@ function applyManifestUrls(
     if (jar) entry.jarUrl = jar.url;
 }
 
-async function loadReleaseManifest(
+export async function loadReleaseManifest(
     options: GenerateDataOptions
 ): Promise<ReleaseManifest | undefined> {
     if (options.manifest) return options.manifest;
@@ -347,6 +349,13 @@ async function generateSearchIndexJson(
                         `index entry skip reason="invalid_entry" path=${JSON.stringify(entryPath)} error=${JSON.stringify(error instanceof Error ? error.message : String(error))}`
                     );
                     continue;
+                }
+                // Flat Aniyomi indexes carry no apkUrl; synthesize the pinned
+                // upstream download URL so website buttons never point at the
+                // removed hosted /apk/ paths. The manifest overlay replaces
+                // these with immutable release URLs when it covers them.
+                if (!extension.apkUrl && extension.apk && repo.commit) {
+                    extension.apkUrl = flatUpstreamApkUrl(repo.source, repo.commit, extension.apk);
                 }
                 applyManifestUrls(extension, manifest, key);
                 entries.push(extension);
@@ -701,9 +710,54 @@ export async function pruneRemovedRepos(
     return pruned;
 }
 
+export interface MaterializeOptions {
+    // Latest complete release-assets.json snapshot. Covered index.json
+    // apkUrls are rewritten to release URLs before the mirror index.pb is
+    // regenerated; without one, upstream URLs are kept (no cutover).
+    manifest?: ReleaseManifest;
+}
+
+// Phase 4: point covered index.json apkUrls at release URLs and regenerate
+// the mirror-owned index.pb from the final index.json (Mihon sources only;
+// Aniyomi-side stores use a different wire variant and keep their copy).
+// Returns true when index.pb was regenerated.
+export async function refreshMirrorIndexPb(
+    category: string,
+    key: string,
+    staticDir = STATIC_DIR,
+    manifest?: ReleaseManifest
+): Promise<boolean> {
+    if (!isMihonIndex(category)) return false;
+    const indexFile = join(staticDir, key, 'index.json');
+    if (!existsSync(indexFile)) return false;
+    const wrapper: JsonObject = JSON.parse(await readFile(indexFile, 'utf8'));
+    const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
+    const rawExtensions = list && Array.isArray(list.extensions) ? list.extensions : [];
+    let overlaid = 0;
+    for (const raw of rawExtensions) {
+        if (!isJsonObject(raw)) continue;
+        const resources = isJsonObject(raw.resources) ? raw.resources : undefined;
+        const packageName = isStringValue(raw.packageName) ? raw.packageName : '';
+        if (!resources || !packageName || !manifest) continue;
+        const asset = manifestAsset(manifest, key, packageName, 'apk');
+        if (asset && resources.apkUrl !== asset.url) {
+            resources.apkUrl = asset.url;
+            overlaid += 1;
+        }
+    }
+    if (overlaid > 0) await writeFile(indexFile, JSON.stringify(wrapper));
+    await writeFile(join(staticDir, key, 'index.pb'), encodeIndexPb(wrapper));
+    logger.info(
+        'extensions',
+        `mirror index.pb regenerate key=${JSON.stringify(key)} overlaid=${overlaid}`
+    );
+    return true;
+}
+
 export async function materializeExtensions(
     data: ExtensionsData,
-    updates: ExtensionUpdate[]
+    updates: ExtensionUpdate[],
+    options: MaterializeOptions = {}
 ): Promise<MaterializeResult> {
     if (updates.length === 0) return { changed: false, failures: [] };
 
@@ -741,6 +795,7 @@ export async function materializeExtensions(
                 // local icon files immediately.
                 await fetchMissingIcons(data, STATIC_DIR, fetch, [key]);
                 await rewriteMirroredIndexFiles(dest, key);
+                await refreshMirrorIndexPb(category, key, STATIC_DIR, options.manifest);
 
                 data[category][key].commit = hash;
                 changed = true;

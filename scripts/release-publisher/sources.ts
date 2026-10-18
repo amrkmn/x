@@ -78,6 +78,13 @@ function rawUrl(source: string, commit: string, path: string): string {
     return `https://raw.githubusercontent.com/${owner}/${repo}/${commit}/${encodedPath}`;
 }
 
+// Pinned upstream download URL for a flat-index APK. Shared by the release
+// publisher (candidate discovery) and the website catalog (entries whose
+// indexes carry no apkUrl), so both resolve the same bytes.
+export function flatUpstreamApkUrl(source: string, commit: string, fileName: string): string {
+    return rawUrl(source, commit, `apk/${fileName}`);
+}
+
 async function fetchJson(fetcher: typeof fetch, url: string): Promise<JsonValue> {
     const response = await fetcher(url);
     if (!response.ok) throw new Error(`Fetch failed (${response.status}): ${url}`);
@@ -195,7 +202,6 @@ function addFlatCandidates(
 ): void {
     if (!Array.isArray(index))
         throw new Error(`Invalid Aniyomi index for ${source}: expected array`);
-    const { owner, repo } = sourceRepo(sourceConfig.source);
     const commit = requiredString(sourceConfig.commit, `${source} pinned commit`);
 
     for (const [indexEntry, value] of index.entries()) {
@@ -221,7 +227,7 @@ function addFlatCandidates(
             kind: 'apk',
             ...metadata,
             upstreamName,
-            downloadUrl: `https://raw.githubusercontent.com/${owner}/${repo}/${commit}/apk/${encodeURIComponent(upstreamName)}`
+            downloadUrl: flatUpstreamApkUrl(sourceConfig.source, commit, upstreamName)
         });
     }
 }

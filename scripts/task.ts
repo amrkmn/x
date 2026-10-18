@@ -11,6 +11,7 @@ import {
     findExtensionUpdates,
     generateDataJson,
     loadExtensionsData,
+    loadReleaseManifest,
     materializeExtensions,
     pruneBinaryDirs,
     pruneRemovedRepos,
@@ -88,7 +89,8 @@ async function finalizeFullUpdate(
     command: 'static' | 'full',
     useCache: boolean,
     data: Awaited<ReturnType<typeof loadExtensionsData>>,
-    changed: boolean
+    changed: boolean,
+    manifest: Awaited<ReturnType<typeof loadReleaseManifest>>
 ): Promise<void> {
     if (!changed) {
         await persistQuickUpdates(false);
@@ -99,7 +101,7 @@ async function finalizeFullUpdate(
     logger.info('task', 'extensions_json updated=true');
 
     if (command === 'full') {
-        await generateDataJson(data);
+        await generateDataJson(data, { manifest });
         if (useCache) await refreshMetadata(await generateCacheKey(), CACHE_PATHS);
         await updateMeilisearch();
         if (useCache) await saveStaticCache();
@@ -165,11 +167,14 @@ async function updateExtensions(
         return;
     }
 
-    const { changed, failures } = await materializeExtensions(data, updates);
+    // One manifest snapshot for the whole run so index.json, index.pb, and
+    // the search index agree; absent without a publisher run (no cutover).
+    const manifest = await loadReleaseManifest({});
+    const { changed, failures } = await materializeExtensions(data, updates, { manifest });
     // Materialization fetches icons per updated key; cover unchanged keys
     // whose branches never shipped their icons.
     await fetchMissingIcons(data);
-    await finalizeFullUpdate(command, useCache, data, changed);
+    await finalizeFullUpdate(command, useCache, data, changed, manifest);
     reportMaterializeFailures(failures);
 }
 
