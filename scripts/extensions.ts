@@ -10,6 +10,8 @@ import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
 import { logger } from './log';
+import { manifestAsset, parseReleaseManifest } from './release-publisher/manifest';
+import type { ReleaseManifest } from './release-publisher/types';
 import type { ExtensionConfig } from './types';
 import { parseExtensionsData } from './validation';
 
@@ -46,6 +48,11 @@ interface GenerateDataOptions {
     dataFile?: string;
     searchIndexFile?: string;
     staticDir?: string;
+    // Latest complete release-assets.json snapshot. Absent while the
+    // publisher has not run: entries keep their upstream URLs (no cutover;
+    // Phase 4 owns switching website/app links to release URLs).
+    manifest?: ReleaseManifest;
+    manifestFile?: string;
 }
 
 interface FindExtensionUpdatesOptions {
@@ -183,6 +190,12 @@ function isMihonIndex(category: string): boolean {
     return category === 'mihon';
 }
 
+// Secozzi keeps its Aniyomi category but serves a Mihon-style wrapper;
+// detect wrapper entries by shape rather than category.
+function isMihonEntry(raw: JsonValue): raw is JsonObject {
+    return isJsonObject(raw) && (isStringValue(raw.packageName) || isJsonObject(raw.resources));
+}
+
 async function loadRepoExtensions(
     category: string,
     repoPath: string,
@@ -208,10 +221,14 @@ async function loadRepoExtensions(
     const repoFile = join(staticDir, repoPath.replace(/^\//, ''));
     if (!existsSync(repoFile)) return [];
     const rawIndex: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
-    if (!Array.isArray(rawIndex)) {
-        throw new Error(`Invalid extension index at ${repoPath}: expected array`);
+    if (Array.isArray(rawIndex)) return rawIndex;
+    // Shape-aware: Secozzi's authoritative index.json is a Mihon-style
+    // NetworkExtensionStore wrapper despite its Aniyomi category.
+    if (isJsonObject(rawIndex)) {
+        const list = getMihonExtensions(rawIndex);
+        if (list) return list;
     }
-    return rawIndex;
+    throw new Error(`Invalid extension index at ${repoPath}: expected array`);
 }
 
 // Map a mihon wrapper entry to the search shape (packageName/resources/…).
@@ -241,10 +258,42 @@ function entryFromMihon(raw: JsonObject): JsonObject {
     return entry;
 }
 
+// Overlay immutable release URLs onto a search entry when the manifest
+// covers its package; upstream URLs are kept otherwise.
+function applyManifestUrls(
+    entry: SearchIndexEntry,
+    manifest: ReleaseManifest | undefined,
+    sourceKey: string
+): void {
+    if (!manifest) return;
+    const apk = manifestAsset(manifest, sourceKey, entry.pkg, 'apk');
+    if (apk) entry.apkUrl = apk.url;
+    const jar = manifestAsset(manifest, sourceKey, entry.pkg, 'jar');
+    if (jar) entry.jarUrl = jar.url;
+}
+
+async function loadReleaseManifest(
+    options: GenerateDataOptions
+): Promise<ReleaseManifest | undefined> {
+    if (options.manifest) return options.manifest;
+    const file = options.manifestFile ?? process.env.RELEASE_MANIFEST_FILE;
+    if (!file) return undefined;
+    try {
+        return parseReleaseManifest(JSON.parse(await readFile(file, 'utf8')));
+    } catch {
+        logger.warn(
+            'data',
+            `release manifest skip reason="unreadable" file=${JSON.stringify(file)}`
+        );
+        return undefined;
+    }
+}
+
 async function generateSearchIndexJson(
     data: ExtensionsData,
     staticDir = STATIC_DIR,
-    searchIndexFile = SEARCH_INDEX_FILE
+    searchIndexFile = SEARCH_INDEX_FILE,
+    manifest?: ReleaseManifest
 ): Promise<void> {
     logger.info('search', 'index generate start file="indexes.json"');
 
@@ -252,7 +301,7 @@ async function generateSearchIndexJson(
     let reposScanned = 0;
 
     for (const [category, repos] of Object.entries(data)) {
-        for (const [, repo] of Object.entries(repos)) {
+        for (const [key, repo] of Object.entries(repos)) {
             const rawIndex = await loadRepoExtensions(category, repo.path, staticDir);
             if (rawIndex.length === 0) {
                 logger.warn(
@@ -274,7 +323,7 @@ async function generateSearchIndexJson(
                 let extension: SearchIndexEntry;
                 try {
                     let parsed: JsonObject | Extension;
-                    if (isMihonIndex(category)) {
+                    if (isMihonIndex(category) || isMihonEntry(rawExtension)) {
                         if (!isJsonObject(rawExtension)) {
                             throw new Error(`Invalid Mihon entry at ${entryPath}`);
                         }
@@ -299,6 +348,7 @@ async function generateSearchIndexJson(
                     );
                     continue;
                 }
+                applyManifestUrls(extension, manifest, key);
                 entries.push(extension);
             }
         }
@@ -322,6 +372,7 @@ export async function generateDataJson(
     const dataFile = options.dataFile ?? DATA_FILE;
     const searchIndexFile = options.searchIndexFile ?? SEARCH_INDEX_FILE;
     const staticDir = options.staticDir ?? STATIC_DIR;
+    const manifest = await loadReleaseManifest(options);
     const { owner, repo } = config.github;
     const source = `https://github.com/${owner}/${repo}`;
 
@@ -336,7 +387,7 @@ export async function generateDataJson(
         })
     );
 
-    await generateSearchIndexJson(extensionsData, staticDir, searchIndexFile);
+    await generateSearchIndexJson(extensionsData, staticDir, searchIndexFile, manifest);
     logger.info('data', `data generate complete commit=${commit.substring(0, 7)}`);
 }
 
@@ -413,7 +464,14 @@ export async function findExtensionUpdates(
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
-                const sentinel = isMihonIndex(category) ? 'index.json' : 'index.min.json';
+                // Sentinel is the JSON wrapper for Mihon (index.pb maps to
+                // the index.json beside it); Aniyomi follows the configured
+                // path basename, since Secozzi serves index.json under an
+                // Aniyomi category while others serve index.min.json.
+                const sentinel =
+                    isMihonIndex(category) || ext.path.endsWith('index.json')
+                        ? 'index.json'
+                        : (ext.path.split('/').pop() ?? 'index.min.json');
                 if (!options.quick && !existsSync(join(dest, sentinel))) {
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
@@ -452,6 +510,49 @@ export function applyCommitUpdates(data: ExtensionsData, updates: ExtensionUpdat
     for (const { category, key, hash } of updates) {
         data[category][key].commit = hash;
     }
+}
+
+// Phase 3: the broad static cache may still restore APK/JAR files saved
+// before binaries left materialization. Remove those subdirs deliberately
+// per configured source so stale binaries cannot leak into dist/. Cache
+// removal itself stays in Phase 5.
+export async function pruneBinaryDirs(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR
+): Promise<number> {
+    let pruned = 0;
+    for (const group of Object.values(data)) {
+        for (const key of Object.keys(group)) {
+            for (const subdir of ['apk', 'jar']) {
+                const dir = join(staticDir, key, subdir);
+                if (existsSync(dir)) {
+                    await rm(dir, { recursive: true, force: true });
+                    logger.info(
+                        'extensions',
+                        `prune binaries dir=${JSON.stringify(`${key}/${subdir}`)}`
+                    );
+                    pruned += 1;
+                }
+            }
+        }
+    }
+    return pruned;
+}
+
+// Phase 3 gate: hosted output must contain no binary artifacts.
+export async function findBinaryArtifacts(dir: string): Promise<string[]> {
+    const found: string[] = [];
+    const scan = async (current: string): Promise<void> => {
+        if (!existsSync(current)) return;
+        const entries = await readdir(current, { withFileTypes: true });
+        for (const entry of entries) {
+            const full = join(current, entry.name);
+            if (entry.isDirectory()) await scan(full);
+            else if (full.endsWith('.apk') || full.endsWith('.jar')) found.push(full);
+        }
+    };
+    await scan(dir);
+    return found;
 }
 
 async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {

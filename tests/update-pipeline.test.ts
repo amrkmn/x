@@ -5,11 +5,14 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
 
+import { config } from '../scripts/config';
 import type { ExtensionsData } from '../scripts/extensions';
 import {
+    findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
     loadExtensionsData,
+    pruneBinaryDirs,
     pruneRemovedRepos
 } from '../scripts/extensions';
 
@@ -445,4 +448,180 @@ test('pruneRemovedRepos removes an entire removed top-level group', async () => 
     expect(pruned).toBe(1);
     expect(existsSync(join(staticDir, 'yuzono'))).toBe(false);
     expect(existsSync(join(staticDir, 'keiyoushi'))).toBe(false);
+});
+
+test('lightweight materialization retains only index, repo, and icon files', () => {
+    expect(config.filesToCopy).toEqual([
+        'index.json',
+        'index.min.json',
+        'index.pb',
+        'repo.json',
+        'icon'
+    ]);
+});
+
+test('aniyomi wrapper index.json parses without changing category', async () => {
+    const data: ExtensionsData = {
+        aniyomi: {
+            secozzi: {
+                name: 'Secozzi',
+                source: 'https://github.com/example/secozzi',
+                path: '/secozzi/index.json',
+                category: 'aniyomi',
+                commit: 'abc123'
+            }
+        }
+    };
+    const staticDir = join(testDir, 'static');
+    const secozziDir = join(staticDir, 'secozzi');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+
+    await mkdir(secozziDir, { recursive: true });
+    await writeFile(
+        join(secozziDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Torbox',
+                        packageName: 'torbox.pkg',
+                        versionName: '1.2.0',
+                        versionCode: 5,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: {
+                            apkUrl: 'https://github.com/example/releases/download/abc/torbox.apk'
+                        },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+
+    const searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex).toHaveLength(1);
+    expect(searchIndex[0].pkg).toBe('torbox.pkg');
+    expect(searchIndex[0].category).toBe('aniyomi');
+    expect(searchIndex[0].apk).toBe('torbox.apk');
+    expect(searchIndex[0].apkUrl).toBe(
+        'https://github.com/example/releases/download/abc/torbox.apk'
+    );
+
+    // The wrapper sentinel is index.json, so a matching remote needs no refresh.
+    const updates = await findExtensionUpdates(data, {
+        quick: false,
+        staticDir,
+        getRemoteHead: async () => 'abc123',
+        loadSyncedCommits: async () => new Map([['/secozzi/index.json', 'abc123']])
+    });
+    expect(updates).toHaveLength(0);
+});
+
+test('pruneBinaryDirs removes cached apk/jar dirs for configured sources only', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+
+    await mkdir(join(staticDir, 'alpha', 'apk'), { recursive: true });
+    await writeFile(join(staticDir, 'alpha', 'apk', 'x.apk'), 'bin');
+    await mkdir(join(staticDir, 'alpha', 'icon'), { recursive: true });
+    await writeFile(join(staticDir, 'alpha', 'icon', 'a.png'), 'icon');
+    await mkdir(join(staticDir, 'beta', 'jar'), { recursive: true });
+    await writeFile(join(staticDir, 'beta', 'jar', 'y.jar'), 'bin');
+    await mkdir(join(staticDir, 'other', 'apk'), { recursive: true });
+    await writeFile(join(staticDir, 'other', 'apk', 'z.apk'), 'bin');
+
+    expect(await findBinaryArtifacts(staticDir)).toHaveLength(3);
+    expect(await pruneBinaryDirs(data, staticDir)).toBe(2);
+    expect(existsSync(join(staticDir, 'alpha', 'apk'))).toBe(false);
+    expect(existsSync(join(staticDir, 'alpha', 'icon'))).toBe(true);
+    expect(existsSync(join(staticDir, 'beta', 'jar'))).toBe(false);
+    // Unconfigured dirs are pruneRemovedRepos territory, not binary pruning.
+    expect(existsSync(join(staticDir, 'other', 'apk', 'z.apk'))).toBe(true);
+});
+
+test('generateDataJson overlays release manifest URLs and keeps upstream URLs without one', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const betaDir = join(staticDir, 'beta');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+    const upstreamApk = 'https://raw.githubusercontent.com/example/repo/apk/alpha.apk';
+
+    await mkdir(alphaDir, { recursive: true });
+    await mkdir(betaDir, { recursive: true });
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Alpha Extension',
+                        packageName: 'alpha.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: upstreamApk },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+    await writeFile(
+        join(betaDir, 'index.min.json'),
+        JSON.stringify([
+            {
+                name: 'Beta Extension',
+                pkg: 'beta.pkg',
+                version: '2.0.0',
+                lang: 'ja',
+                apk: 'beta.apk'
+            }
+        ])
+    );
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-alpha.apk';
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir,
+        manifest: {
+            alpha: {
+                'alpha.pkg': {
+                    apk: {
+                        name: 'alpha-alpha.apk',
+                        sha256: 'a'.repeat(64),
+                        version: '1.0.0',
+                        source: 'alpha',
+                        kind: 'apk' as const,
+                        url: releaseUrl
+                    }
+                }
+            }
+        }
+    });
+
+    let searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(releaseUrl);
+
+    // Catalog-only update with no manifest: upstream URLs are kept, no cutover.
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+
+    searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(upstreamApk);
 });
