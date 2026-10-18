@@ -19,7 +19,7 @@
         "secozzi": {
             "source": "https://github.com/Secozzi/aniyomi-extensions@repo",
             "name": "Secozzi",
-            "path": "/secozzi/index.min.json",
+            "path": "/secozzi/index.json",
             "category": "aniyomi",
             "commit": "c6459f10e99a318ef3bfd080ab358e8051ab87b5"
         },

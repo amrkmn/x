@@ -6,10 +6,12 @@ import { refreshMetadata, restoreCache, saveCache } from './cache';
 import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import {
     applyCommitUpdates,
+    findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
     loadExtensionsData,
     materializeExtensions,
+    pruneBinaryDirs,
     pruneRemovedRepos,
     saveExtensionsData,
     setGithubOutput,
@@ -141,6 +143,7 @@ async function updateExtensions(
 
     const data = await loadExtensionsData();
     const pruned = !quick ? await pruneRemovedRepos(data) : 0;
+    if (!quick) await pruneBinaryDirs(data);
 
     const updates = await findExtensionUpdates(data, { quick });
 
@@ -181,6 +184,12 @@ const commandHandlers = {
         await restoreStaticCache();
         await updateExtensions('static', args);
         await $`pnpm run build`;
+        const binaries = await findBinaryArtifacts('dist');
+        if (binaries.length > 0) {
+            throw new Error(
+                `dist/ contains ${binaries.length} binary artifact(s): ${binaries.slice(0, 5).join(', ')}`
+            );
+        }
     }
 } satisfies Record<
     Exclude<TaskCommand, 'check' | 'static' | 'full'>,

@@ -15,8 +15,6 @@ export const config = {
         'index.min.json',
         'index.pb',
         'repo.json',
-        'apk',
-        'icon',
-        'jar'
+        'icon'
     ]
 };
