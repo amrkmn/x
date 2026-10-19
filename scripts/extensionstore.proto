@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+// buf:lint:ignore PACKAGE_DIRECTORY_MATCH — local schema, not a published API.
+// buf:lint:ignore PACKAGE_VERSION_SUFFIX — must match Mihon's unversioned wire package.
 package mihon.extensionstore;
 
 // Mirror of Mihon's NetworkExtensionStore wire format (field numbers

@@ -31,7 +31,7 @@ let cachedTypes: IndexTypes | undefined;
 
 function indexTypes(): IndexTypes {
     if (!cachedTypes) {
-        const protoPath = join(dirname(fileURLToPath(import.meta.url)), 'mihon-index.proto');
+        const protoPath = join(dirname(fileURLToPath(import.meta.url)), 'extensionstore.proto');
         const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
         cachedTypes = {
             store: parsed.root.lookupType('mihon.extensionstore.NetworkExtensionStore'),
