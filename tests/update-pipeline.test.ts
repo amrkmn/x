@@ -1009,6 +1009,52 @@ test('overlayReleaseManifest is a no-op without a manifest', async () => {
     expect(await overlayReleaseManifest(createExtensionsData(), testDir)).toBe(0);
 });
 
+test('generateDataJson reads wrapper JSON beside a served index.pb path', async () => {
+    const staticDir = join(testDir, 'static');
+    const secozziDir = join(staticDir, 'secozzi');
+    await mkdir(secozziDir, { recursive: true });
+    await writeFile(
+        join(secozziDir, 'index.json'),
+        JSON.stringify({
+            name: 'Secozzi',
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Covered',
+                        packageName: 'covered.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 10,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: 'https://upstream.example/s.apk' },
+                        sources: [{ id: '1', name: 'Covered', language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+    const data: ExtensionsData = {
+        aniyomi: {
+            secozzi: {
+                name: 'Secozzi',
+                source: 'https://example.test/secozzi',
+                path: '/secozzi/index.pb',
+                category: 'aniyomi',
+                commit: 'c1'
+            }
+        }
+    };
+    delete process.env.RELEASE_MANIFEST_FILE;
+    await generateDataJson(data, {
+        commit: 'c1',
+        dataFile: join(staticDir, 'data.json'),
+        searchIndexFile: join(staticDir, 'indexes.json'),
+        staticDir
+    });
+    const search = JSON.parse(await readFile(join(staticDir, 'indexes.json'), 'utf8'));
+    expect(search).toHaveLength(1);
+    expect(search[0].pkg).toBe('covered.pkg');
+});
+
 test('fetchLatestReleaseManifest downloads the newest published snapshot', async () => {
     const snapshot = {
         keiyoushi: {

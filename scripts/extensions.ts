@@ -203,13 +203,15 @@ async function loadRepoExtensions(
     repoPath: string,
     staticDir: string
 ): Promise<JsonValue[]> {
+    // Served index.pb paths map to the JSON wrapper index.json beside them.
+    // Mihon sources additionally resolve a configured index.min.json to the
+    // wrapper; flat JSON indexes are read as configured.
+    const jsonPath = isMihonIndex(category)
+        ? repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
+        : repoPath.replace(/^\//, '').replace(/index\.pb$/, 'index.json');
+    const repoFile = join(staticDir, jsonPath);
+    if (!existsSync(repoFile)) return [];
     if (isMihonIndex(category)) {
-        // index.pb path maps to the JSON wrapper index.json beside it.
-        const repoFile = join(
-            staticDir,
-            repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
-        );
-        if (!existsSync(repoFile)) return [];
         const wrapper: JsonObject = JSON.parse(await readFile(repoFile, 'utf8'));
         const list = getMihonExtensions(wrapper);
         if (!list) {
@@ -220,8 +222,6 @@ async function loadRepoExtensions(
         return list;
     }
 
-    const repoFile = join(staticDir, repoPath.replace(/^\//, ''));
-    if (!existsSync(repoFile)) return [];
     const rawIndex: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
     if (Array.isArray(rawIndex)) return rawIndex;
     // Shape-aware: Secozzi's authoritative index.json is a Mihon-style
