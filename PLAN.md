@@ -9,7 +9,7 @@ This PR starts as a plan-only change and will track the implementation. Keep the
 - [ ] Phase 2 — Publish immutable GitHub Releases
 - [ ] Phase 3 — Keep hosted catalogs and site data lightweight
 - [ ] Phase 4 — Update download links and preserve repository endpoints
-- [ ] Phase 5 — Remove the artifact cache and binary host sync
+- [x] Phase 5 — Remove the artifact cache and binary host sync (done 2026-10-19 in `965b5bb`; codec renames in `ecc16b1`)
 - [ ] Phase 6 — Bootstrap, cut over, and verify
 
 Progress 2026-10-19: Phase 0 complete (`f8e0a52`, `f21d151`, `9704cf2`). The encoder decode-proof runs with Phase 4 implementation; the final recount runs at bootstrap per Phase 6. Phase 1 in-repo work is done (Kohi-den removal, Forgejo check workflow, GitHub workflow trim); its gate still waits on Forgejo-side sync, the first scheduled run, and mirror-push verification. Phase 2 publisher code, tests, and workflow are implemented on `plan/github-release-artifacts`; no live release has been created. Phase 2's gate remains open until the merged GitHub workflow is exercised end to end. Phase 3 lightweight-catalog code is implemented on `plan/github-release-artifacts` (no APK/JAR materialization, Secozzi wrapper parsing, binary pruning, optional manifest overlay); verified locally with 82 tests, `pnpm check`/`lint`, and a `prepare-dist` run producing a binary-free `dist/` with complete catalogs (1,699 records across the four sources). No download-link cutover: entries keep upstream URLs until the publisher produces a manifest (Phase 4).
@@ -35,7 +35,7 @@ The Forgejo schedule is set to `0 */4 * * *` in UTC (every four hours).
 - `.github/workflows/publish-releases.yml` publishes changed binaries to immutable releases after `extensions.json` changes on `main`; `.github/workflows/update.yml` now runs only after that workflow succeeds, then mirrors to GitLab and syncs the site to DUFS.
 - `scripts/release-publisher.ts` is the publisher CLI/orchestrator; `scripts/release-publisher/` separates source discovery, manifest/batch planning, GitHub API calls, shared JSON parsing, and contracts. Current real discovery resolves 3,144 artifacts (2,878 Keiyoushi, 12 Cursed, 3 Secozzi, 251 Anime); sampled upstream checksums matched for Keiyoushi APK/JAR, Cursed APK, and Secozzi APK.
 - `scripts/extensions.ts` downloads source repository contents into `static/`, including index files, icons, APKs, and JARs; it also generates the website's catalog and search data.
-- `scripts/task.ts`, `scripts/cache.ts`, and `scripts/cache/` implement the S3-compatible cache used to avoid re-materializing those files.
+- Phase 5 removed the S3-compatible artifact cache (`scripts/cache.ts` and `scripts/cache/` deleted); `scripts/task.ts` no longer restores or saves any cache.
 - The frontend prefers `apkUrl`/`jarUrl` but can fall back to paths under a hosted repository URL (`src/lib/components/ExtensionRow.svelte`).
 - The local Keiyoushi artifact-repository example uses release URLs in its catalog and a `release-assets.json` index containing asset names and SHA-256 values. Use it as a reference, not as an assumption that all four retained sources expose artifacts identically.
 
@@ -133,11 +133,11 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 ### Phase 5 — Remove the artifact cache and binary host sync
 
-- [ ] Remove cache task commands and cache-specific orchestration from `scripts/task.ts` and `package.json`.
-- [ ] Delete `scripts/cache.ts`, `scripts/cache/`, and cache-only tests after callers and coverage are updated.
-- [ ] Remove the S3/R2 cache dependency, cache environment variables, cache-related README instructions, and cache-only workflow settings.
-- [ ] Keep any required site deployment (including DUFS/rclone if still used), but ensure it transfers only the binary-free site/catalog output. Remove any obsolete GitLab mirror step only if its purpose has ended.
-- [ ] Remove remaining cache and binary-materialization references from active scripts, workflows, docs, and tests.
+- [x] Remove cache task commands and cache-specific orchestration from `scripts/task.ts` and `package.json`. (Done 2026-10-19: `cache:restore`/`cache:save` commands, `useCache` branches, and the `prepare-dist` restore step removed; `scripts/sync.ts` `--use-cache`/`--restore-cache-only` flags removed.)
+- [x] Delete `scripts/cache.ts`, `scripts/cache/`, and cache-only tests after callers and coverage are updated. (Done 2026-10-19: 8 module files plus 7 test files deleted: `cache-*.test.ts` + `archive.test.ts`.)
+- [x] Remove the S3/R2 cache dependency, cache environment variables, cache-related README instructions, and cache-only workflow settings. (Done 2026-10-19: `@bradenmacdonald/s3-lite-client` + `tar` deps removed; `S3_*` env removed from `update.yml` and `.env.example`; README had no cache references; pnpm store `cache: pnpm` kept.)
+- [x] Keep any required site deployment (including DUFS/rclone if still used), but ensure it transfers only the binary-free site/catalog output. Remove any obsolete GitLab mirror step only if its purpose has ended. (Done 2026-10-19: DUFS `sync-to-dufs` kept, transfers gated binary-free `dist/` only; GitLab `sync-to-gitlab` kept — git-only mirror, purpose still unverified.)
+- [x] Remove remaining cache and binary-materialization references from active scripts, workflows, docs, and tests. (Done 2026-10-19: stale comments, generic log strings, and one test name cleaned; remaining `cache` mentions are pnpm store caching, in-memory memoization, and one historical comment.)
 
 **Gate:** No active command or workflow restores/saves the R2 cache or uploads APK/JAR files to hosted deployments.
 
