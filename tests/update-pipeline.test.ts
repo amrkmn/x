@@ -804,7 +804,10 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
                     {
                         name: 'Covered',
                         packageName: 'covered.pkg',
-                        resources: { apkUrl: upstreamApk },
+                        resources: {
+                            apkUrl: upstreamApk,
+                            jarUrl: 'https://upstream.example/alpha.jar'
+                        },
                         extensionLib: '1.6',
                         versionCode: '106004',
                         versionName: '1.0.0',
@@ -827,6 +830,8 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
     );
 
     const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-covered.apk';
+    const releaseJarUrl =
+        'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-covered.jar';
     const regenerated = await refreshMirrorIndexPb('mihon', 'alpha', staticDir, {
         alpha: {
             'covered.pkg': {
@@ -837,6 +842,14 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
                     source: 'alpha',
                     kind: 'apk',
                     url: releaseUrl
+                },
+                jar: {
+                    name: 'alpha-covered.jar',
+                    sha256: 'b'.repeat(64),
+                    version: '1.0.0',
+                    source: 'alpha',
+                    kind: 'jar',
+                    url: releaseJarUrl
                 }
             }
         }
@@ -846,6 +859,7 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
     const index = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
     const entries = index.extensionList.extensions;
     expect(entries[0].resources.apkUrl).toBe(releaseUrl);
+    expect(entries[0].resources.jarUrl).toBe(releaseJarUrl);
     expect(entries[1].resources.apkUrl).toBe('https://upstream.example/other.apk');
 
     const decoded = decodeIndexPb(await readFile(join(alphaDir, 'index.pb')));

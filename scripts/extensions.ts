@@ -766,7 +766,7 @@ export interface MaterializeOptions {
     manifest?: ReleaseManifest;
 }
 
-// Phase 4: point covered index.json apkUrls at release URLs and regenerate
+// Phase 4: point covered index.json apkUrls and jarUrls at release URLs and regenerate
 // the mirror-owned index.pb from the final index.json (Mihon sources and
 // Mihon-shaped wrappers served under other categories, e.g. Secozzi;
 // flat Aniyomi indexes keep their copy). Returns true when index.pb was
@@ -793,6 +793,11 @@ export async function refreshMirrorIndexPb(
         const asset = manifestAsset(manifest, key, packageName, 'apk');
         if (asset && resources.apkUrl !== asset.url) {
             resources.apkUrl = asset.url;
+            overlaid += 1;
+        }
+        const jarAsset = manifestAsset(manifest, key, packageName, 'jar');
+        if (jarAsset && resources.jarUrl !== jarAsset.url) {
+            resources.jarUrl = jarAsset.url;
             overlaid += 1;
         }
     }
