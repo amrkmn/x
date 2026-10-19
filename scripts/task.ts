@@ -2,8 +2,6 @@
 
 import $ from 'dax';
 
-import { refreshMetadata, restoreCache, saveCache } from './cache';
-import { CACHE_PATHS, CACHE_RESTORE_KEYS, generateCacheKey } from './cache/utils';
 import {
     applyCommitUpdates,
     fetchMissingIcons,
@@ -22,15 +20,7 @@ import {
 import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
 
-export type TaskCommand =
-    | 'check'
-    | 'static'
-    | 'full'
-    | 'data'
-    | 'search'
-    | 'cache:restore'
-    | 'cache:save'
-    | 'prepare-dist';
+export type TaskCommand = 'check' | 'static' | 'full' | 'data' | 'search' | 'prepare-dist';
 
 export function parseTask(args: string[]): TaskCommand {
     if (args.includes('--generate-only')) return 'data';
@@ -38,9 +28,7 @@ export function parseTask(args: string[]): TaskCommand {
     if (args.includes('--quick')) return 'check';
     if (args.includes('--sync')) return 'static';
 
-    const [command, subcommand] = args;
-    if (command === 'cache' && subcommand === 'restore') return 'cache:restore';
-    if (command === 'cache' && subcommand === 'save') return 'cache:save';
+    const [command] = args;
 
     if (
         command === 'check' ||
@@ -54,18 +42,6 @@ export function parseTask(args: string[]): TaskCommand {
     }
 
     return 'full';
-}
-
-async function restoreStaticCache(): Promise<void> {
-    const key = await generateCacheKey();
-    const restoredKey = await restoreCache(CACHE_PATHS, key, CACHE_RESTORE_KEYS);
-
-    if (restoredKey) logger.info('cache', `restore complete key=${JSON.stringify(restoredKey)}`);
-    else logger.info('cache', 'restore skipped reason="not_found"');
-}
-
-async function saveStaticCache(): Promise<void> {
-    await saveCache(CACHE_PATHS, await generateCacheKey());
 }
 
 async function persistQuickUpdates(updated: boolean): Promise<void> {
@@ -87,7 +63,6 @@ async function handleQuickUpdates(
 
 async function finalizeFullUpdate(
     command: 'static' | 'full',
-    useCache: boolean,
     data: Awaited<ReturnType<typeof loadExtensionsData>>,
     changed: boolean,
     manifest: Awaited<ReturnType<typeof loadReleaseManifest>>
@@ -102,9 +77,7 @@ async function finalizeFullUpdate(
 
     if (command === 'full') {
         await generateDataJson(data, { manifest });
-        if (useCache) await refreshMetadata(await generateCacheKey(), CACHE_PATHS);
         await updateMeilisearch();
-        if (useCache) await saveStaticCache();
     }
 
     await persistQuickUpdates(true);
@@ -128,34 +101,19 @@ function reportMaterializeFailures(
     }
 }
 
-async function updateExtensions(
-    command: 'check' | 'static' | 'full',
-    args: string[]
-): Promise<void> {
+async function updateExtensions(command: 'check' | 'static' | 'full'): Promise<void> {
     const quick = command === 'check';
-    const useCache = command === 'full' && !args.includes('--no-cache');
-
-    if (useCache) {
-        await restoreStaticCache();
-    } else {
-        logger.info(
-            'cache',
-            quick ? 'cache disabled mode="quick"' : 'cache disabled mode="command"'
-        );
-    }
 
     const data = await loadExtensionsData();
-    const pruned = !quick ? await pruneRemovedRepos(data) : 0;
-    if (!quick) await pruneBinaryDirs(data);
+    if (!quick) {
+        await pruneRemovedRepos(data);
+        await pruneBinaryDirs(data);
+    }
 
     const updates = await findExtensionUpdates(data, { quick });
 
     if (updates.length === 0) {
         await persistQuickUpdates(false);
-        // Persist removed sources in the cache even without repo updates, so
-        // the next restore doesn't resurrect files for deleted extensions.json
-        // entries (e.g. a deprecated repo removed after a cache was saved).
-        if (pruned > 0 && useCache) await saveStaticCache();
         // Backfill wrapper icons missing from the mirrored branches without
         // requiring an upstream revision change.
         await fetchMissingIcons(data);
@@ -174,7 +132,7 @@ async function updateExtensions(
     // Materialization fetches icons per updated key; cover unchanged keys
     // whose branches never shipped their icons.
     await fetchMissingIcons(data);
-    await finalizeFullUpdate(command, useCache, data, changed, manifest);
+    await finalizeFullUpdate(command, data, changed, manifest);
     reportMaterializeFailures(failures);
 }
 
@@ -186,15 +144,8 @@ const commandHandlers = {
         logger.info('search', 'index update mode="only"');
         await updateMeilisearch();
     },
-    'cache:restore': async () => {
-        await restoreStaticCache();
-    },
-    'cache:save': async () => {
-        await saveStaticCache();
-    },
-    'prepare-dist': async (args) => {
-        await restoreStaticCache();
-        await updateExtensions('static', args);
+    'prepare-dist': async () => {
+        await updateExtensions('static');
         await $`pnpm run build`;
         const binaries = await findBinaryArtifacts('dist');
         if (binaries.length > 0) {
@@ -203,20 +154,17 @@ const commandHandlers = {
             );
         }
     }
-} satisfies Record<
-    Exclude<TaskCommand, 'check' | 'static' | 'full'>,
-    (args: string[]) => Promise<void>
->;
+} satisfies Record<Exclude<TaskCommand, 'check' | 'static' | 'full'>, () => Promise<void>>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
     const command = parseTask(args);
 
     if (command === 'check' || command === 'static' || command === 'full') {
-        await updateExtensions(command, args);
+        await updateExtensions(command);
         return;
     }
 
-    await commandHandlers[command](args);
+    await commandHandlers[command]();
 }
 
 if (import.meta.main) {
