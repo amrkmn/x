@@ -164,6 +164,8 @@ export async function publishReleases(
                     hash,
                     old.url
                 );
+                verified += 1;
+                progress(index);
                 continue;
             }
 
