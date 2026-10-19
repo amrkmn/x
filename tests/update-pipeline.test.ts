@@ -19,7 +19,7 @@ import {
     pruneRemovedRepos,
     refreshMirrorIndexPb
 } from '../scripts/extensions';
-import { decodeIndexPb } from '../scripts/mihon-index';
+import { decodeIndexPb } from '../scripts/generate-index';
 import { isRecord } from '../scripts/release-publisher/json';
 
 let testDir: string;

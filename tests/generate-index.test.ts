@@ -2,8 +2,8 @@ import { gunzipSync } from 'node:zlib';
 
 import { expect, test } from 'vitest';
 
+import { decodeIndexPb, encodeIndexPb } from '../scripts/generate-index';
 import { isRecord } from '../scripts/release-publisher/json';
-import { decodeIndexPb, encodeIndexPb } from '../scripts/mihon-index';
 import type { JsonObject } from '../src/lib/validation';
 
 function extensionsOf(decoded: JsonObject): JsonObject[] {
@@ -104,8 +104,7 @@ test('index.pb round-trips wrapper JSON exactly', () => {
 
 test('index.pb swaps only manifest-covered apkUrls', () => {
     const wrapper = fullWrapper();
-    const releaseUrl =
-        'https://github.com/amrkmn/x/releases/download/abc1234-1/keiyoushi-full.apk';
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/keiyoushi-full.apk';
     const decoded = decodeIndexPb(
         encodeIndexPb(wrapper, {
             sourceKey: 'keiyoushi',
