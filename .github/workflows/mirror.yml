@@ -44,5 +44,5 @@ jobs:
                   chmod 600 ~/.ssh/mirror_key
                   export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key -o StrictHostKeyChecking=no"
                   git remote add mirror "$URL"
-                  git push mirror 'refs/remotes/origin/*:refs/heads/*'
+                  git push mirror refs/remotes/origin/main:refs/heads/main
                   git push mirror --tags
