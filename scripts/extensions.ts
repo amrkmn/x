@@ -305,13 +305,19 @@ export async function fetchLatestReleaseManifest(
         return undefined;
     };
     // Shared-egress build environments routinely hit GitHub's unauthenticated
-    // quota (403/429); retry briefly before giving up and building without one.
+    // quota (403/429); retry briefly, and authenticate when a token is
+    // available (build secret or local .env), which moves to per-token quota.
+    interface ManifestRequestHeaders {
+        Accept: string;
+        Authorization?: string;
+    }
+    const headers: ManifestRequestHeaders = { Accept: 'application/vnd.github+json' };
+    const token = process.env.GITHUB_TOKEN;
+    if (token) headers.Authorization = `Bearer ${token}`;
     const get = async (url: string): Promise<Response | undefined> => {
         for (const delay of retryDelays) {
             if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
-            const response = await fetcher(url, {
-                headers: { Accept: 'application/vnd.github+json' }
-            });
+            const response = await fetcher(url, { headers });
             if (response.ok) return response;
             if (response.status !== 403 && response.status !== 429 && response.status < 500) {
                 return response;

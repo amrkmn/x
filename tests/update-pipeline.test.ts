@@ -1127,6 +1127,21 @@ test('fetchLatestReleaseManifest returns undefined without a usable snapshot', a
     expect(await fetchLatestReleaseManifest(failing, [])).toBeUndefined();
 });
 
+test('fetchLatestReleaseManifest authenticates when GITHUB_TOKEN is set', async () => {
+    let seen: string | null = null;
+    const authed: typeof fetch = async (_input, init) => {
+        seen = new Headers(init?.headers).get('authorization');
+        return new Response(JSON.stringify([]));
+    };
+    process.env.GITHUB_TOKEN = 'test-token';
+    try {
+        expect(await fetchLatestReleaseManifest(authed, [0])).toBeUndefined();
+    } finally {
+        delete process.env.GITHUB_TOKEN;
+    }
+    expect(seen).toBe('Bearer test-token');
+});
+
 test('fetchLatestReleaseManifest retries throttled list requests', async () => {
     let calls = 0;
     const flaky: typeof fetch = async (input) => {
