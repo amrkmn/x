@@ -253,6 +253,47 @@ test('discovers APKs and available JARs across all four source layouts', async (
     expect(candidates.find(({ source }) => source === 'secozzi')?.kind).toBe('apk');
 });
 
+test('rejects retired Kohi-den and requires exactly the four retained sources', async () => {
+    const { fetcher } = sourceData();
+    const retired = {
+        ...data,
+        aniyomi: {
+            ...data.aniyomi,
+            'kohi-den': {
+                source: 'https://example.invalid/kohi-den/extensions@repo',
+                name: 'Kohi-den',
+                path: '/kohi-den/index.min.json',
+                category: 'aniyomi' as const,
+                commit
+            }
+        }
+    };
+    await expect(discoverCandidates(retired, fetcher)).rejects.toThrow(
+        'Unsupported extension source: kohi-den'
+    );
+
+    const client = new MemoryReleaseClient();
+    await expect(
+        publishReleases({
+            data: retired,
+            commit,
+            client,
+            fetcher,
+            owner: 'amrkmn',
+            repo: 'x'
+        })
+    ).rejects.toThrow('Unsupported extension source: kohi-den');
+    expect(client.releases).toHaveLength(0);
+
+    const missing = {
+        mihon: data.mihon,
+        aniyomi: { 'yuzono/anime': data.aniyomi['yuzono/anime'] }
+    };
+    await expect(discoverCandidates(missing, fetcher)).rejects.toThrow(
+        'Missing configured source: secozzi'
+    );
+});
+
 test('batches no more than 999 binaries per release', () => {
     const batches = batchArtifacts(Array.from({ length: 3144 }, (_, index) => index));
     expect(batches.map((batch) => batch.length)).toEqual([999, 999, 999, 147]);
