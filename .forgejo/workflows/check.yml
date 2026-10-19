@@ -1,8 +1,10 @@
 name: Check Extension Updates
 
+enable-openid-connect: true
+
 on:
     schedule:
-        - cron: '0 */4 * * *'
+        - cron: "0 */4 * * *"
     workflow_dispatch:
 
 permissions:
@@ -18,19 +20,13 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              uses: https://github.com/pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
               with:
-                  node-version: 24
-                  cache: pnpm
-
-            - name: Install dependencies
-              run: pnpm ci
+                  runtime: node@24
+                  cache: true
 
             - name: Check extension updates
               id: update
@@ -40,11 +36,38 @@ jobs:
               if: steps.update.outputs.updated == 'true'
               run: pnpm run format
 
+            - name: Fetch Forgejo authorization token
+              id: jwt
+              if: steps.update.outputs.updated == 'true'
+              env:
+                  AUDIENCE: u:1:e50a06e0-00b6-499c-9044-5b3eed4dae1c
+              run: |
+                  set -euo pipefail
+
+                  if [ -z "${AUDIENCE:-}" ]; then
+                    echo "Forgejo OIDC audience is not configured" >&2
+                    exit 1
+                  fi
+
+                  jwt="$(curl --fail -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUDIENCE" | jq -r '.value')"
+
+                  if [ -z "$jwt" ] || [ "$jwt" = "null" ]; then
+                    echo "Could not obtain Forgejo authorization token" >&2
+                    exit 1
+                  fi
+
+                  echo "::add-mask::$jwt"
+                  echo "jwt=$jwt" >> "$GITHUB_OUTPUT"
+
             - name: Commit and push changes
               if: steps.update.outputs.updated == 'true'
+              env:
+                  FORGEJO_JWT: ${{ steps.jwt.outputs.jwt }}
               run: |
+                  set -euo pipefail
                   git config --local user.name "forgejo-actions[bot]"
                   git config --local user.email "forgejo-actions[bot]@noreply.noz.one"
                   git add extensions.json
                   git diff-index --quiet HEAD || git commit -m "chore: update extensions.json"
-                  git push
+                  git -c "http.extraheader=Authorization: Bearer $FORGEJO_JWT" pull --rebase origin refs/heads/main
+                  git -c "http.extraheader=Authorization: Bearer $FORGEJO_JWT" push https://noz.one/ujol/x HEAD:refs/heads/main
