@@ -34,9 +34,9 @@ The Forgejo schedule is set to `0 */4 * * *` in UTC (every four hours).
 - `.forgejo/workflows/check.yml` runs `pnpm run update:check` on `0 */4 * * *` UTC, formats, and commits only `extensions.json`, pushing through the Forgejo→GitHub mirror.
 - `.github/workflows/publish-releases.yml` publishes changed binaries to immutable releases after `extensions.json` changes on `main`; `.github/workflows/update.yml` now runs only after that workflow succeeds, then mirrors to GitLab and syncs the site to DUFS.
 - `scripts/release-publisher.ts` is the publisher CLI/orchestrator; `scripts/release-publisher/` separates source discovery, manifest/batch planning, GitHub API calls, shared JSON parsing, and contracts. Current real discovery resolves 3,144 artifacts (2,878 Keiyoushi, 12 Cursed, 3 Secozzi, 251 Anime); sampled upstream checksums matched for Keiyoushi APK/JAR, Cursed APK, and Secozzi APK.
-- `scripts/extensions.ts` downloads source repository contents into `static/`, including index files, icons, APKs, and JARs; it also generates the website's catalog and search data.
+- `scripts/extensions.ts` materializes only lightweight files into `static/` (`index.json`, `index.min.json`, `index.pb`, `repo.json`, `icon` per `config.filesToCopy`); `pruneBinaryDirs` removes any legacy `apk/`/`jar/` subdirs. It also generates the website's catalog and search data.
 - Phase 5 removed the S3-compatible artifact cache (`scripts/cache.ts` and `scripts/cache/` deleted); `scripts/task.ts` no longer restores or saves any cache.
-- The frontend prefers `apkUrl`/`jarUrl` but can fall back to paths under a hosted repository URL (`src/lib/components/ExtensionRow.svelte`).
+- The frontend uses `apkUrl` directly and renders Jar iff `jarUrl` is present; the hosted `/apk/` + `/jar/` fallbacks were removed in Phase 4 (`src/lib/components/ExtensionRow.svelte`).
 - The local Keiyoushi artifact-repository example uses release URLs in its catalog and a `release-assets.json` index containing asset names and SHA-256 values. Use it as a reference, not as an assumption that all four retained sources expose artifacts identically.
 
 ## Current artifact inventory
@@ -53,7 +53,7 @@ Validated 2026-10-19 against the source commits currently pinned in `extensions.
 
 These are current versions only, not all historical upstream releases, and count each source artifact separately without cross-source hash deduplication. Recount from the pinned source indexes immediately before the bootstrap.
 
-**Secozzi index path (resolved 2026-10-19):** `extensions.json` still selects `/secozzi/index.min.json`, a stale single Animiru placeholder. The authoritative catalog is `index.json` (a `NetworkExtensionStore` wrapper) plus `release-assets.json`, listing three current APKs (Jellyfin, Stremio, Torbox) at the pinned ref. Implementation must set the source path to `/secozzi/index.json` and parse the wrapper without changing the Aniyomi category.
+**Secozzi index path (resolved 2026-10-19, switched in Phase 3):** `extensions.json` previously selected `/secozzi/index.min.json`, a stale single Animiru placeholder. The authoritative catalog is `index.json` (a `NetworkExtensionStore` wrapper) plus `release-assets.json`, listing three current APKs (Jellyfin, Stremio, Torbox) at the pinned ref. The catalog parser targets `/secozzi/index.json` with shape-aware wrapper parsing, keeping the Aniyomi category.
 
 ## Target flow
 
