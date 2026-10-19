@@ -531,7 +531,7 @@ test('aniyomi wrapper index.json parses without changing category', async () => 
     expect(updates).toHaveLength(0);
 });
 
-test('pruneBinaryDirs removes cached apk/jar dirs for configured sources only', async () => {
+test('pruneBinaryDirs removes stale apk/jar dirs for configured sources only', async () => {
     const data = createExtensionsData();
     const staticDir = join(testDir, 'static');
 

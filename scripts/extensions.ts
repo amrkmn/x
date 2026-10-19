@@ -11,8 +11,8 @@ import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/
 import { config } from './config';
 import { logger } from './log';
 import { encodeIndexPb } from './mihon-index';
-import { flatUpstreamApkUrl } from './release-publisher/sources';
 import { manifestAsset, parseReleaseManifest } from './release-publisher/manifest';
+import { flatUpstreamApkUrl } from './release-publisher/sources';
 import type { ReleaseManifest } from './release-publisher/types';
 import type { ExtensionConfig } from './types';
 import { parseExtensionsData } from './validation';
@@ -521,10 +521,10 @@ export function applyCommitUpdates(data: ExtensionsData, updates: ExtensionUpdat
     }
 }
 
-// Phase 3: the broad static cache may still restore APK/JAR files saved
-// before binaries left materialization. Remove those subdirs deliberately
-// per configured source so stale binaries cannot leak into dist/. Cache
-// removal itself stays in Phase 5.
+// Phase 5: the artifact cache is removed. Older runs may still have left
+// APK/JAR files under static/ from before binaries left materialization.
+// Remove those subdirs deliberately per configured source so stale
+// binaries cannot leak into dist/.
 export async function pruneBinaryDirs(
     data: ExtensionsData,
     staticDir = STATIC_DIR
@@ -675,8 +675,8 @@ export function shouldFailOnMaterializeErrors(): boolean {
     return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 }
 
-// Remove static dirs no longer configured in extensions.json, so removed sources
-// aren't resurrected by cache restore. Keeps keys and their nesting prefixes.
+// Remove static dirs no longer configured in extensions.json, so removed
+// sources stay removed from disk state. Keeps keys and their nesting prefixes.
 export async function pruneRemovedRepos(
     data: ExtensionsData,
     staticDir = STATIC_DIR
