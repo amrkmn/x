@@ -58,9 +58,24 @@ jobs:
               with:
                   rclone_config: ${{ secrets.RCLONE_CONFIG }}
 
+            - name: Fetch latest release manifest
+              id: manifest
+              run: |
+                  TAG=$(gh release list --exclude-drafts --limit 30 --json tagName,createdAt -q 'max_by(.createdAt) | .tagName')
+                  if [ -z "$TAG" ]; then
+                      echo "No published releases yet; building with upstream URLs."
+                      exit 0
+                  fi
+                  mkdir -p /tmp/manifest
+                  gh release download "$TAG" --pattern release-assets.json --dir /tmp/manifest --clobber
+                  echo "path=/tmp/manifest/release-assets.json" >> "$GITHUB_OUTPUT"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Prepare dist
               run: pnpm run prepare:dist
               env:
+                  RELEASE_MANIFEST_FILE: ${{ steps.manifest.outputs.path }}
                   PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
                   PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
                   PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
