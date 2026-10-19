@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { config } from './config';
-import { GitHubReleaseClient } from './release-publisher/github-client';
+import { GitHubReleaseClient } from './releases/github-client';
 import {
     MANIFEST_NAME,
     batchArtifacts,
@@ -16,22 +16,22 @@ import {
     sha256,
     sourcePrefix,
     verifyReleaseAssets
-} from './release-publisher/manifest';
-import { discoverCandidates } from './release-publisher/sources';
+} from './releases/manifest';
+import { discoverCandidates } from './releases/sources';
 import type {
     HashedArtifact,
     PublishOptions,
     ReleaseInfo,
     ReleaseManifest
-} from './release-publisher/types';
+} from './releases/types';
 import { parseExtensionsData } from './validation';
 
 export {
     MAX_BINARIES_PER_RELEASE,
     batchArtifacts,
     parseReleaseManifest
-} from './release-publisher/manifest';
-export { discoverCandidates } from './release-publisher/sources';
+} from './releases/manifest';
+export { discoverCandidates } from './releases/sources';
 export type {
     ArtifactKind,
     Candidate,
@@ -42,7 +42,7 @@ export type {
     ReleaseClient,
     ReleaseInfo,
     ReleaseManifest
-} from './release-publisher/types';
+} from './releases/types';
 
 async function stageBatch(
     client: PublishOptions['client'],
@@ -96,7 +96,7 @@ export async function publishReleases(
     const releases = await options.client.listReleases();
     const previous = await previousCompleteManifest(releases, options.client, owner, repo);
     const candidates = await discoverCandidates(options.data, options.fetcher);
-    const tempDir = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'x-release-publisher-'));
+    const tempDir = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'x-releases-'));
 
     try {
         const current: ReleaseManifest = {};

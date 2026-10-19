@@ -3,7 +3,7 @@ import { gunzipSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 
 import { decodeIndexPb, encodeIndexPb } from '../scripts/generate-index';
-import { isRecord } from '../scripts/release-publisher/json';
+import { isRecord } from '../scripts/releases/json';
 import type { JsonObject } from '../src/lib/validation';
 
 function extensionsOf(decoded: JsonObject): JsonObject[] {

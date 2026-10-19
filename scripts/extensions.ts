@@ -11,9 +11,9 @@ import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/
 import { config } from './config';
 import { encodeIndexPb } from './generate-index';
 import { logger } from './log';
-import { manifestAsset, parseReleaseManifest } from './release-publisher/manifest';
-import { flatUpstreamApkUrl } from './release-publisher/sources';
-import type { ReleaseManifest } from './release-publisher/types';
+import { manifestAsset, parseReleaseManifest } from './releases/manifest';
+import { flatUpstreamApkUrl } from './releases/sources';
+import type { ReleaseManifest } from './releases/types';
 import type { ExtensionConfig } from './types';
 import { parseExtensionsData } from './validation';
 

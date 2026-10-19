@@ -8,8 +8,8 @@ import {
     discoverCandidates,
     parseReleaseManifest,
     publishReleases
-} from '../scripts/release-publisher';
-import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from '../scripts/release-publisher';
+} from '../scripts/publish';
+import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from '../scripts/publish';
 import type { ExtensionConfig } from '../scripts/types';
 import type { JsonValue } from '../src/lib/validation';
 
