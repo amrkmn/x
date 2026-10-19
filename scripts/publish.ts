@@ -66,6 +66,7 @@ async function stageBatch(
     if (!release) release = await client.createDraft(tag, commit);
     const missing = await verifyReleaseAssets(client, release, expected, release.draft);
     if (release.draft) {
+        console.info(`Uploading ${missing.length} assets to ${tag}`);
         for (const name of missing) {
             await client.uploadAsset(release, name, expected.get(name)!.path);
         }
@@ -96,6 +97,7 @@ export async function publishReleases(
     const releases = await options.client.listReleases();
     const previous = await previousCompleteManifest(releases, options.client, owner, repo);
     const candidates = await discoverCandidates(options.data, options.fetcher);
+    console.info(`Discovered ${candidates.length} candidates`);
     const tempDir = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'x-releases-'));
 
     try {
@@ -104,10 +106,18 @@ export async function publishReleases(
         const names = new Set<string>();
 
         for (const [index, candidate] of candidates.entries()) {
-            const response = await (options.fetcher ?? fetch)(candidate.downloadUrl);
+            const position = `${index + 1}/${candidates.length}`;
+            let response;
+            try {
+                response = await (options.fetcher ?? fetch)(candidate.downloadUrl);
+            } catch (error) {
+                throw new Error(
+                    `Artifact download failed [${position}]: ${candidate.downloadUrl} (${error instanceof Error ? error.message : error})`
+                );
+            }
             if (!response.ok)
                 throw new Error(
-                    `Artifact download failed (${response.status}): ${candidate.downloadUrl}`
+                    `Artifact download failed (${response.status}) [${position}]: ${candidate.downloadUrl}`
                 );
             const bytes = new Uint8Array(await response.arrayBuffer());
             if (bytes.byteLength === 0) throw new Error(`Empty artifact: ${candidate.downloadUrl}`);
@@ -142,6 +152,11 @@ export async function publishReleases(
             const filePath = join(tempDir, `${index}.asset`);
             await writeFile(filePath, bytes);
             changed.push({ ...candidate, name, sha256: hash, filePath });
+            if ((index + 1) % 100 === 0 || index + 1 === candidates.length) {
+                console.info(
+                    `Checked ${index + 1}/${candidates.length} artifacts (${changed.length} new)`
+                );
+            }
         }
 
         changed.sort((left, right) => identity(left).localeCompare(identity(right)));
@@ -176,6 +191,9 @@ export async function publishReleases(
 
         for (const [batchIndex, batch] of batches.entries()) {
             const tag = `${shortSha}-${batchIndex}`;
+            console.info(
+                `Staging release ${tag} (batch ${batchIndex + 1}/${batches.length}, ${batch.length} binaries)`
+            );
             const expected = new Map<string, { sha256: string; path: string }>();
             for (const artifact of batch) {
                 expected.set(artifact.name, {
@@ -192,7 +210,10 @@ export async function publishReleases(
 
         await assertCurrentMain();
         for (const stagedRelease of staged) {
-            if (stagedRelease.draft) await options.client.publishDraft(stagedRelease.release);
+            if (stagedRelease.draft) {
+                await options.client.publishDraft(stagedRelease.release);
+                console.info(`Published ${stagedRelease.release.tag}`);
+            }
         }
         return { binaries: changed.length, releases: batches.length };
     } finally {
@@ -222,7 +243,7 @@ if (import.meta.main) {
     try {
         await runPublisher();
     } catch (error) {
-        console.error(error instanceof Error ? error.message : error);
+        console.error(error);
         process.exit(1);
     }
 }

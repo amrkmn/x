@@ -86,7 +86,12 @@ export function flatUpstreamApkUrl(source: string, commit: string, fileName: str
 }
 
 async function fetchJson(fetcher: typeof fetch, url: string): Promise<JsonValue> {
-    const response = await fetcher(url);
+    let response;
+    try {
+        response = await fetcher(url);
+    } catch (error) {
+        throw new Error(`Fetch failed: ${url} (${error instanceof Error ? error.message : error})`);
+    }
     if (!response.ok) throw new Error(`Fetch failed (${response.status}): ${url}`);
     try {
         const value: JsonValue = JSON.parse(await response.text());
