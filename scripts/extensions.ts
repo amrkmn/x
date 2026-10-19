@@ -295,7 +295,8 @@ export async function loadReleaseManifest(
 // Releases. Public repository: no authentication needed. Returns undefined
 // when no published release (or no snapshot) exists yet.
 export async function fetchLatestReleaseManifest(
-    fetcher: typeof fetch = fetch
+    fetcher: typeof fetch = fetch,
+    retryDelays: number[] = [0, 5000, 15000]
 ): Promise<ReleaseManifest | undefined> {
     const { owner, repo } = config.github;
     const api = `https://api.github.com/repos/${owner}/${repo}`;
@@ -303,9 +304,24 @@ export async function fetchLatestReleaseManifest(
         logger.warn('data', `release manifest fetch skip reason=${JSON.stringify(reason)}`);
         return undefined;
     };
-    const response = await fetcher(`${api}/releases?per_page=30`, {
-        headers: { Accept: 'application/vnd.github+json' }
-    });
+    // Shared-egress build environments routinely hit GitHub's unauthenticated
+    // quota (403/429); retry briefly before giving up and building without one.
+    const get = async (url: string): Promise<Response | undefined> => {
+        for (const delay of retryDelays) {
+            if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+            const response = await fetcher(url, {
+                headers: { Accept: 'application/vnd.github+json' }
+            });
+            if (response.ok) return response;
+            if (response.status !== 403 && response.status !== 429 && response.status < 500) {
+                return response;
+            }
+            logger.warn('data', `release manifest fetch retry url=${url} status=${response.status}`);
+        }
+        return undefined;
+    };
+    const response = await get(`${api}/releases?per_page=30`);
+    if (!response) return skip('list retries exhausted');
     if (!response.ok) return skip(`list HTTP ${response.status}`);
     let releases: JsonValue;
     try {
@@ -331,7 +347,8 @@ export async function fetchLatestReleaseManifest(
             ? snapshot.browser_download_url
             : undefined;
     if (!downloadUrl) return skip('no manifest asset');
-    const assetResponse = await fetcher(downloadUrl);
+    const assetResponse = await get(downloadUrl);
+    if (!assetResponse) return skip('download retries exhausted');
     if (!assetResponse.ok) return skip(`download HTTP ${assetResponse.status}`);
     try {
         return parseReleaseManifest(JSON.parse(await assetResponse.text()));

@@ -1122,7 +1122,52 @@ test('fetchLatestReleaseManifest downloads the newest published snapshot', async
 
 test('fetchLatestReleaseManifest returns undefined without a usable snapshot', async () => {
     const empty: typeof fetch = async () => new Response(JSON.stringify([]));
-    expect(await fetchLatestReleaseManifest(empty)).toBeUndefined();
+    expect(await fetchLatestReleaseManifest(empty, [])).toBeUndefined();
     const failing: typeof fetch = async () => new Response('down', { status: 500 });
-    expect(await fetchLatestReleaseManifest(failing)).toBeUndefined();
+    expect(await fetchLatestReleaseManifest(failing, [])).toBeUndefined();
+});
+
+test('fetchLatestReleaseManifest retries throttled list requests', async () => {
+    let calls = 0;
+    const flaky: typeof fetch = async (input) => {
+        calls += 1;
+        if (String(input).endsWith('/releases?per_page=30') && calls < 3) {
+            return new Response('limited', { status: 403 });
+        }
+        if (String(input).endsWith('/releases?per_page=30')) {
+            return new Response(
+                JSON.stringify([
+                    {
+                        draft: false,
+                        created_at: '2026-10-19T00:00:00Z',
+                        assets: [
+                            {
+                                name: 'release-assets.json',
+                                browser_download_url: 'https://example.test/new.json'
+                            }
+                        ]
+                    }
+                ])
+            );
+        }
+        return new Response(
+            JSON.stringify({
+                keiyoushi: {
+                    'org.example.kei': {
+                        apk: {
+                            name: 'k.apk',
+                            sha256: 'e'.repeat(64),
+                            version: '1.0.0',
+                            source: 'keiyoushi',
+                            kind: 'apk',
+                            url: 'https://example.test/k.apk'
+                        }
+                    }
+                }
+            })
+        );
+    };
+    const manifest = await fetchLatestReleaseManifest(flaky, [0, 0, 0]);
+    expect(manifest?.keiyoushi['org.example.kei'].apk?.url).toBe('https://example.test/k.apk');
+    expect(calls).toBe(4);
 });
