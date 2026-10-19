@@ -21,7 +21,7 @@
         "lint": "oxlint",
         "update": "tsx --env-file-if-exists=.env scripts/task.ts full",
         "update:check": "tsx --env-file-if-exists=.env scripts/task.ts check",
-        "publish:releases": "tsx scripts/release-publisher.ts",
+        "publish:releases": "tsx scripts/publish.ts",
         "update:static": "tsx --env-file-if-exists=.env scripts/task.ts static",
         "data:generate": "tsx --env-file-if-exists=.env scripts/task.ts data",
         "search:update": "tsx --env-file-if-exists=.env scripts/task.ts search",

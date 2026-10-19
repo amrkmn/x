@@ -20,7 +20,7 @@ import {
     refreshMirrorIndexPb
 } from '../scripts/extensions';
 import { decodeIndexPb } from '../scripts/generate-index';
-import { isRecord } from '../scripts/release-publisher/json';
+import { isRecord } from '../scripts/releases/json';
 
 let testDir: string;
 const savedEnv = { PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL };

@@ -1,5 +1,5 @@
-import { parseReleaseManifest } from '../../scripts/release-publisher/manifest';
-import type { ReleaseManifest } from '../../scripts/release-publisher/types';
+import { parseReleaseManifest } from '../../scripts/releases/manifest';
+import type { ReleaseManifest } from '../../scripts/releases/types';
 
 // Fixture-only manifest for Phase 4 development (encoder proof, URL
 // rewriting, frontend cutover). Sequencing decision: with no live publisher

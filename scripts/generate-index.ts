@@ -6,9 +6,9 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import protobuf from 'protobufjs';
 
 import type { JsonObject, JsonValue } from '../src/lib/validation';
-import { isRecord, isString } from './release-publisher/json';
-import { manifestAsset } from './release-publisher/manifest';
-import type { ReleaseManifest } from './release-publisher/types';
+import { isRecord, isString } from './releases/json';
+import { manifestAsset } from './releases/manifest';
+import type { ReleaseManifest } from './releases/types';
 
 export interface IndexPbOptions {
     // Latest complete release-assets.json snapshot. Covered packages get
