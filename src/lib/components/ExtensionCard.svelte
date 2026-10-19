@@ -16,6 +16,7 @@
 
     const repoUrl = $derived(stripBranchSuffix(repo.source));
     const isMihon = $derived(protocol === 'tachiyomi');
+    const hasPbIndex = $derived(repo.path.endsWith('.pb'));
     let copied = $state(false);
 
     async function copyIndexUrl() {
@@ -72,7 +73,7 @@
         >
             Add Repo
         </a>
-        {#if isMihon}
+        {#if isMihon || hasPbIndex}
             <button type="button" class="btn btn-secondary" onclick={copyIndexUrl}>
                 {copied ? 'Copied' : 'Copy Index URL'}
             </button>
