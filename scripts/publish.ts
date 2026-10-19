@@ -104,9 +104,36 @@ export async function publishReleases(
         const current: ReleaseManifest = {};
         const changed: HashedArtifact[] = [];
         const names = new Set<string>();
+        let verified = 0;
+        const progress = (index: number): void => {
+            if ((index + 1) % 100 === 0 || index + 1 === candidates.length) {
+                console.info(
+                    `Checked ${index + 1}/${candidates.length} artifacts (${changed.length} new, ${verified} checksum-verified)`
+                );
+            }
+        };
 
         for (const [index, candidate] of candidates.entries()) {
             const position = `${index + 1}/${candidates.length}`;
+            const old = manifestAsset(
+                previous,
+                candidate.source,
+                candidate.packageName,
+                candidate.kind
+            );
+            if (candidate.upstreamSha256 && old?.sha256 === candidate.upstreamSha256) {
+                current[candidate.source] ??= {};
+                current[candidate.source][candidate.packageName] ??= {};
+                current[candidate.source][candidate.packageName][candidate.kind] = manifestRecord(
+                    candidate,
+                    old.name,
+                    old.sha256,
+                    old.url
+                );
+                verified += 1;
+                progress(index);
+                continue;
+            }
             let response;
             try {
                 response = await (options.fetcher ?? fetch)(candidate.downloadUrl);
@@ -128,12 +155,6 @@ export async function publishReleases(
                 );
             }
 
-            const old = manifestAsset(
-                previous,
-                candidate.source,
-                candidate.packageName,
-                candidate.kind
-            );
             if (old?.sha256 === hash) {
                 current[candidate.source] ??= {};
                 current[candidate.source][candidate.packageName] ??= {};
@@ -152,11 +173,7 @@ export async function publishReleases(
             const filePath = join(tempDir, `${index}.asset`);
             await writeFile(filePath, bytes);
             changed.push({ ...candidate, name, sha256: hash, filePath });
-            if ((index + 1) % 100 === 0 || index + 1 === candidates.length) {
-                console.info(
-                    `Checked ${index + 1}/${candidates.length} artifacts (${changed.length} new)`
-                );
-            }
+            progress(index);
         }
 
         changed.sort((left, right) => identity(left).localeCompare(identity(right)));

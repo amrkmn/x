@@ -331,6 +331,25 @@ test('publishes a full manifest and reruns unchanged bytes without creating rele
     expect(client.uploadCount).toBe(7);
 });
 
+test('skips downloads when upstream checksums match the previous manifest', async () => {
+    const source = sourceData();
+    const client = new MemoryReleaseClient();
+    let artifactDownloads = 0;
+    const fetcher: typeof fetch = async (input) => {
+        const url = String(input);
+        if (!url.endsWith('.json')) artifactDownloads += 1;
+        return source.fetcher(input);
+    };
+    const options = { data, commit, client, fetcher, owner: 'amrkmn', repo: 'x' };
+
+    expect(await publishReleases(options)).toEqual({ binaries: 6, releases: 1 });
+    expect(artifactDownloads).toBe(6);
+
+    artifactDownloads = 0;
+    expect(await publishReleases(options)).toEqual({ binaries: 0, releases: 0 });
+    expect(artifactDownloads).toBe(1);
+});
+
 test('metadata-only changes create no release', async () => {
     const source = sourceData();
     const client = new MemoryReleaseClient();
