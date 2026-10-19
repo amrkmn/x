@@ -1,0 +1,38 @@
+name: Publish Release Artifacts
+
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - extensions.json
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-publisher-main
+    cancel-in-progress: false
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ github.sha }}
+
+            - name: Setup pnpm
+              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
+              with:
+                  runtime: node@24
+                  cache: true
+
+            - name: Publish immutable releases
+              run: pnpm run publish:releases
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

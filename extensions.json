@@ -16,17 +16,10 @@
         }
     },
     "aniyomi": {
-        "kohi-den": {
-            "source": "https://noz.one/mirror/kohi-den-extensions",
-            "name": "Kohi-den",
-            "path": "/kohi-den/index.min.json",
-            "category": "aniyomi",
-            "commit": "6f4cf9e2c907e6a35fbb9bd3506e6e06ab6c44be"
-        },
         "secozzi": {
             "source": "https://github.com/Secozzi/aniyomi-extensions@repo",
             "name": "Secozzi",
-            "path": "/secozzi/index.min.json",
+            "path": "/secozzi/index.json",
             "category": "aniyomi",
             "commit": "c6459f10e99a318ef3bfd080ab358e8051ab87b5"
         },

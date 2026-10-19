@@ -1,7 +1,6 @@
 type LogLevel = 'info' | 'warn' | 'error';
 
 const SCOPE_COLORS = new Map([
-    ['cache', '\x1b[36m'],
     ['extensions', '\x1b[35m'],
     ['task', '\x1b[34m'],
     ['search', '\x1b[32m'],
@@ -253,10 +252,10 @@ class CounterLogger extends ThrottledProgressLogger {
         if (valid !== undefined && invalid !== undefined && missing !== undefined) {
             const isValid = invalid === 0 && missing === 0;
             const message = isValid
-                ? this.formatter.message(this.scope, `cache is valid files_matched=${valid}`)
+                ? this.formatter.message(this.scope, `validation complete files_matched=${valid}`)
                 : this.formatter.message(
                       this.scope,
-                      `cache validation failed valid=${valid} invalid=${invalid} missing=${missing} total=${this.totalItems}`
+                      `validation failed valid=${valid} invalid=${invalid} missing=${missing} total=${this.totalItems}`
                   );
             this.writer.log('info', message);
         }

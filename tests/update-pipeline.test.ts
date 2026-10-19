@@ -1,17 +1,26 @@
 import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
 
+import { config } from '../scripts/config';
 import type { ExtensionsData } from '../scripts/extensions';
 import {
+    fetchMissingIcons,
+    findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
     loadExtensionsData,
-    pruneRemovedRepos
+    pruneBinaryDirs,
+    pruneRemovedRepos,
+    refreshMirrorIndexPb
 } from '../scripts/extensions';
+import { decodeIndexPb } from '../scripts/generate-index';
+import { isRecord } from '../scripts/releases/json';
 
 let testDir: string;
 const savedEnv = { PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL };
@@ -445,4 +454,426 @@ test('pruneRemovedRepos removes an entire removed top-level group', async () => 
     expect(pruned).toBe(1);
     expect(existsSync(join(staticDir, 'yuzono'))).toBe(false);
     expect(existsSync(join(staticDir, 'keiyoushi'))).toBe(false);
+});
+
+test('lightweight materialization retains only index, repo, and icon files', () => {
+    expect(config.filesToCopy).toEqual([
+        'index.json',
+        'index.min.json',
+        'index.pb',
+        'repo.json',
+        'icon'
+    ]);
+});
+
+test('aniyomi wrapper index.json parses without changing category', async () => {
+    const data: ExtensionsData = {
+        aniyomi: {
+            secozzi: {
+                name: 'Secozzi',
+                source: 'https://github.com/example/secozzi',
+                path: '/secozzi/index.json',
+                category: 'aniyomi',
+                commit: 'abc123'
+            }
+        }
+    };
+    const staticDir = join(testDir, 'static');
+    const secozziDir = join(staticDir, 'secozzi');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+
+    await mkdir(secozziDir, { recursive: true });
+    await writeFile(
+        join(secozziDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Torbox',
+                        packageName: 'torbox.pkg',
+                        versionName: '1.2.0',
+                        versionCode: 5,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: {
+                            apkUrl: 'https://github.com/example/releases/download/abc/torbox.apk'
+                        },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+
+    const searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex).toHaveLength(1);
+    expect(searchIndex[0].pkg).toBe('torbox.pkg');
+    expect(searchIndex[0].category).toBe('aniyomi');
+    expect(searchIndex[0].apk).toBe('torbox.apk');
+    expect(searchIndex[0].apkUrl).toBe(
+        'https://github.com/example/releases/download/abc/torbox.apk'
+    );
+
+    // The wrapper sentinel is index.json, so a matching remote needs no refresh.
+    const updates = await findExtensionUpdates(data, {
+        quick: false,
+        staticDir,
+        getRemoteHead: async () => 'abc123',
+        loadSyncedCommits: async () => new Map([['/secozzi/index.json', 'abc123']])
+    });
+    expect(updates).toHaveLength(0);
+});
+
+test('pruneBinaryDirs removes stale apk/jar dirs for configured sources only', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+
+    await mkdir(join(staticDir, 'alpha', 'apk'), { recursive: true });
+    await writeFile(join(staticDir, 'alpha', 'apk', 'x.apk'), 'bin');
+    await mkdir(join(staticDir, 'alpha', 'icon'), { recursive: true });
+    await writeFile(join(staticDir, 'alpha', 'icon', 'a.png'), 'icon');
+    await mkdir(join(staticDir, 'beta', 'jar'), { recursive: true });
+    await writeFile(join(staticDir, 'beta', 'jar', 'y.jar'), 'bin');
+    await mkdir(join(staticDir, 'other', 'apk'), { recursive: true });
+    await writeFile(join(staticDir, 'other', 'apk', 'z.apk'), 'bin');
+
+    expect(await findBinaryArtifacts(staticDir)).toHaveLength(3);
+    expect(await pruneBinaryDirs(data, staticDir)).toBe(2);
+    expect(existsSync(join(staticDir, 'alpha', 'apk'))).toBe(false);
+    expect(existsSync(join(staticDir, 'alpha', 'icon'))).toBe(true);
+    expect(existsSync(join(staticDir, 'beta', 'jar'))).toBe(false);
+    // Unconfigured dirs are pruneRemovedRepos territory, not binary pruning.
+    expect(existsSync(join(staticDir, 'other', 'apk', 'z.apk'))).toBe(true);
+});
+
+test('generateDataJson overlays release manifest URLs and keeps upstream URLs without one', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const betaDir = join(staticDir, 'beta');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+    const upstreamApk = 'https://raw.githubusercontent.com/example/repo/apk/alpha.apk';
+
+    await mkdir(alphaDir, { recursive: true });
+    await mkdir(betaDir, { recursive: true });
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Alpha Extension',
+                        packageName: 'alpha.pkg',
+                        versionName: '1.0.0',
+                        versionCode: 1,
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        resources: { apkUrl: upstreamApk },
+                        sources: [{ language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+    await writeFile(
+        join(betaDir, 'index.min.json'),
+        JSON.stringify([
+            {
+                name: 'Beta Extension',
+                pkg: 'beta.pkg',
+                version: '2.0.0',
+                lang: 'ja',
+                apk: 'beta.apk'
+            }
+        ])
+    );
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-alpha.apk';
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir,
+        manifest: {
+            alpha: {
+                'alpha.pkg': {
+                    apk: {
+                        name: 'alpha-alpha.apk',
+                        sha256: 'a'.repeat(64),
+                        version: '1.0.0',
+                        source: 'alpha',
+                        kind: 'apk' as const,
+                        url: releaseUrl
+                    }
+                }
+            }
+        }
+    });
+
+    let searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(releaseUrl);
+
+    // Catalog-only update with no manifest: upstream URLs are kept, no cutover.
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+
+    searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(upstreamApk);
+});
+
+test('fetchMissingIcons mirrors wrapper iconUrls and keeps upstream URLs on failure', async () => {
+    const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+    const server = createServer((req, res) => {
+        if (req.url === '/good.png') {
+            res.writeHead(200, { 'content-type': 'image/png' });
+            res.end(png);
+        } else if (req.url === '/text.png') {
+            res.writeHead(200, { 'content-type': 'text/plain' });
+            res.end('not an image');
+        } else {
+            res.writeHead(404);
+            res.end();
+        }
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    // SAFETY: server is bound to a TCP port above, so address() is AddressInfo.
+    const port = (server.address() as AddressInfo).port;
+
+    try {
+        const data: ExtensionsData = {
+            mihon: {
+                alpha: {
+                    name: 'Alpha Source',
+                    source: 'https://github.com/example/alpha',
+                    path: '/alpha/index.pb',
+                    category: 'mihon',
+                    commit: 'abc'
+                }
+            },
+            aniyomi: {
+                beta: {
+                    name: 'Beta Source',
+                    source: 'https://github.com/example/beta',
+                    path: '/beta/index.min.json',
+                    category: 'aniyomi',
+                    commit: 'abc'
+                }
+            }
+        };
+        const staticDir = join(testDir, 'static');
+        const alphaDir = join(staticDir, 'alpha');
+        const betaDir = join(staticDir, 'beta');
+
+        await mkdir(alphaDir, { recursive: true });
+        await mkdir(betaDir, { recursive: true });
+        await writeFile(
+            join(alphaDir, 'index.json'),
+            JSON.stringify({
+                extensionList: {
+                    extensions: [
+                        {
+                            packageName: 'good.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/good.png` }
+                        },
+                        {
+                            packageName: 'gone.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/gone.png` }
+                        },
+                        {
+                            packageName: 'text.pkg',
+                            resources: { iconUrl: `http://127.0.0.1:${port}/text.png` }
+                        }
+                    ]
+                }
+            })
+        );
+        // Flat-array source without iconUrls is skipped by construction.
+        await writeFile(
+            join(betaDir, 'index.min.json'),
+            JSON.stringify([{ name: 'Beta', pkg: 'beta.pkg', apk: 'beta.apk' }])
+        );
+
+        const result = await fetchMissingIcons(data, staticDir);
+
+        expect(result).toEqual({ fetched: 1, skipped: 0, failed: 2 });
+        expect(existsSync(join(alphaDir, 'icon', 'good.pkg.png'))).toBe(true);
+        expect(existsSync(join(alphaDir, 'icon', 'gone.pkg.png'))).toBe(false);
+        expect(existsSync(join(alphaDir, 'icon', 'text.pkg.png'))).toBe(false);
+        expect(existsSync(join(betaDir, 'icon'))).toBe(false);
+
+        const again = await fetchMissingIcons(data, staticDir);
+        expect(again.fetched).toBe(0);
+        expect(again.skipped).toBe(1);
+        expect(again.failed).toBe(2);
+    } finally {
+        server.close();
+    }
+});
+
+test('generateDataJson synthesizes pinned upstream apkUrls for flat entries', async () => {
+    const data = createExtensionsData();
+    const staticDir = join(testDir, 'static');
+    const betaDir = join(staticDir, 'beta');
+    const dataFile = join(staticDir, 'data.json');
+    const searchIndexFile = join(staticDir, 'indexes.json');
+    const upstreamApk = 'https://raw.githubusercontent.com/example/beta/oldhash2/apk/beta.apk';
+
+    await mkdir(betaDir, { recursive: true });
+    await writeFile(
+        join(betaDir, 'index.min.json'),
+        JSON.stringify([
+            {
+                name: 'Beta Extension',
+                pkg: 'beta.pkg',
+                version: '2.0.0',
+                lang: 'ja',
+                apk: 'beta.apk',
+                nsfw: 0
+            }
+        ])
+    );
+
+    // No manifest: flat entries resolve to the pinned upstream file, never
+    // a hosted /apk/ path.
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir
+    });
+    let searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex).toHaveLength(1);
+    expect(searchIndex[0].apkUrl).toBe(upstreamApk);
+
+    // A manifest covering the package wins over the upstream URL.
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/beta-beta.apk';
+    await generateDataJson(data, {
+        commit: 'abcdef1234567',
+        dataFile,
+        searchIndexFile,
+        staticDir,
+        manifest: {
+            beta: {
+                'beta.pkg': {
+                    apk: {
+                        name: 'beta-beta.apk',
+                        sha256: 'a'.repeat(64),
+                        version: '2.0.0',
+                        source: 'beta',
+                        kind: 'apk',
+                        url: releaseUrl
+                    }
+                }
+            }
+        }
+    });
+    searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
+    expect(searchIndex[0].apkUrl).toBe(releaseUrl);
+});
+
+test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb for Mihon', async () => {
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const betaDir = join(staticDir, 'beta');
+    await mkdir(alphaDir, { recursive: true });
+    await mkdir(betaDir, { recursive: true });
+
+    const upstreamApk = 'https://upstream.example/alpha.apk';
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            name: 'Alpha',
+            badgeLabel: 'A',
+            signingKey: 'deadbeef',
+            contact: { website: 'https://example.test' },
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Covered',
+                        packageName: 'covered.pkg',
+                        resources: { apkUrl: upstreamApk },
+                        extensionLib: '1.6',
+                        versionCode: '106004',
+                        versionName: '1.0.0',
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        sources: [{ id: '1', name: 'Covered', language: 'en' }]
+                    },
+                    {
+                        name: 'Uncovered',
+                        packageName: 'uncovered.pkg',
+                        resources: { apkUrl: 'https://upstream.example/other.apk' },
+                        extensionLib: '1.6',
+                        versionCode: '106005',
+                        versionName: '1.0.0',
+                        contentWarning: 'CONTENT_WARNING_SAFE',
+                        sources: [{ id: '2', name: 'Uncovered', language: 'en' }]
+                    }
+                ]
+            }
+        })
+    );
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/alpha-covered.apk';
+    const regenerated = await refreshMirrorIndexPb('mihon', 'alpha', staticDir, {
+        alpha: {
+            'covered.pkg': {
+                apk: {
+                    name: 'alpha-covered.apk',
+                    sha256: 'a'.repeat(64),
+                    version: '1.0.0',
+                    source: 'alpha',
+                    kind: 'apk',
+                    url: releaseUrl
+                }
+            }
+        }
+    });
+
+    expect(regenerated).toBe(true);
+    const index = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
+    const entries = index.extensionList.extensions;
+    expect(entries[0].resources.apkUrl).toBe(releaseUrl);
+    expect(entries[1].resources.apkUrl).toBe('https://upstream.example/other.apk');
+
+    const decoded = decodeIndexPb(await readFile(join(alphaDir, 'index.pb')));
+    expect(decoded.signingKey).toBe('deadbeef');
+    const decodedList = decoded.extensionList;
+    if (!isRecord(decodedList) || !Array.isArray(decodedList.extensions)) {
+        throw new Error('bad shape');
+    }
+    const decodedEntries = decodedList.extensions.filter(isRecord);
+    expect(decodedEntries).toHaveLength(2);
+    const decodedResources = decodedEntries.map((entry) => {
+        if (!isRecord(entry.resources)) throw new Error('bad shape');
+        return entry.resources;
+    });
+    expect(decodedResources[0].apkUrl).toBe(releaseUrl);
+    expect(decodedResources[1].apkUrl).toBe('https://upstream.example/other.apk');
+
+    // Aniyomi sources keep their copied index.pb; flat categories are skipped.
+    await writeFile(join(betaDir, 'index.min.json'), JSON.stringify([]));
+    expect(await refreshMirrorIndexPb('aniyomi', 'beta', staticDir)).toBe(false);
+    expect(existsSync(join(betaDir, 'index.pb'))).toBe(false);
+
+    // Without a manifest the pb still regenerates with upstream URLs kept.
+    await writeFile(
+        join(alphaDir, 'index.json'),
+        JSON.stringify({
+            name: 'Alpha',
+            extensionList: { extensions: [] }
+        })
+    );
+    expect(await refreshMirrorIndexPb('mihon', 'alpha', staticDir)).toBe(true);
+    expect(decodeIndexPb(await readFile(join(alphaDir, 'index.pb'))).name).toBe('Alpha');
 });
