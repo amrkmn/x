@@ -107,7 +107,7 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 - [x] Preserve historical releases when an extension is removed or superseded. Remove it from the current manifest only after confirming it is no longer advertised by its source. (Only the newly generated current snapshot omits removed entries; prior releases/assets are untouched.)
 - [x] Make reruns idempotent: an existing release with matching hashes is accepted without re-upload; mismatches fail visibly. (Matching partial drafts resume by adding only missing assets; published releases are verification-only.)
 
-**Gate:** Each release stays within GitHub's 1,000-asset cap; the first run can bootstrap the complete current inventory across the planned batches; a second run over identical bytes creates no new binary release or assets, and no existing release asset is overwritten. The planner and fake-client tests cover these cases, and real pinned-index discovery found 3,144 artifacts; the GitHub-hosted workflow has not yet run because this branch is not merged, so the phase gate remains open.
+**Gate:** Each release stays within GitHub's 1,000-asset cap; the first run can bootstrap the complete current inventory across the planned batches; a second run over identical bytes creates no new binary release or assets, and no existing release asset is overwritten. The planner and fake-client tests cover these cases, and real pinned-index discovery found 3,144 artifacts; PR #4 merged 2026-10-19 and the first GitHub-hosted bootstrap run (actions run 39223736129) is underway, so the phase gate remains open pending its verification.
 
 ### Phase 3 — Keep hosted catalogs and site data lightweight
 
