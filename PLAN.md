@@ -97,6 +97,8 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 **Gate:** An upstream revision change produces one Forgejo commit limited to `extensions.json` and starts the intended GitHub workflow; an unchanged check produces no commit or release run.
 
+> Reversal 2026-10-19 (owner direction): the schedule lives in GitHub again (`.github/workflows/update.yml`: `0 */4 * * *` UTC + manual dispatch, `check-updates` job commits pins with `GITHUB_TOKEN`). Forgejo `check.yml` is manual-dispatch only. Pin commits now originate on GitHub; Forgejo stays in sync via the GitHub→Forgejo mirror. The Forgejo→GitHub push-mirror remains configured but must stay idle — a manual Forgejo check would push divergent pins.
+
 ### Phase 2 — Publish immutable GitHub Releases
 
 - [x] Add a GitHub Actions workflow filtered to `main` and `paths: [extensions.json]`, with manual dispatch only as a recovery option. (`workflow_dispatch` is recovery-only; the downstream site workflow runs on successful `workflow_run` so it cannot race release publication.)

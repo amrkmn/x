@@ -3,8 +3,6 @@ name: Check Extension Updates
 enable-openid-connect: true
 
 on:
-    schedule:
-        - cron: '0 */4 * * *'
     workflow_dispatch:
 
 permissions:
