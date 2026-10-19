@@ -1,4 +1,4 @@
-name: Mirror to Forgejo
+name: Mirror Repositories
 
 on:
     push:
@@ -14,16 +14,35 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
-    sync-to-forgejo:
+    mirror:
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                target: [forgejo, gitlab]
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 0
 
-            - name: Push to Forgejo
+            - name: Mirror to ${{ matrix.target }}
               run: |
-                  git remote add forgejo "${{ secrets.FORGEJO_MIRROR_URL }}"
-                  git push forgejo 'refs/remotes/origin/*:refs/heads/*'
-                  git push forgejo --tags
+                  case "${{ matrix.target }}" in
+                    forgejo)
+                      URL="${{ secrets.FORGEJO_REPO }}"
+                      KEY="${{ secrets.FORGEJO_SSH }}"
+                      ;;
+                    gitlab)
+                      URL="${{ secrets.GITLAB_REPO }}"
+                      KEY="${{ secrets.GITLAB_SSH }}"
+                      ;;
+                  esac
+                  mkdir -p ~/.ssh
+                  echo "$KEY" > ~/.ssh/mirror_key
+                  chmod 600 ~/.ssh/mirror_key
+                  export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key -o StrictHostKeyChecking=no"
+                  git remote add mirror "$URL"
+                  git push mirror 'refs/remotes/origin/*:refs/heads/*'
+                  git push mirror --tags

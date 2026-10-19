@@ -36,23 +36,6 @@ jobs:
               env:
                   RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
 
-    sync-to-gitlab:
-        runs-on: ubuntu-latest
-        if: github.event.workflow_run.conclusion == 'success'
-
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-              with:
-                  ref: ${{ github.event.workflow_run.head_sha || 'main' }}
-                  fetch-depth: 0
-
-            - name: Sync to GitLab
-              uses: pixta-dev/repository-mirroring-action@674e65a7d483ca28dafaacba0d07351bdcc8bd75 # v1.1.1
-              with:
-                  target_repo_url: ${{ secrets.GITLAB_REPO }}
-                  ssh_private_key: ${{ secrets.GITLAB_SSH }}
-
     sync-to-dufs:
         runs-on: ubuntu-latest
         needs: setup
