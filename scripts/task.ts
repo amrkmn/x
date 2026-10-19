@@ -5,6 +5,7 @@ import $ from 'dax';
 import {
     applyCommitUpdates,
     fetchMissingIcons,
+    fetchLatestReleaseManifest,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -16,12 +17,20 @@ import {
     pruneRemovedRepos,
     saveExtensionsData,
     setGithubOutput,
-    shouldFailOnMaterializeErrors
+    shouldFailOnMaterializeErrors,
+    STATIC_DIR
 } from './extensions';
 import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
 
-export type TaskCommand = 'check' | 'static' | 'full' | 'data' | 'search' | 'prepare-dist';
+export type TaskCommand =
+    | 'check'
+    | 'static'
+    | 'full'
+    | 'data'
+    | 'search'
+    | 'prepare-dist'
+    | 'cutover';
 
 export function parseTask(args: string[]): TaskCommand {
     if (args.includes('--generate-only')) return 'data';
@@ -37,7 +46,8 @@ export function parseTask(args: string[]): TaskCommand {
         command === 'full' ||
         command === 'data' ||
         command === 'search' ||
-        command === 'prepare-dist'
+        command === 'prepare-dist' ||
+        command === 'cutover'
     ) {
         return command;
     }
@@ -155,7 +165,14 @@ const commandHandlers = {
                 `dist/ contains ${binaries.length} binary artifact(s): ${binaries.slice(0, 5).join(', ')}`
             );
         }
-    }
+    },
+    cutover: async () => {
+        const data = await loadExtensionsData();
+        const fetched = process.argv.includes('--fetch')
+            ? await fetchLatestReleaseManifest()
+            : undefined;
+        await overlayReleaseManifest(data, STATIC_DIR, { manifest: fetched });
+    },
 } satisfies Record<Exclude<TaskCommand, 'check' | 'static' | 'full'>, () => Promise<void>>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {

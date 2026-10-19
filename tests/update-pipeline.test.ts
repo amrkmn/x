@@ -11,6 +11,7 @@ import { config } from '../scripts/config';
 import type { ExtensionsData } from '../scripts/extensions';
 import {
     fetchMissingIcons,
+    fetchLatestReleaseManifest,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -929,9 +930,7 @@ test('overlayReleaseManifest cuts over every mirrored wrapper and skips flat ind
         JSON.stringify({
             name: 'S',
             extensionList: {
-                extensions: [
-                    { name: 'E', packageName: 'covered.pkg', resources: { apkUrl } }
-                ]
+                extensions: [{ name: 'E', packageName: 'covered.pkg', resources: { apkUrl } }]
             }
         });
     await writeFile(join(alphaDir, 'index.json'), wrapper('https://upstream.example/a.apk'));
@@ -994,4 +993,76 @@ test('overlayReleaseManifest cuts over every mirrored wrapper and skips flat ind
 test('overlayReleaseManifest is a no-op without a manifest', async () => {
     delete process.env.RELEASE_MANIFEST_FILE;
     expect(await overlayReleaseManifest(createExtensionsData(), testDir)).toBe(0);
+});
+
+test('fetchLatestReleaseManifest downloads the newest published snapshot', async () => {
+    const snapshot = {
+        keiyoushi: {
+            'org.example.kei': {
+                apk: {
+                    name: 'keiyoushi-kei.apk',
+                    sha256: 'd'.repeat(64),
+                    version: '1.0.0',
+                    source: 'keiyoushi',
+                    kind: 'apk',
+                    url: 'https://github.com/amrkmn/x/releases/download/abc-0/keiyoushi-kei.apk'
+                }
+            }
+        }
+    };
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+        const url = String(input);
+        calls.push(url);
+        if (url.endsWith('/releases?per_page=30')) {
+            return new Response(
+                JSON.stringify([
+                    {
+                        draft: true,
+                        created_at: '2026-10-20T00:00:00Z',
+                        assets: [
+                            {
+                                name: 'release-assets.json',
+                                browser_download_url: 'https://example.test/draft.json'
+                            }
+                        ]
+                    },
+                    {
+                        draft: false,
+                        created_at: '2026-10-18T00:00:00Z',
+                        assets: [
+                            {
+                                name: 'release-assets.json',
+                                browser_download_url: 'https://example.test/old.json'
+                            }
+                        ]
+                    },
+                    {
+                        draft: false,
+                        created_at: '2026-10-19T00:00:00Z',
+                        assets: [
+                            {
+                                name: 'release-assets.json',
+                                browser_download_url: 'https://example.test/new.json'
+                            }
+                        ]
+                    }
+                ])
+            );
+        }
+        if (url === 'https://example.test/new.json') return new Response(JSON.stringify(snapshot));
+        return new Response('not found', { status: 404 });
+    };
+    expect(await fetchLatestReleaseManifest(fetcher)).toEqual(snapshot);
+    expect(calls).toEqual([
+        expect.stringContaining('/releases?per_page=30'),
+        'https://example.test/new.json'
+    ]);
+});
+
+test('fetchLatestReleaseManifest returns undefined without a usable snapshot', async () => {
+    const empty: typeof fetch = async () => new Response(JSON.stringify([]));
+    expect(await fetchLatestReleaseManifest(empty)).toBeUndefined();
+    const failing: typeof fetch = async () => new Response('down', { status: 500 });
+    expect(await fetchLatestReleaseManifest(failing)).toBeUndefined();
 });

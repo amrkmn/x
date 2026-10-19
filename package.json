@@ -26,6 +26,7 @@
         "data:generate": "tsx --env-file-if-exists=.env scripts/task.ts data",
         "search:update": "tsx --env-file-if-exists=.env scripts/task.ts search",
         "prepare:dist": "tsx --env-file-if-exists=.env scripts/task.ts prepare-dist",
+        "cutover": "tsx --env-file-if-exists=.env scripts/task.ts cutover",
         "sync": "pnpm run update:static",
         "test": "vitest run",
         "prepare": "tsx scripts/setup-hooks.ts",

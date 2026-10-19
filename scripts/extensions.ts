@@ -11,14 +11,14 @@ import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/
 import { config } from './config';
 import { encodeIndexPb } from './generate-index';
 import { logger } from './log';
-import { manifestAsset, parseReleaseManifest } from './releases/manifest';
+import { MANIFEST_NAME, manifestAsset, parseReleaseManifest } from './releases/manifest';
 import { flatUpstreamApkUrl } from './releases/sources';
 import type { ReleaseManifest } from './releases/types';
 import type { ExtensionConfig } from './types';
 import { parseExtensionsData } from './validation';
 
 const ROOT_DIR = process.cwd();
-const STATIC_DIR = join(ROOT_DIR, 'static');
+export const STATIC_DIR = join(ROOT_DIR, 'static');
 const DATA_FILE = join(STATIC_DIR, 'data.json');
 const SEARCH_INDEX_FILE = join(STATIC_DIR, 'indexes.json');
 const TEMP_DIR = join(ROOT_DIR, 'tmp');
@@ -288,6 +288,55 @@ export async function loadReleaseManifest(
             `release manifest skip reason="unreadable" file=${JSON.stringify(file)}`
         );
         return undefined;
+    }
+}
+
+// Download the newest published release-assets.json snapshot from GitHub
+// Releases. Public repository: no authentication needed. Returns undefined
+// when no published release (or no snapshot) exists yet.
+export async function fetchLatestReleaseManifest(
+    fetcher: typeof fetch = fetch
+): Promise<ReleaseManifest | undefined> {
+    const { owner, repo } = config.github;
+    const api = `https://api.github.com/repos/${owner}/${repo}`;
+    const skip = (reason: string): undefined => {
+        logger.warn('data', `release manifest fetch skip reason=${JSON.stringify(reason)}`);
+        return undefined;
+    };
+    const response = await fetcher(`${api}/releases?per_page=30`, {
+        headers: { Accept: 'application/vnd.github+json' }
+    });
+    if (!response.ok) return skip(`list HTTP ${response.status}`);
+    let releases: JsonValue;
+    try {
+        releases = JSON.parse(await response.text());
+    } catch {
+        return skip('invalid list JSON');
+    }
+    if (!Array.isArray(releases)) return skip('invalid list shape');
+    const published = releases.filter(
+        (value): value is JsonObject => isJsonObject(value) && value.draft !== true
+    );
+    published.sort((left, right) =>
+        String(left.created_at ?? '').localeCompare(String(right.created_at ?? ''))
+    );
+    const latest = published[published.length - 1];
+    if (!latest) return skip('no published releases');
+    const assets = Array.isArray(latest.assets) ? latest.assets : [];
+    const snapshot = assets.find(
+        (asset): asset is JsonObject => isJsonObject(asset) && asset.name === MANIFEST_NAME
+    );
+    const downloadUrl =
+        snapshot && isStringValue(snapshot.browser_download_url)
+            ? snapshot.browser_download_url
+            : undefined;
+    if (!downloadUrl) return skip('no manifest asset');
+    const assetResponse = await fetcher(downloadUrl);
+    if (!assetResponse.ok) return skip(`download HTTP ${assetResponse.status}`);
+    try {
+        return parseReleaseManifest(JSON.parse(await assetResponse.text()));
+    } catch {
+        return skip('invalid manifest JSON');
     }
 }
 
@@ -762,9 +811,10 @@ export async function refreshMirrorIndexPb(
 // (upstream URLs kept). Returns the number of keys regenerated.
 export async function overlayReleaseManifest(
     data: ExtensionsData,
-    staticDir = STATIC_DIR
+    staticDir = STATIC_DIR,
+    options: GenerateDataOptions = {}
 ): Promise<number> {
-    const manifest = await loadReleaseManifest({});
+    const manifest = options.manifest ?? (await loadReleaseManifest(options));
     if (!manifest) {
         logger.info('extensions', 'manifest overlay skipped (no release manifest)');
         return 0;
