@@ -15,6 +15,7 @@ import {
     findExtensionUpdates,
     generateDataJson,
     loadExtensionsData,
+    overlayReleaseManifest,
     pruneBinaryDirs,
     pruneRemovedRepos,
     refreshMirrorIndexPb
@@ -876,4 +877,121 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
     );
     expect(await refreshMirrorIndexPb('mihon', 'alpha', staticDir)).toBe(true);
     expect(decodeIndexPb(await readFile(join(alphaDir, 'index.pb'))).name).toBe('Alpha');
+});
+
+test('refreshMirrorIndexPb overlays Mihon-shaped wrappers under other categories', async () => {
+    const staticDir = join(testDir, 'static');
+    const secozziDir = join(staticDir, 'secozzi');
+    await mkdir(secozziDir, { recursive: true });
+    await writeFile(
+        join(secozziDir, 'index.json'),
+        JSON.stringify({
+            name: 'Secozzi',
+            extensionList: {
+                extensions: [
+                    {
+                        name: 'Covered',
+                        packageName: 'covered.pkg',
+                        resources: { apkUrl: 'https://upstream.example/secozzi.apk' }
+                    }
+                ]
+            }
+        })
+    );
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc-0/secozzi-covered.apk';
+    const manifest = {
+        secozzi: {
+            'covered.pkg': {
+                apk: {
+                    name: 'secozzi-covered.apk',
+                    sha256: 'b'.repeat(64),
+                    version: '1.0.0',
+                    source: 'secozzi',
+                    kind: 'apk' as const,
+                    url: releaseUrl
+                }
+            }
+        }
+    };
+    expect(await refreshMirrorIndexPb('aniyomi', 'secozzi', staticDir, manifest)).toBe(true);
+    const index = JSON.parse(await readFile(join(secozziDir, 'index.json'), 'utf8'));
+    expect(index.extensionList.extensions[0].resources.apkUrl).toBe(releaseUrl);
+});
+
+test('overlayReleaseManifest cuts over every mirrored wrapper and skips flat indexes', async () => {
+    const staticDir = join(testDir, 'static');
+    const alphaDir = join(staticDir, 'alpha');
+    const betaDir = join(staticDir, 'beta');
+    await mkdir(alphaDir, { recursive: true });
+    await mkdir(betaDir, { recursive: true });
+    const wrapper = (apkUrl: string) =>
+        JSON.stringify({
+            name: 'S',
+            extensionList: {
+                extensions: [
+                    { name: 'E', packageName: 'covered.pkg', resources: { apkUrl } }
+                ]
+            }
+        });
+    await writeFile(join(alphaDir, 'index.json'), wrapper('https://upstream.example/a.apk'));
+    await writeFile(join(betaDir, 'index.json'), wrapper('https://upstream.example/b.apk'));
+    await writeFile(join(betaDir, 'index.min.json'), JSON.stringify([]));
+
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc-0/s-covered.apk';
+    const manifestPath = join(testDir, 'release-assets.json');
+    await writeFile(
+        manifestPath,
+        JSON.stringify({
+            alpha: {
+                'covered.pkg': {
+                    apk: {
+                        name: 's-covered.apk',
+                        sha256: 'c'.repeat(64),
+                        version: '1.0.0',
+                        source: 'alpha',
+                        kind: 'apk',
+                        url: releaseUrl
+                    }
+                }
+            }
+        })
+    );
+    process.env.RELEASE_MANIFEST_FILE = manifestPath;
+    try {
+        const data: ExtensionsData = {
+            mihon: {
+                alpha: {
+                    name: 'A',
+                    source: 'https://example.test/a',
+                    path: '/alpha/index.pb',
+                    category: 'mihon',
+                    commit: 'c1'
+                }
+            },
+            aniyomi: {
+                beta: {
+                    name: 'B',
+                    source: 'https://example.test/b',
+                    path: '/beta/index.json',
+                    category: 'aniyomi',
+                    commit: 'c2'
+                }
+            }
+        };
+        expect(await overlayReleaseManifest(data, staticDir)).toBe(2);
+        const alpha = JSON.parse(await readFile(join(alphaDir, 'index.json'), 'utf8'));
+        expect(alpha.extensionList.extensions[0].resources.apkUrl).toBe(releaseUrl);
+        const beta = JSON.parse(await readFile(join(betaDir, 'index.json'), 'utf8'));
+        expect(beta.extensionList.extensions[0].resources.apkUrl).toBe(
+            'https://upstream.example/b.apk'
+        );
+    } finally {
+        delete process.env.RELEASE_MANIFEST_FILE;
+    }
+});
+
+test('overlayReleaseManifest is a no-op without a manifest', async () => {
+    delete process.env.RELEASE_MANIFEST_FILE;
+    expect(await overlayReleaseManifest(createExtensionsData(), testDir)).toBe(0);
 });

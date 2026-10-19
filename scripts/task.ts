@@ -11,6 +11,7 @@ import {
     loadExtensionsData,
     loadReleaseManifest,
     materializeExtensions,
+    overlayReleaseManifest,
     pruneBinaryDirs,
     pruneRemovedRepos,
     saveExtensionsData,
@@ -146,6 +147,7 @@ const commandHandlers = {
     },
     'prepare-dist': async () => {
         await updateExtensions('static');
+        await overlayReleaseManifest(await loadExtensionsData());
         await $`pnpm run build`;
         const binaries = await findBinaryArtifacts('dist');
         if (binaries.length > 0) {

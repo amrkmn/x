@@ -718,21 +718,23 @@ export interface MaterializeOptions {
 }
 
 // Phase 4: point covered index.json apkUrls at release URLs and regenerate
-// the mirror-owned index.pb from the final index.json (Mihon sources only;
-// Aniyomi-side stores use a different wire variant and keep their copy).
-// Returns true when index.pb was regenerated.
+// the mirror-owned index.pb from the final index.json (Mihon sources and
+// Mihon-shaped wrappers served under other categories, e.g. Secozzi;
+// flat Aniyomi indexes keep their copy). Returns true when index.pb was
+// regenerated.
 export async function refreshMirrorIndexPb(
     category: string,
     key: string,
     staticDir = STATIC_DIR,
     manifest?: ReleaseManifest
 ): Promise<boolean> {
-    if (!isMihonIndex(category)) return false;
     const indexFile = join(staticDir, key, 'index.json');
     if (!existsSync(indexFile)) return false;
     const wrapper: JsonObject = JSON.parse(await readFile(indexFile, 'utf8'));
     const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
     const rawExtensions = list && Array.isArray(list.extensions) ? list.extensions : [];
+    const wrapped = list !== undefined && Array.isArray(list.extensions);
+    if (!isMihonIndex(category) && !wrapped) return false;
     let overlaid = 0;
     for (const raw of rawExtensions) {
         if (!isJsonObject(raw)) continue;
@@ -752,6 +754,31 @@ export async function refreshMirrorIndexPb(
         `mirror index.pb regenerate key=${JSON.stringify(key)} overlaid=${overlaid}`
     );
     return true;
+}
+
+// Cutover pass for site builds: point every mirrored wrapper catalog at
+// release URLs from the latest complete manifest, independent of which
+// sources had upstream updates. Without a manifest this is a no-op
+// (upstream URLs kept). Returns the number of keys regenerated.
+export async function overlayReleaseManifest(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR
+): Promise<number> {
+    const manifest = await loadReleaseManifest({});
+    if (!manifest) {
+        logger.info('extensions', 'manifest overlay skipped (no release manifest)');
+        return 0;
+    }
+    let regenerated = 0;
+    for (const [category, entries] of Object.entries(data)) {
+        for (const key of Object.keys(entries)) {
+            if (await refreshMirrorIndexPb(category, key, staticDir, manifest)) {
+                regenerated += 1;
+            }
+        }
+    }
+    logger.info('extensions', `manifest overlay complete keys=${regenerated}`);
+    return regenerated;
 }
 
 export async function materializeExtensions(
