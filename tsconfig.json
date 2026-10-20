@@ -22,5 +22,6 @@
             "$lib/*": ["./src/lib/*"]
         }
     },
-    "exclude": ["dist"]
+    "exclude": ["dist", "static"],
+    "include": ["src", "scripts", "tests", "astro.config.mjs", "svelte.config.js"]
 }
