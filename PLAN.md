@@ -8,7 +8,7 @@ This PR starts as a plan-only change and will track the implementation. Keep the
 - [ ] Phase 1 — Run scheduled update checks on GitHub
 - [x] Phase 2 — Publish immutable GitHub Releases (done: bootstrap `7d24c19-0..3` published 2026-10-19, unchanged-rerun no-op proven in run 39256694105, live publisher runs green since)
 - [x] Phase 3 — Keep hosted catalogs and site data lightweight (done 2026-10-19: all items checked, binary-free `dist` with complete catalogs verified locally and on every gated deploy since)
-- [ ] Phase 4 — Update download links and preserve repository endpoints
+- [x] Phase 4 — Update download links and preserve repository endpoints (done 2026-10-20: code complete earlier; owner verified in-app — Secozzi PB loads in Aniyomi + Animiru, legacy Yuzono APK path downloads via 302, Mihon extensions load in Mihon + Yokai)
 - [x] Phase 5 — Remove the artifact cache and retire DUFS/Pages deployment (done 2026-10-20: cache removal `965b5bb`; host retirement wired + verified live on all three hosts, run `39420320258`; `x.amar.kim` DNS cut to Netlify + cert active, verified identical bytes)
 - [ ] Phase 6 — Bootstrap, cut over, and verify
 
@@ -138,10 +138,10 @@ If a run changes source metadata but produces no changed APK/JAR bytes, it shoul
 
 #### Manual Verification:
 
-- [ ] Add Secozzi in Aniyomi and Animiru; confirm `/secozzi/index.pb` loads and all three entries retain their torrent/source metadata.
-- [ ] In a legacy Aniyomi client, add Yuzono Anime and download a representative APK; confirm `/yuzono/anime/apk/<filename>` returns a redirect to the matching immutable Release asset.
+- [x] Add Secozzi in Aniyomi and Animiru; confirm `/secozzi/index.pb` loads and all three entries retain their torrent/source metadata. (Verified 2026-10-20 by owner in-app: loads as expected.)
+- [x] In a legacy Aniyomi client, add Yuzono Anime and download a representative APK; confirm `/yuzono/anime/apk/<filename>` returns a redirect to the matching immutable Release asset. (Verified 2026-10-20 by owner in-app: download works as expected.)
 
-- [ ] Update each Mihon `repo.json` to point `index_v2` at the matching mirror `index.pb`; verify the generated Protobuf is accepted by Mihon. (Code done 2026-10-19 in `e3b5b50`: `rewriteMirroredIndexFiles` points `index_v2` at the mirror `index.pb`, covered by the `rewrites mirrored repo index_v2` test. In-app Mihon acceptance still open.)
+- [x] Update each Mihon `repo.json` to point `index_v2` at the matching mirror `index.pb`; verify the generated Protobuf is accepted by Mihon. (Code done 2026-10-19 in `e3b5b50`: `rewriteMirroredIndexFiles` points `index_v2` at the mirror `index.pb`, covered by the `rewrites mirrored repo index_v2` test. Acceptance verified 2026-10-20 by owner in Mihon + Yokai: extensions load as expected.)
 - [x] Route website APK/JAR buttons to the new Releases and keep JARs in the website's asset manifest; app indexes expose only fields supported by their respective wire schemas. (Done 2026-10-19 in `e3b5b50`: buttons route to manifest/pinned release URLs; JARs remain a website concern and are not part of Secozzi's Aniyomi resource schema.)
 - [x] Ensure the remaining Aniyomi index entries resolve to the release URLs without relying on hosted APK directories; Kohi-den must not appear in the current index. (Done 2026-10-19 in `e3b5b50`: flat Aniyomi entries synthesize pinned raw URLs, manifest wins when covered; Kohi-den absent from catalogs and code.)
 - [x] Test direct downloads for representative Mihon and Aniyomi extensions, including one source with no JAR if applicable. (Done manually 2026-10-19: sample APK/JAR downloads return 206 with correct content-types across Mihon + Aniyomi incl. JAR-less sources. No automated download test in the suite by decision — live downloads are network-flaky.)
