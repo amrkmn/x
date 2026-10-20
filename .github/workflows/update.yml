@@ -62,4 +62,4 @@ jobs:
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
             - name: Deploy to Netlify
-              run: pnpx netlify-cli deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha }}"
+              run: pnpx --package=netlify-cli netlify deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha }}"
