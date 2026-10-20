@@ -20,6 +20,7 @@
         "format:check": "oxfmt --check",
         "lint": "oxlint",
         "update:check": "tsx --env-file-if-exists=.env scripts/task.ts check",
+        "update:local": "bash scripts/update-local.sh",
         "publish:releases": "tsx scripts/publish.ts",
         "update:static": "tsx --env-file-if-exists=.env scripts/task.ts static",
         "data:generate": "tsx --env-file-if-exists=.env scripts/task.ts data",
