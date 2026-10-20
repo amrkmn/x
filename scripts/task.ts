@@ -5,7 +5,6 @@ import $ from 'dax';
 import {
     applyCommitUpdates,
     fetchMissingIcons,
-    fetchLatestReleaseManifest,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -24,14 +23,7 @@ import {
 import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
 
-export type TaskCommand =
-    | 'check'
-    | 'static'
-    | 'full'
-    | 'data'
-    | 'search'
-    | 'prepare-dist'
-    | 'cutover';
+export type TaskCommand = 'check' | 'static' | 'data' | 'search' | 'prepare-dist';
 
 export function parseTask(args: string[]): TaskCommand {
     if (args.includes('--generate-only')) return 'data';
@@ -44,16 +36,14 @@ export function parseTask(args: string[]): TaskCommand {
     if (
         command === 'check' ||
         command === 'static' ||
-        command === 'full' ||
         command === 'data' ||
         command === 'search' ||
-        command === 'prepare-dist' ||
-        command === 'cutover'
+        command === 'prepare-dist'
     ) {
         return command;
     }
 
-    return 'full';
+    return 'check';
 }
 
 async function persistQuickUpdates(updated: boolean): Promise<void> {
@@ -73,11 +63,9 @@ async function handleQuickUpdates(
     await persistQuickUpdates(true);
 }
 
-async function finalizeFullUpdate(
-    command: 'static' | 'full',
+async function finalizeStaticUpdate(
     data: Awaited<ReturnType<typeof loadExtensionsData>>,
-    changed: boolean,
-    manifest: Awaited<ReturnType<typeof loadReleaseManifest>>
+    changed: boolean
 ): Promise<void> {
     if (!changed) {
         await persistQuickUpdates(false);
@@ -86,11 +74,6 @@ async function finalizeFullUpdate(
 
     await saveExtensionsData(data);
     logger.info('task', 'extensions_json updated=true');
-
-    if (command === 'full') {
-        await generateDataJson(data, { manifest });
-        await updateMeilisearch();
-    }
 
     await persistQuickUpdates(true);
 }
@@ -113,7 +96,7 @@ function reportMaterializeFailures(
     }
 }
 
-async function updateExtensions(command: 'check' | 'static' | 'full'): Promise<void> {
+async function updateExtensions(command: 'check' | 'static'): Promise<void> {
     const quick = command === 'check';
 
     const data = await loadExtensionsData();
@@ -138,13 +121,13 @@ async function updateExtensions(command: 'check' | 'static' | 'full'): Promise<v
     }
 
     // One manifest snapshot for the whole run so index.json, index.pb, and
-    // the search index agree; absent without a publisher run (no cutover).
+    // the search index agree; absent without a publisher run.
     const manifest = await loadReleaseManifest({});
     const { changed, failures } = await materializeExtensions(data, updates, { manifest });
     // Materialization fetches icons per updated key; cover unchanged keys
     // whose branches never shipped their icons.
     await fetchMissingIcons(data);
-    await finalizeFullUpdate(command, data, changed, manifest);
+    await finalizeStaticUpdate(data, changed);
     reportMaterializeFailures(failures);
 }
 
@@ -171,22 +154,13 @@ const commandHandlers = {
                 `dist/ contains ${binaries.length} binary artifact(s): ${binaries.slice(0, 5).join(', ')}`
             );
         }
-    },
-    cutover: async () => {
-        const data = await loadExtensionsData();
-        const fetched = process.argv.includes('--fetch')
-            ? await fetchLatestReleaseManifest()
-            : undefined;
-        const manifest = fetched ?? (await loadReleaseManifest({}));
-        await overlayReleaseManifest(data, STATIC_DIR, { manifest });
-        await generateRedirects(data, STATIC_DIR, { manifest });
     }
-} satisfies Record<Exclude<TaskCommand, 'check' | 'static' | 'full'>, () => Promise<void>>;
+} satisfies Record<Exclude<TaskCommand, 'check' | 'static'>, () => Promise<void>>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
     const command = parseTask(args);
 
-    if (command === 'check' || command === 'static' || command === 'full') {
+    if (command === 'check' || command === 'static') {
         await updateExtensions(command);
         return;
     }

@@ -31,6 +31,7 @@ pnpm install
 pnpm run dev            # Start dev server
 pnpm run update:check   # Check upstream repos and update extensions.json
 pnpm run update:static  # Populate static/ from upstream repos
+pnpm run search:update  # Push static/indexes.json to Meilisearch
 pnpm run build          # Generate data.json and build dist/
 pnpm run check          # Type-check
 pnpm run lint           # Run Oxlint

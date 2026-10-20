@@ -63,3 +63,9 @@ jobs:
 
             - name: Deploy to Netlify
               run: pnpx --package=netlify-cli netlify deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha }}"
+
+            - name: Update search index
+              run: pnpm run search:update
+              env:
+                  MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}
+                  MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
