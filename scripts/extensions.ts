@@ -171,7 +171,7 @@ export async function saveExtensionsData(
     data: ExtensionsData,
     path = EXTENSIONS_FILE
 ): Promise<void> {
-    await writeFile(path, JSON.stringify(data, null, 4));
+    await writeFile(path, `${JSON.stringify(data, null, 4)}\n`);
 }
 
 function toExtensionList(
