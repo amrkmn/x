@@ -35,16 +35,9 @@ jobs:
             - name: Fetch latest release manifest
               id: manifest
               run: |
-                  TAG=$(gh release list --exclude-drafts --limit 30 --json tagName,createdAt -q 'max_by(.createdAt) | .tagName')
-                  if [ -z "$TAG" ]; then
-                      echo "No published releases found; refusing to deploy without a complete manifest."
-                      exit 1
-                  fi
                   mkdir -p /tmp/manifest
-                  gh release download "$TAG" --pattern release-assets.json --dir /tmp/manifest --clobber
+                  curl -fSL -o /tmp/manifest/release-assets.json "https://github.com/${{ github.repository }}/releases/latest/download/release-assets.json"
                   echo "path=/tmp/manifest/release-assets.json" >> "$GITHUB_OUTPUT"
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Prepare dist
               run: pnpm run prepare:dist
