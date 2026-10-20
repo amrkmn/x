@@ -9,6 +9,7 @@ import {
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
+    generateRedirects,
     loadExtensionsData,
     loadReleaseManifest,
     materializeExtensions,
@@ -157,7 +158,12 @@ const commandHandlers = {
     },
     'prepare-dist': async () => {
         await updateExtensions('static');
-        await overlayReleaseManifest(await loadExtensionsData());
+        // One manifest snapshot for index.pb overlays and _redirects so the
+        // built dist agrees on release URLs; absent without a publisher run.
+        const data = await loadExtensionsData();
+        const manifest = await loadReleaseManifest({});
+        await overlayReleaseManifest(data, STATIC_DIR, { manifest });
+        await generateRedirects(data, STATIC_DIR, { manifest });
         await $`pnpm run build`;
         const binaries = await findBinaryArtifacts('dist');
         if (binaries.length > 0) {
@@ -171,7 +177,9 @@ const commandHandlers = {
         const fetched = process.argv.includes('--fetch')
             ? await fetchLatestReleaseManifest()
             : undefined;
-        await overlayReleaseManifest(data, STATIC_DIR, { manifest: fetched });
+        const manifest = fetched ?? (await loadReleaseManifest({}));
+        await overlayReleaseManifest(data, STATIC_DIR, { manifest });
+        await generateRedirects(data, STATIC_DIR, { manifest });
     }
 } satisfies Record<Exclude<TaskCommand, 'check' | 'static' | 'full'>, () => Promise<void>>;
 

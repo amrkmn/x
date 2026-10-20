@@ -15,14 +15,21 @@ import {
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
+    generateRedirects,
     loadExtensionsData,
     overlayReleaseManifest,
     pruneBinaryDirs,
     pruneRemovedRepos,
+    refreshFlatAnimeIndexPb,
     refreshMirrorIndexPb
 } from '../scripts/extensions';
-import { decodeIndexPb, encodeAniyomiIndexPb } from '../scripts/generate-index';
+import {
+    decodeAniyomiIndexPb,
+    decodeIndexPb,
+    encodeAniyomiIndexPb
+} from '../scripts/generate-index';
 import { isRecord } from '../scripts/releases/json';
+import type { ReleaseManifest } from '../scripts/releases/types';
 
 let testDir: string;
 const savedEnv = { PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL };
@@ -937,6 +944,192 @@ test('refreshMirrorIndexPb uses the Aniyomi codec for Secozzi wrappers', async (
     expect(index.extensionList.extensions[0].resources.apkUrl).toBe(releaseUrl);
     const generated = await readFile(join(secozziDir, 'index.pb'));
     expect(generated.equals(Buffer.from(encodeAniyomiIndexPb(index)))).toBe(true);
+});
+
+const flatAnimeRepo = {
+    name: 'Yuzono Anime',
+    source: 'https://github.com/yuzono/anime-repo@repo',
+    path: '/yuzono/anime/index.min.json',
+    category: 'aniyomi' as const,
+    commit: 'd4fac05022c1bd92ac5af66b890b8d57fd7684dc'
+};
+
+function flatAnimeFiles() {
+    return {
+        'index.min.json': JSON.stringify([
+            {
+                name: 'Aniyomi: AnimeOnsen',
+                pkg: 'eu.kanade.tachiyomi.animeextension.all.animeonsen',
+                apk: 'aniyomi-all.animeonsen-v14.10.apk',
+                lang: 'all',
+                code: 10,
+                version: '14.10',
+                nsfw: 0,
+                sources: [
+                    {
+                        name: 'AnimeOnsen',
+                        lang: 'all',
+                        id: '8542735178285060053',
+                        baseUrl: 'https://www.animeonsen.xyz'
+                    }
+                ]
+            },
+            {
+                name: 'Aniyomi: Bare',
+                pkg: 'eu.kanade.tachiyomi.animeextension.all.bare',
+                apk: 'aniyomi-all.bare-v14.1.apk',
+                lang: 'en',
+                code: 1,
+                version: '14.1',
+                nsfw: 1,
+                sources: []
+            }
+        ]),
+        'repo.json': JSON.stringify({
+            meta: {
+                name: 'Yūzōnō',
+                shortName: 'Yūzōnō',
+                website: 'https://github.com/yuzono/anime-extensions',
+                signingKeyFingerprint:
+                    'cbec121aa82ebb02aaa73806992e0368a97d47b5451ed6524816d03084c45905'
+            },
+            index_v2: 'https://x.noz.one/yuzono/anime/index.pb'
+        })
+    };
+}
+
+function flatAnimeManifest(): ReleaseManifest {
+    const entry = (file: string, url: string) => ({
+        apk: {
+            name: file,
+            sha256: 'c'.repeat(64),
+            version: '14.10',
+            source: 'yuzono/anime',
+            kind: 'apk' as const,
+            url
+        }
+    });
+    return {
+        'yuzono/anime': {
+            'eu.kanade.tachiyomi.animeextension.all.animeonsen': entry(
+                'yuzono-anime-animeonsen.apk',
+                'https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-animeonsen.apk'
+            ),
+            'eu.kanade.tachiyomi.animeextension.all.bare': entry(
+                'yuzono-anime-bare.apk',
+                'https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-bare.apk'
+            )
+        }
+    };
+}
+
+function flatAnimeData(): ExtensionsData {
+    return { mihon: {}, aniyomi: { 'yuzono/anime': flatAnimeRepo } };
+}
+
+test('refreshMirrorIndexPb converts flat anime indexes to Aniyomi PB', async () => {
+    const staticDir = join(testDir, 'static');
+    const animeDir = join(staticDir, 'yuzono', 'anime');
+    await mkdir(animeDir, { recursive: true });
+    const files = flatAnimeFiles();
+    await writeFile(join(animeDir, 'index.min.json'), files['index.min.json']);
+    await writeFile(join(animeDir, 'repo.json'), files['repo.json']);
+
+    const manifest = flatAnimeManifest();
+    const onsenUrl =
+        manifest['yuzono/anime']?.['eu.kanade.tachiyomi.animeextension.all.animeonsen']?.apk?.url;
+    expect(onsenUrl).toBe(
+        'https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-animeonsen.apk'
+    );
+    expect(
+        await refreshMirrorIndexPb('aniyomi', 'yuzono/anime', staticDir, manifest, flatAnimeRepo)
+    ).toBe(true);
+
+    // index.min.json remains available and untouched for legacy clients.
+    expect(await readFile(join(animeDir, 'index.min.json'), 'utf8')).toBe(files['index.min.json']);
+    const decoded = decodeAniyomiIndexPb(await readFile(join(animeDir, 'index.pb')));
+    expect(decoded.signingKey).toBe(
+        'cbec121aa82ebb02aaa73806992e0368a97d47b5451ed6524816d03084c45905'
+    );
+    const list = decoded.extensionList;
+    if (!isRecord(list) || !Array.isArray(list.extensions)) throw new Error('bad shape');
+    const extensions = list.extensions.filter(isRecord);
+    expect(extensions).toHaveLength(2);
+    const onsen = extensions[0];
+    expect(onsen.name).toBe('AnimeOnsen');
+    if (!isRecord(onsen.resources)) throw new Error('bad shape');
+    expect(onsen.resources.apkUrl).toBe(onsenUrl);
+    expect(onsen.resources.iconUrl).toBe(
+        'https://x.noz.one/yuzono/anime/icon/eu.kanade.tachiyomi.animeextension.all.animeonsen.png'
+    );
+    // Proto3 omits false booleans on decode; absent means not a torrent source.
+    expect(onsen.isTorrent ?? false).toBe(false);
+    if (!Array.isArray(onsen.sources)) throw new Error('bad shape');
+    expect(onsen.sources).toHaveLength(1);
+    // Empty source lists synthesize the legacy default source.
+    if (!Array.isArray(extensions[1].sources)) throw new Error('bad shape');
+    expect(extensions[1].sources).toHaveLength(1);
+});
+
+test('refreshFlatAnimeIndexPb keeps upstream URLs without a manifest', async () => {
+    const staticDir = join(testDir, 'static');
+    const animeDir = join(staticDir, 'yuzono', 'anime');
+    await mkdir(animeDir, { recursive: true });
+    const files = flatAnimeFiles();
+    await writeFile(join(animeDir, 'index.min.json'), files['index.min.json']);
+    await writeFile(join(animeDir, 'repo.json'), files['repo.json']);
+
+    expect(await refreshFlatAnimeIndexPb('yuzono/anime', staticDir, flatAnimeRepo)).toBe(true);
+    const decoded = decodeAniyomiIndexPb(await readFile(join(animeDir, 'index.pb')));
+    const list = decoded.extensionList;
+    if (!isRecord(list) || !Array.isArray(list.extensions)) throw new Error('bad shape');
+    const resources = list.extensions.filter(isRecord).map((entry) => {
+        if (!isRecord(entry.resources)) throw new Error('bad shape');
+        return entry.resources;
+    });
+    expect(resources[0].apkUrl).toBe(
+        'https://raw.githubusercontent.com/yuzono/anime-repo/d4fac05022c1bd92ac5af66b890b8d57fd7684dc/apk/aniyomi-all.animeonsen-v14.10.apk'
+    );
+});
+
+test('generateRedirects maps every legacy APK path to its release asset', async () => {
+    const staticDir = join(testDir, 'static');
+    const animeDir = join(staticDir, 'yuzono', 'anime');
+    await mkdir(animeDir, { recursive: true });
+    const files = flatAnimeFiles();
+    await writeFile(join(animeDir, 'index.min.json'), files['index.min.json']);
+
+    const manifest = flatAnimeManifest();
+    expect(await generateRedirects(flatAnimeData(), staticDir, { manifest })).toBe(2);
+    expect(await readFile(join(staticDir, '_redirects'), 'utf8')).toBe(
+        '/yuzono/anime/apk/aniyomi-all.animeonsen-v14.10.apk https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-animeonsen.apk 302\n' +
+            '/yuzono/anime/apk/aniyomi-all.bare-v14.1.apk https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-bare.apk 302\n'
+    );
+});
+
+test('generateRedirects fails closed on incomplete manifests', async () => {
+    const staticDir = join(testDir, 'static');
+    const animeDir = join(staticDir, 'yuzono', 'anime');
+    await mkdir(animeDir, { recursive: true });
+    const files = flatAnimeFiles();
+    await writeFile(join(animeDir, 'index.min.json'), files['index.min.json']);
+
+    // One current APK without a release URL: throw instead of a partial map.
+    const manifest = flatAnimeManifest();
+    delete manifest['yuzono/anime']['eu.kanade.tachiyomi.animeextension.all.bare'];
+    await expect(generateRedirects(flatAnimeData(), staticDir, { manifest })).rejects.toThrow(
+        'no release URL for yuzono/anime'
+    );
+    expect(existsSync(join(staticDir, '_redirects'))).toBe(false);
+});
+
+test('generateRedirects is a no-op without a manifest and clears stale rules', async () => {
+    const staticDir = join(testDir, 'static');
+    await mkdir(staticDir, { recursive: true });
+    await writeFile(join(staticDir, '_redirects'), '/stale /stale 302\n');
+    delete process.env.RELEASE_MANIFEST_FILE;
+    expect(await generateRedirects(flatAnimeData(), staticDir)).toBe(0);
+    expect(existsSync(join(staticDir, '_redirects'))).toBe(false);
 });
 
 test('overlayReleaseManifest cuts over every mirrored wrapper and skips flat indexes', async () => {

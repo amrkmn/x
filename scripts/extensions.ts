@@ -9,7 +9,8 @@ import type { Extension, SearchIndexEntry } from '../src/lib/types';
 import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
-import { encodeAniyomiIndexPb, encodeIndexPb } from './generate-index';
+import { encodeAniyomiIndexPb, encodeIndexPb, flatAnimeToWrapper } from './generate-index';
+import type { FlatAnimeStoreMeta } from './generate-index';
 import { logger } from './log';
 import { MANIFEST_NAME, manifestAsset, parseReleaseManifest } from './releases/manifest';
 import { flatUpstreamApkUrl } from './releases/sources';
@@ -83,11 +84,15 @@ function getMihonExtensions(index: JsonObject): JsonValue[] | undefined {
     return wrapper.extensions;
 }
 
+export function mirrorBaseUrl(): string {
+    return (process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '');
+}
+
 // Point resource URLs at the mirror only when the file is actually mirrored;
 // otherwise keep the upstream URL (e.g. GitHub releases). Returns true when a
 // mirror reference points at a missing file (stale mirror).
 async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boolean> {
-    const url = `${(process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '')}/${key}`;
+    const url = `${mirrorBaseUrl()}/${key}`;
     let staleMirror = false;
     let indexChanged = false;
 
@@ -797,22 +802,105 @@ export interface MaterializeOptions {
     manifest?: ReleaseManifest;
 }
 
+// Phase 4: convert a flat Aniyomi legacy index (Yuzono Anime index.min.json)
+// to an Aniyomi-compatible index.pb. Store fields come from repo.json meta;
+// without that file the key stays JSON-only (legacy behavior). Pre-overlay
+// APK URLs point at the pinned upstream bytes; the manifest overlay inside
+// encodeAniyomiIndexPb replaces them with immutable release URLs when the
+// manifest covers the package. index.min.json itself is never rewritten.
+export async function refreshFlatAnimeIndexPb(
+    key: string,
+    staticDir = STATIC_DIR,
+    repo?: ExtensionConfig,
+    manifest?: ReleaseManifest
+): Promise<boolean> {
+    const dir = join(staticDir, key);
+    const repoFile = join(dir, 'repo.json');
+    if (!existsSync(repoFile)) return false;
+    // Canonical flat input is index.min.json; fall back to a flat index.json
+    // for sources that ship only that copy.
+    let entries: JsonValue[] | undefined;
+    for (const file of [join(dir, 'index.min.json'), join(dir, 'index.json')]) {
+        if (!existsSync(file)) continue;
+        try {
+            const candidate: JsonValue = JSON.parse(await readFile(file, 'utf8'));
+            if (Array.isArray(candidate)) {
+                entries = candidate;
+                break;
+            }
+        } catch {
+            continue;
+        }
+    }
+    let repoJson: JsonObject;
+    try {
+        repoJson = JSON.parse(await readFile(repoFile, 'utf8'));
+    } catch {
+        return false;
+    }
+    if (!entries) return false;
+    const meta = isJsonObject(repoJson.meta) ? repoJson.meta : undefined;
+    if (!meta) return false;
+    const name = isStringValue(meta.name) ? meta.name : undefined;
+    const signingKey = isStringValue(meta.signingKeyFingerprint)
+        ? meta.signingKeyFingerprint
+        : undefined;
+    const website = isStringValue(meta.website) ? meta.website : undefined;
+    if (!name || !signingKey || !website) return false;
+    const storeMeta: FlatAnimeStoreMeta = {
+        name,
+        badgeLabel: isStringValue(meta.shortName) ? meta.shortName : name,
+        signingKey,
+        website
+    };
+    const source = repo?.source;
+    const commit = repo?.commit;
+    const wrapper = flatAnimeToWrapper(
+        entries,
+        storeMeta,
+        (_packageName, fileName) =>
+            source && commit ? flatUpstreamApkUrl(source, commit, fileName) : '',
+        `${mirrorBaseUrl()}/${key}`
+    );
+    await writeFile(
+        join(dir, 'index.pb'),
+        encodeAniyomiIndexPb(wrapper, { manifest, sourceKey: key })
+    );
+    const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
+    const count = list && Array.isArray(list.extensions) ? list.extensions.length : 0;
+    logger.info(
+        'extensions',
+        `flat anime index.pb regenerate key=${JSON.stringify(key)} entries=${count}`
+    );
+    return true;
+}
+
 // Phase 4: overlay release URLs and regenerate the public index.pb. Mihon
 // wrappers use the Mihon codec; wrapped Aniyomi sources (Secozzi) use the
-// Aniyomi codec; flat Aniyomi indexes keep their JSON copy.
+// Aniyomi codec; flat Aniyomi indexes (Yuzono Anime) convert legacy
+// index.min.json records to an Aniyomi PB via refreshFlatAnimeIndexPb.
 export async function refreshMirrorIndexPb(
     category: string,
     key: string,
     staticDir = STATIC_DIR,
-    manifest?: ReleaseManifest
+    manifest?: ReleaseManifest,
+    repo?: ExtensionConfig
 ): Promise<boolean> {
     const indexFile = join(staticDir, key, 'index.json');
-    if (!existsSync(indexFile)) return false;
+    if (!existsSync(indexFile)) {
+        // No wrapper copy (flat Aniyomi sources ship index.min.json only).
+        if (!isMihonIndex(category)) {
+            return refreshFlatAnimeIndexPb(key, staticDir, repo, manifest);
+        }
+        return false;
+    }
     const wrapper: JsonObject = JSON.parse(await readFile(indexFile, 'utf8'));
     const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
     const rawExtensions = list && Array.isArray(list.extensions) ? list.extensions : [];
     const wrapped = list !== undefined && Array.isArray(list.extensions);
-    if (!isMihonIndex(category) && !wrapped) return false;
+    if (!isMihonIndex(category) && !wrapped) {
+        return refreshFlatAnimeIndexPb(key, staticDir, repo, manifest);
+    }
     let overlaid = 0;
     for (const raw of rawExtensions) {
         if (!isJsonObject(raw)) continue;
@@ -858,14 +946,71 @@ export async function overlayReleaseManifest(
     }
     let regenerated = 0;
     for (const [category, entries] of Object.entries(data)) {
-        for (const key of Object.keys(entries)) {
-            if (await refreshMirrorIndexPb(category, key, staticDir, manifest)) {
+        for (const [key, repo] of Object.entries(entries)) {
+            if (await refreshMirrorIndexPb(category, key, staticDir, manifest, repo)) {
                 regenerated += 1;
             }
         }
     }
     logger.info('extensions', `manifest overlay complete keys=${regenerated}`);
     return regenerated;
+}
+
+// Phase 4: legacy redirect rules for flat Aniyomi clients. Maps each
+// current /<key>/apk/<filename> path from a flat index.min.json to that
+// package's immutable release URL with an explicit 302, so legacy Yuzono
+// Anime installs keep downloading after APK bytes leave the hosts.
+// The file is written to staticDir/_redirects (astro copies it to
+// dist/_redirects for Workers Static Assets and Netlify) and never carries
+// APK bytes. Fail-closed: without a manifest any stale file is removed and
+// nothing is generated; with a manifest every current APK must resolve to a
+// release URL or generation throws instead of advertising a partial map.
+export async function generateRedirects(
+    data: ExtensionsData,
+    staticDir = STATIC_DIR,
+    options: GenerateDataOptions = {}
+): Promise<number> {
+    const manifest = options.manifest ?? (await loadReleaseManifest(options));
+    const outFile = join(staticDir, '_redirects');
+    if (!manifest) {
+        if (existsSync(outFile)) await rm(outFile, { force: true });
+        logger.info('extensions', 'redirects skipped (no release manifest)');
+        return 0;
+    }
+    const rules: string[] = [];
+    for (const [category, entries] of Object.entries(data)) {
+        if (category !== 'aniyomi') continue;
+        for (const [key, repo] of Object.entries(entries)) {
+            // Only flat legacy indexes served as index.min.json need apk-path
+            // redirects; wrapped sources serve versioned PB indexes instead.
+            if (!repo.path.endsWith('index.min.json')) continue;
+            const flatFile = join(staticDir, key, 'index.min.json');
+            if (!existsSync(flatFile)) continue;
+            let parsed: JsonValue;
+            try {
+                parsed = JSON.parse(await readFile(flatFile, 'utf8'));
+            } catch {
+                continue;
+            }
+            if (!Array.isArray(parsed)) continue;
+            for (const entry of parsed) {
+                if (!isJsonObject(entry)) continue;
+                const packageName = isStringValue(entry.pkg) ? entry.pkg : undefined;
+                const fileName = isStringValue(entry.apk) ? entry.apk : undefined;
+                if (!packageName || !fileName) continue;
+                const asset = manifestAsset(manifest, key, packageName, 'apk');
+                if (!asset) {
+                    throw new Error(
+                        `redirects fail-closed: no release URL for ${key}/${packageName}`
+                    );
+                }
+                rules.push(`/${key}/apk/${fileName} ${asset.url} 302`);
+            }
+        }
+    }
+    await writeFile(outFile, `${rules.join('\n')}\n`);
+    logger.info('extensions', `redirects generate complete rules=${rules.length}`);
+    return rules.length;
 }
 
 export async function materializeExtensions(
@@ -911,7 +1056,13 @@ export async function materializeExtensions(
                 // local icon files immediately.
                 await fetchMissingIcons(data, STATIC_DIR, fetch, [key]);
                 await rewriteMirroredIndexFiles(dest, key);
-                await refreshMirrorIndexPb(category, key, STATIC_DIR, options.manifest);
+                // Flat anime PB conversion needs the pinned source/commit for
+                // pre-overlay upstream APK URLs; index_v2 already points at
+                // the PB this step writes (or skips when repo.json is absent).
+                await refreshMirrorIndexPb(category, key, STATIC_DIR, options.manifest, {
+                    ...ext,
+                    commit: hash
+                });
 
                 data[category][key].commit = hash;
                 changed = true;

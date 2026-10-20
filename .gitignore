@@ -49,6 +49,7 @@ extensions/
 static/extensions.json
 static/data.json
 static/indexes.json
+static/_redirects
 static/keiyoushi/
 static/yuzono/
 static/kohi-den/

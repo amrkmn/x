@@ -245,11 +245,115 @@ export function encodeAniyomiIndexPb(
     return gzipSync(types.store.encode(store).finish());
 }
 
+// Flat Aniyomi legacy indexes (Yuzono Anime upstream index.min.json) carry
+// per-entry {name, pkg, apk, lang, code, version, nsfw, sources[]} records
+// with no store wrapper. The field mapping below mirrors Aniyomi's own
+// NetworkLegacyAnimeExtension.toAvailableExtension, so the converted PB
+// behaves like the legacy JSON path in clients:
+// - strip the `Aniyomi: ` display prefix from the extension name;
+// - pkg -> packageName, version -> versionName, code -> int64 versionCode;
+// - nsfw -> contentWarning (1/true is NSFW, anything else is SAFE);
+// - source baseUrl -> homeUrl; isTorrent is always false;
+// - extensionLib uses the legacy rule version.substringBeforeLast('.');
+// - an empty/missing source list synthesizes the legacy default source
+//   (id 0, raw prefixed name, top-level lang, empty baseUrl).
+export const ANIYOMI_NAME_PREFIX = 'Aniyomi: ';
+
+export interface FlatAnimeStoreMeta {
+    name: string;
+    badgeLabel: string;
+    signingKey: string;
+    website: string;
+}
+
+export function flatAnimeExtensionLib(version: string): string {
+    const dot = version.lastIndexOf('.');
+    return dot > 0 ? version.slice(0, dot) : version;
+}
+
+function flatAnimeContentWarning(nsfw: JsonValue | undefined): string {
+    return nsfw === 1 || nsfw === true ? 'CONTENT_WARNING_NSFW' : 'CONTENT_WARNING_SAFE';
+}
+
+// Convert flat legacy records to a wrapper shaped for encodeAniyomiIndexPb.
+// resolveApkUrl supplies the pre-overlay APK URL per package (extensions.ts
+// passes the pinned upstream URL); the manifest overlay inside
+// encodeAniyomiIndexPb replaces it with the immutable release URL when the
+// manifest covers the package. iconBaseUrl is the mirror repo root, e.g.
+// https://x.noz.one/yuzono/anime. Entries without a package or APK filename
+// are skipped, mirroring the publisher's uninstallable-entry handling.
+export function flatAnimeToWrapper(
+    entries: JsonValue[],
+    meta: FlatAnimeStoreMeta,
+    resolveApkUrl: (packageName: string, fileName: string) => string,
+    iconBaseUrl: string
+): JsonObject {
+    const extensions: JsonObject[] = [];
+    for (const entry of entries) {
+        if (!isRecord(entry)) continue;
+        const packageName = asString(entry.pkg);
+        const fileName = asString(entry.apk);
+        if (
+            packageName === undefined ||
+            fileName === undefined ||
+            fileName === '' ||
+            fileName.includes('/') ||
+            fileName.includes('\\')
+        ) {
+            continue;
+        }
+        const rawName = asString(entry.name) ?? packageName;
+        const name = rawName.startsWith(ANIYOMI_NAME_PREFIX)
+            ? rawName.slice(ANIYOMI_NAME_PREFIX.length)
+            : rawName;
+        const version = asString(entry.version) ?? '';
+        const lang = asString(entry.lang) ?? '';
+        const rawSources = Array.isArray(entry.sources) ? entry.sources : [];
+        const sources: JsonObject[] = [];
+        for (const source of rawSources) {
+            if (!isRecord(source)) continue;
+            const id = asInt64(source.id);
+            if (id === undefined) continue;
+            const record: JsonObject = {
+                id,
+                name: asString(source.name) ?? '',
+                language: asString(source.lang) ?? ''
+            };
+            const homeUrl = asString(source.baseUrl);
+            if (homeUrl !== undefined) record.homeUrl = homeUrl;
+            sources.push(record);
+        }
+        if (sources.length === 0 && rawSources.length === 0) {
+            sources.push({ id: '0', name: rawName, language: lang });
+        }
+        extensions.push({
+            name,
+            packageName,
+            resources: {
+                apkUrl: resolveApkUrl(packageName, fileName),
+                iconUrl: `${iconBaseUrl}/icon/${packageName}.png`
+            },
+            extensionLib: flatAnimeExtensionLib(version),
+            versionCode: asInt64(entry.code) ?? '0',
+            versionName: version,
+            contentWarning: flatAnimeContentWarning(entry.nsfw),
+            isTorrent: false,
+            sources
+        });
+    }
+    return {
+        name: meta.name,
+        badgeLabel: meta.badgeLabel,
+        signingKey: meta.signingKey,
+        contact: { website: meta.website },
+        extensionList: { extensions }
+    };
+}
+
 // Decode index.pb bytes (gzipped as served, or raw) back to the wrapper
 // JSON shape: int64s as strings, enums as CONTENT_WARNING_* names, unset
 // fields omitted — directly comparable to index.json.
-export function decodeIndexPb(bytes: Uint8Array): JsonObject {
-    const type = indexTypes().store;
+function decodeStoreBytes(type: protobuf.Type, bytes: Uint8Array): JsonObject {
     const raw = Buffer.from(bytes);
     const payload =
         raw.length >= 2 && raw.subarray(0, 2).equals(GZIP_MAGIC) ? gunzipSync(raw) : raw;
@@ -261,4 +365,14 @@ export function decodeIndexPb(bytes: Uint8Array): JsonObject {
         defaults: false
     }) as JsonObject;
     return decoded;
+}
+
+export function decodeIndexPb(bytes: Uint8Array): JsonObject {
+    return decodeStoreBytes(indexTypes().store, bytes);
+}
+
+// Aniyomi counterpart of decodeIndexPb, for converted flat indexes and
+// Secozzi wrappers. Same gzip handling and JSON-shape guarantees.
+export function decodeAniyomiIndexPb(bytes: Uint8Array): JsonObject {
+    return decodeStoreBytes(aniyomiIndexTypes().store, bytes);
 }
