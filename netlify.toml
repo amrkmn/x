@@ -1,11 +1,9 @@
 # Production deploys are built AND shipped by GitHub Actions
 # (.github/workflows/update.yml): prepare-dist with the complete release
-# manifest, then `netlify deploy --prod --dir dist`. This file exists only
-# so the CLI has explicit settings and never runs framework detection.
+# manifest, then `netlify deploy --prod --dir dist`. The no-op command
+# pins explicit build settings so the CLI never runs framework detection;
+# git-connected builds must stay disabled on the Netlify dashboard so
+# nothing builds from main.
 [build]
 publish = "dist"
-# Production deploys come prebuilt from GH Actions (update.yml) via
-# `netlify deploy --prod --dir dist`. An empty command means the CLI
-# skips building and ships the directory as-is; git-connected builds
-# must stay disabled on the Netlify dashboard so nothing builds from main.
-command = ""
+command = "true"
