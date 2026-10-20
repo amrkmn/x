@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { config } from './config';
+import { env } from './env';
 import { GitHubReleaseClient } from './releases/github-client';
 import {
     MANIFEST_NAME,
@@ -241,9 +242,9 @@ export async function publishReleases(
 }
 
 export async function runPublisher(): Promise<void> {
-    const token = process.env.GITHUB_TOKEN;
-    const commit = process.env.GITHUB_SHA;
-    const ref = process.env.GITHUB_REF;
+    const token = env.GITHUB_TOKEN;
+    const commit = env.GITHUB_SHA;
+    const ref = env.GITHUB_REF;
     if (!token) throw new Error('GITHUB_TOKEN is required');
     if (!commit) throw new Error('GITHUB_SHA is required');
     if (ref !== `refs/heads/${config.github.branch}`) {
@@ -256,13 +257,4 @@ export async function runPublisher(): Promise<void> {
     console.info(
         `Release publisher complete: ${result.binaries} binaries, ${result.releases} releases`
     );
-}
-
-if (import.meta.main) {
-    try {
-        await runPublisher();
-    } catch (error) {
-        console.error(error);
-        process.exit(1);
-    }
 }

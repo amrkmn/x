@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+import { mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+import './env';
+
 import $ from 'dax';
 
 import {
@@ -22,8 +28,16 @@ import {
 } from './extensions';
 import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
+import { runPublisher } from './publish';
 
-export type TaskCommand = 'check' | 'static' | 'data' | 'search' | 'prepare-dist';
+export type TaskCommand =
+    | 'check'
+    | 'static'
+    | 'data'
+    | 'search'
+    | 'prepare-dist'
+    | 'local'
+    | 'publish';
 
 export function parseTask(args: string[]): TaskCommand {
     if (args.includes('--generate-only')) return 'data';
@@ -38,7 +52,9 @@ export function parseTask(args: string[]): TaskCommand {
         command === 'static' ||
         command === 'data' ||
         command === 'search' ||
-        command === 'prepare-dist'
+        command === 'prepare-dist' ||
+        command === 'local' ||
+        command === 'publish'
     ) {
         return command;
     }
@@ -123,12 +139,36 @@ async function updateExtensions(command: 'check' | 'static'): Promise<void> {
     // One manifest snapshot for the whole run so index.json, index.pb, and
     // the search index agree; absent without a publisher run.
     const manifest = await loadReleaseManifest({});
-    const { changed, failures } = await materializeExtensions(data, updates, { manifest });
+    const { changed, failures } = await materializeExtensions(data, updates, {
+        manifest
+    });
     // Materialization fetches icons per updated key; cover unchanged keys
     // whose branches never shipped their icons.
     await fetchMissingIcons(data);
     await finalizeStaticUpdate(data, changed);
     reportMaterializeFailures(failures);
+}
+
+const MANIFEST_URL = 'https://github.com/amrkmn/x/releases/latest/download/release-assets.json';
+
+async function fetchManifest(): Promise<string | undefined> {
+    try {
+        const response = await fetch(MANIFEST_URL);
+        if (!response.ok) {
+            console.error(
+                `warning: manifest HTTP ${response.status}; continuing with upstream URLs`
+            );
+            return undefined;
+        }
+        const dir = join(tmpdir(), 'x-manifest');
+        await mkdir(dir, { recursive: true });
+        const path = join(dir, 'release-assets.json');
+        await writeFile(path, Buffer.from(await response.arrayBuffer()));
+        return path;
+    } catch {
+        console.error('warning: manifest fetch failed; continuing with upstream URLs');
+        return undefined;
+    }
 }
 
 const commandHandlers = {
@@ -154,6 +194,23 @@ const commandHandlers = {
                 `dist/ contains ${binaries.length} binary artifact(s): ${binaries.slice(0, 5).join(', ')}`
             );
         }
+    },
+    // Local full refresh (retired update-local.ts): same three stages as
+    // the pnpm update:static + data:generate + search:update chain, but
+    // in-process — no tsx subprocess round-trips. Unlike `prepare-dist`,
+    // this does not build dist/, generate _redirects, or fail on missing
+    // release manifests.
+    local: async () => {
+        const manifestPath = await fetchManifest();
+        if (manifestPath) process.env.RELEASE_MANIFEST_FILE = manifestPath;
+
+        await updateExtensions('static');
+        await generateDataJson();
+        logger.info('search', 'index update mode="only"');
+        await updateMeilisearch();
+    },
+    publish: async () => {
+        await runPublisher();
     }
 } satisfies Record<Exclude<TaskCommand, 'check' | 'static'>, () => Promise<void>>;
 

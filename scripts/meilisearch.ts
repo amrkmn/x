@@ -5,15 +5,16 @@ import { Meilisearch } from 'meilisearch';
 
 import type { SearchIndexEntry } from '../src/lib/types';
 import { parseSearchIndex } from '../src/lib/validation';
+import { env } from './env';
 import { logger } from './log';
 
 export async function updateMeilisearch() {
-    const env = {
-        host: process.env.MEILISEARCH_HOST,
-        apiKey: process.env.MEILISEARCH_MASTER_KEY
+    const envConfig = {
+        host: env.MEILISEARCH_HOST,
+        apiKey: env.MEILISEARCH_MASTER_KEY
     };
 
-    if (!env.host || !env.apiKey) {
+    if (!envConfig.host || !envConfig.apiKey) {
         logger.info('search', 'index update skipped reason="not_configured"');
         return;
     }
@@ -23,7 +24,7 @@ export async function updateMeilisearch() {
     const searchIndexFile = join(STATIC_DIR, 'indexes.json');
 
     try {
-        const client = new Meilisearch({ host: env.host, apiKey: env.apiKey });
+        const client = new Meilisearch({ host: envConfig.host, apiKey: envConfig.apiKey });
         await client.health();
         const index = client.index<SearchIndexEntry>('extensions');
 
@@ -86,8 +87,4 @@ export async function updateMeilisearch() {
             `index update error=${JSON.stringify(error instanceof Error ? error.message : error)}`
         );
     }
-}
-
-if (import.meta.main) {
-    await updateMeilisearch();
 }

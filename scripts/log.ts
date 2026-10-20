@@ -1,3 +1,5 @@
+import { env, isCI } from './env';
+
 type LogLevel = 'info' | 'warn' | 'error';
 
 const SCOPE_COLORS = new Map([
@@ -8,13 +10,13 @@ const SCOPE_COLORS = new Map([
 ]);
 
 function supportsColor(): boolean {
-    return process.stdout.isTTY && process.env.NO_COLOR === undefined;
+    return process.stdout.isTTY && env.NO_COLOR === undefined;
 }
 
 function isInteractiveTerminal(): boolean {
     if (!process.stdout.isTTY) return false;
-    if (process.env.TERM === 'dumb') return false;
-    if (process.env.CI === 'true' || process.env.CI === '1') return false;
+    if (env.TERM === 'dumb') return false;
+    if (isCI()) return false;
 
     const ciEnvVars = [
         'GITHUB_ACTIONS',

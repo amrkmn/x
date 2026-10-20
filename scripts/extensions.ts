@@ -9,8 +9,9 @@ import type { Extension, SearchIndexEntry } from '../src/lib/types';
 import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
-import { encodeAniyomiIndexPb, encodeIndexPb, flatAnimeToWrapper } from './generate-index';
+import { env, isCI } from './env';
 import type { FlatAnimeStoreMeta } from './generate-index';
+import { encodeAniyomiIndexPb, encodeIndexPb, flatAnimeToWrapper } from './generate-index';
 import { logger } from './log';
 import { MANIFEST_NAME, manifestAsset, parseReleaseManifest } from './releases/manifest';
 import { flatUpstreamApkUrl } from './releases/sources';
@@ -85,7 +86,7 @@ function getMihonExtensions(index: JsonObject): JsonValue[] | undefined {
 }
 
 export function mirrorBaseUrl(): string {
-    return (process.env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '');
+    return (env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '');
 }
 
 // Point resource URLs at the mirror only when the file is actually mirrored;
@@ -158,8 +159,8 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
 }
 
 export async function setGithubOutput(key: string, value: string): Promise<void> {
-    if (!process.env.GITHUB_OUTPUT) return;
-    await appendFile(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+    if (!env.GITHUB_OUTPUT) return;
+    await appendFile(env.GITHUB_OUTPUT, `${key}=${value}\n`);
 }
 
 export async function loadExtensionsData(path = EXTENSIONS_FILE): Promise<ExtensionsData> {
@@ -283,7 +284,7 @@ export async function loadReleaseManifest(
     options: GenerateDataOptions
 ): Promise<ReleaseManifest | undefined> {
     if (options.manifest) return options.manifest;
-    const file = options.manifestFile ?? process.env.RELEASE_MANIFEST_FILE;
+    const file = options.manifestFile ?? env.RELEASE_MANIFEST_FILE;
     if (!file) return undefined;
     try {
         return parseReleaseManifest(JSON.parse(await readFile(file, 'utf8')));
@@ -313,7 +314,7 @@ export async function fetchLatestReleaseManifest(
     // quota (403/429); retry briefly, and authenticate when a token is
     // available (build secret or local .env), which moves to per-token quota.
     const headers = new Headers({ Accept: 'application/vnd.github+json' });
-    const token = process.env.GITHUB_TOKEN;
+    const token = env.GITHUB_TOKEN;
     if (token) headers.set('Authorization', `Bearer ${token}`);
     const get = async (url: string): Promise<Response | undefined> => {
         for (const delay of retryDelays) {
@@ -757,7 +758,7 @@ async function cloneRepository(source: string, temp: string): Promise<'sparse' |
 }
 
 export function shouldFailOnMaterializeErrors(): boolean {
-    return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+    return isCI();
 }
 
 // Remove static dirs no longer configured in extensions.json, so removed
