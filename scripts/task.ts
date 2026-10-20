@@ -172,7 +172,7 @@ const commandHandlers = {
             ? await fetchLatestReleaseManifest()
             : undefined;
         await overlayReleaseManifest(data, STATIC_DIR, { manifest: fetched });
-    },
+    }
 } satisfies Record<Exclude<TaskCommand, 'check' | 'static' | 'full'>, () => Promise<void>>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
