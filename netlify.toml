@@ -1,0 +1,9 @@
+# Production deploys are built AND shipped by GitHub Actions
+# (.github/workflows/update.yml): prepare-dist with the complete release
+# manifest, then `netlify deploy --prod --dir dist`. This file exists only
+# so the CLI has explicit settings and never runs framework detection.
+[build]
+publish = "dist"
+# Fail closed if git builds are ever reconnected: production must come
+# prebuilt from the gated publisher flow, not from an in-place build.
+command = "echo 'production deploys come from GH Actions (update.yml)' && exit 1"
