@@ -28,10 +28,16 @@ interface IndexTypes {
 }
 
 let cachedTypes: IndexTypes | undefined;
+let cachedAniyomiTypes: IndexTypes | undefined;
 
 function indexTypes(): IndexTypes {
     if (!cachedTypes) {
-        const protoPath = join(dirname(fileURLToPath(import.meta.url)), 'extensionstore.proto');
+        const protoPath = join(
+            dirname(fileURLToPath(import.meta.url)),
+            'proto',
+            'mihon',
+            'extensionstore.proto'
+        );
         const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
         cachedTypes = {
             store: parsed.root.lookupType('mihon.extensionstore.NetworkExtensionStore'),
@@ -40,6 +46,24 @@ function indexTypes(): IndexTypes {
         };
     }
     return cachedTypes;
+}
+
+function aniyomiIndexTypes(): IndexTypes {
+    if (!cachedAniyomiTypes) {
+        const protoPath = join(
+            dirname(fileURLToPath(import.meta.url)),
+            'proto',
+            'aniyomi',
+            'extensionstore.proto'
+        );
+        const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
+        cachedAniyomiTypes = {
+            store: parsed.root.lookupType('aniyomi.extensionstore.NetworkAnimeExtensionStore'),
+            extension: parsed.root.lookupType('aniyomi.extensionstore.Extension'),
+            source: parsed.root.lookupType('aniyomi.extensionstore.Source')
+        };
+    }
+    return cachedAniyomiTypes;
 }
 
 function asString(value: JsonValue | undefined): string | undefined {
@@ -141,6 +165,84 @@ export function encodeIndexPb(wrapper: JsonObject, options: IndexPbOptions = {})
         extensionList: { extensions }
     });
     return gzipSync(type.encode(store).finish());
+}
+
+// Encode the Secozzi wrapper with Aniyomi's wire model. In particular,
+// field 8 is isTorrent and field 9 is sources; the Mihon codec differs.
+export function encodeAniyomiIndexPb(
+    wrapper: JsonObject,
+    options: IndexPbOptions = {}
+): Uint8Array {
+    const types = aniyomiIndexTypes();
+    const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : {};
+    const rawExtensions = Array.isArray(list.extensions) ? list.extensions : [];
+    const contact = isRecord(wrapper.contact) ? wrapper.contact : {};
+    const extensions: protobuf.Message[] = [];
+
+    for (const raw of rawExtensions) {
+        if (!isRecord(raw)) continue;
+        const resources = isRecord(raw.resources) ? raw.resources : {};
+        const packageName = asString(raw.packageName) ?? '';
+        let apkUrl = asString(resources.apkUrl) ?? '';
+        if (options.manifest && options.sourceKey && packageName) {
+            const asset = manifestAsset(options.manifest, options.sourceKey, packageName, 'apk');
+            if (asset) apkUrl = asset.url;
+        }
+
+        const sources: protobuf.Message[] = [];
+        if (Array.isArray(raw.sources)) {
+            for (const entry of raw.sources) {
+                if (!isRecord(entry)) continue;
+                const id = asInt64(entry.id);
+                if (id === undefined) continue;
+                sources.push(
+                    types.source.fromObject({
+                        id,
+                        name: asString(entry.name) ?? '',
+                        language: asString(entry.language) ?? '',
+                        homeUrl: asString(entry.homeUrl),
+                        mirrorUrls: Array.isArray(entry.mirrorUrls)
+                            ? entry.mirrorUrls.filter(isString)
+                            : [],
+                        message: asString(entry.message)
+                    })
+                );
+            }
+        }
+
+        const warning = asString(raw.contentWarning);
+        extensions.push(
+            types.extension.fromObject({
+                name: asString(raw.name) ?? '',
+                packageName,
+                resources: {
+                    apkUrl,
+                    iconUrl: asString(resources.iconUrl) ?? ''
+                },
+                extensionLib: asString(raw.extensionLib) ?? '',
+                versionCode: asInt64(raw.versionCode) ?? '0',
+                versionName: asString(raw.versionName) ?? '',
+                contentWarning:
+                    warning !== undefined && CONTENT_WARNINGS.has(warning)
+                        ? warning
+                        : 'CONTENT_WARNING_UNSPECIFIED',
+                isTorrent: raw.isTorrent === true,
+                sources
+            })
+        );
+    }
+
+    const store = types.store.fromObject({
+        name: asString(wrapper.name) ?? '',
+        badgeLabel: asString(wrapper.badgeLabel) ?? '',
+        signingKey: asString(wrapper.signingKey) ?? '',
+        contact: {
+            website: asString(contact.website) ?? '',
+            discord: asString(contact.discord) ?? ''
+        },
+        extensionList: { extensions }
+    });
+    return gzipSync(types.store.encode(store).finish());
 }
 
 // Decode index.pb bytes (gzipped as served, or raw) back to the wrapper

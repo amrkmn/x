@@ -9,7 +9,7 @@ import type { Extension, SearchIndexEntry } from '../src/lib/types';
 import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
-import { encodeIndexPb } from './generate-index';
+import { encodeAniyomiIndexPb, encodeIndexPb } from './generate-index';
 import { logger } from './log';
 import { MANIFEST_NAME, manifestAsset, parseReleaseManifest } from './releases/manifest';
 import { flatUpstreamApkUrl } from './releases/sources';
@@ -307,13 +307,9 @@ export async function fetchLatestReleaseManifest(
     // Shared-egress build environments routinely hit GitHub's unauthenticated
     // quota (403/429); retry briefly, and authenticate when a token is
     // available (build secret or local .env), which moves to per-token quota.
-    interface ManifestRequestHeaders {
-        Accept: string;
-        Authorization?: string;
-    }
-    const headers: ManifestRequestHeaders = { Accept: 'application/vnd.github+json' };
+    const headers = new Headers({ Accept: 'application/vnd.github+json' });
     const token = process.env.GITHUB_TOKEN;
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (token) headers.set('Authorization', `Bearer ${token}`);
     const get = async (url: string): Promise<Response | undefined> => {
         for (const delay of retryDelays) {
             if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
@@ -322,7 +318,10 @@ export async function fetchLatestReleaseManifest(
             if (response.status !== 403 && response.status !== 429 && response.status < 500) {
                 return response;
             }
-            logger.warn('data', `release manifest fetch retry url=${url} status=${response.status}`);
+            logger.warn(
+                'data',
+                `release manifest fetch retry url=${url} status=${response.status}`
+            );
         }
         return undefined;
     };
@@ -537,7 +536,12 @@ export async function findExtensionUpdates(
                             `stale mirror detected key=${JSON.stringify(key)}`
                         );
                         await rm(dest, { recursive: true, force: true });
-                        return { category, key, ext, hash: ext.commit || 'HEAD' };
+                        return {
+                            category,
+                            key,
+                            ext,
+                            hash: ext.commit || 'HEAD'
+                        };
                     }
                 }
 
@@ -691,7 +695,9 @@ export async function fetchMissingIcons(
                         const timer = setTimeout(() => controller.abort(), ICON_FETCH_TIMEOUT_MS);
                         let response: Response;
                         try {
-                            response = await fetcher(iconUrl, { signal: controller.signal });
+                            response = await fetcher(iconUrl, {
+                                signal: controller.signal
+                            });
                         } finally {
                             clearTimeout(timer);
                         }
@@ -703,7 +709,9 @@ export async function fetchMissingIcons(
                         if (bytes.length === 0 || bytes.length > ICON_MAX_BYTES) {
                             throw new Error(`unexpected size ${bytes.length}`);
                         }
-                        await mkdir(join(staticDir, key, 'icon'), { recursive: true });
+                        await mkdir(join(staticDir, key, 'icon'), {
+                            recursive: true
+                        });
                         await writeFile(dest, bytes);
                         result.fetched += 1;
                     } catch (error) {
@@ -789,11 +797,9 @@ export interface MaterializeOptions {
     manifest?: ReleaseManifest;
 }
 
-// Phase 4: point covered index.json apkUrls and jarUrls at release URLs and regenerate
-// the mirror-owned index.pb from the final index.json (Mihon sources and
-// Mihon-shaped wrappers served under other categories, e.g. Secozzi;
-// flat Aniyomi indexes keep their copy). Returns true when index.pb was
-// regenerated.
+// Phase 4: overlay release URLs and regenerate the public index.pb. Mihon
+// wrappers use the Mihon codec; wrapped Aniyomi sources (Secozzi) use the
+// Aniyomi codec; flat Aniyomi indexes keep their JSON copy.
 export async function refreshMirrorIndexPb(
     category: string,
     key: string,
@@ -818,14 +824,17 @@ export async function refreshMirrorIndexPb(
             resources.apkUrl = asset.url;
             overlaid += 1;
         }
-        const jarAsset = manifestAsset(manifest, key, packageName, 'jar');
-        if (jarAsset && resources.jarUrl !== jarAsset.url) {
-            resources.jarUrl = jarAsset.url;
-            overlaid += 1;
+        if (isMihonIndex(category)) {
+            const jarAsset = manifestAsset(manifest, key, packageName, 'jar');
+            if (jarAsset && resources.jarUrl !== jarAsset.url) {
+                resources.jarUrl = jarAsset.url;
+                overlaid += 1;
+            }
         }
     }
     if (overlaid > 0) await writeFile(indexFile, JSON.stringify(wrapper));
-    await writeFile(join(staticDir, key, 'index.pb'), encodeIndexPb(wrapper));
+    const indexPb = isMihonIndex(category) ? encodeIndexPb(wrapper) : encodeAniyomiIndexPb(wrapper);
+    await writeFile(join(staticDir, key, 'index.pb'), indexPb);
     logger.info(
         'extensions',
         `mirror index.pb regenerate key=${JSON.stringify(key)} overlaid=${overlaid}`
@@ -891,7 +900,9 @@ export async function materializeExtensions(
                 for (const file of config.filesToCopy) {
                     const srcPath = join(temp, file);
                     if (existsSync(srcPath)) {
-                        await cp(srcPath, join(dest, file), { recursive: true });
+                        await cp(srcPath, join(dest, file), {
+                            recursive: true
+                        });
                     }
                 }
 

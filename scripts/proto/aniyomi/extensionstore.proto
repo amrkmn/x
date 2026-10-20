@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package aniyomi.extensionstore;
+
+// Mirror of Aniyomi's NetworkAnimeExtensionStore wire format, verified against
+// Animiru and Aniyomi source models:
+// store 1=name 2=badgeLabel 3=signingKey 4=contact 101=extensionList
+// 102=extensionListUrl; extension 1=name 2=packageName 3=resources
+// 4=extensionLib 5=versionCode 6=versionName 7=contentWarning
+// 8=isTorrent 9=sources; source 1=id 2=name 3=language 4=homeUrl
+// 5=mirrorUrls 6=message; resources 1=apkUrl 2=iconUrl.
+message NetworkAnimeExtensionStore {
+    string name = 1;
+    string badge_label = 2;
+    string signing_key = 3;
+    Contact contact = 4;
+    ExtensionList extension_list = 101;
+    string extension_list_url = 102;
+}
+
+message Contact {
+    string website = 1;
+    string discord = 2;
+}
+
+message ExtensionList {
+    repeated Extension extensions = 1;
+}
+
+message Extension {
+    string name = 1;
+    string package_name = 2;
+    Resources resources = 3;
+    string extension_lib = 4;
+    int64 version_code = 5;
+    string version_name = 6;
+    ContentWarning content_warning = 7;
+    bool is_torrent = 8;
+    repeated Source sources = 9;
+}
+
+message Resources {
+    string apk_url = 1;
+    string icon_url = 2;
+}
+
+message Source {
+    int64 id = 1;
+    string name = 2;
+    string language = 3;
+    string home_url = 4;
+    repeated string mirror_urls = 5;
+    string message = 6;
+}
+
+enum ContentWarning {
+    CONTENT_WARNING_UNSPECIFIED = 0;
+    CONTENT_WARNING_SAFE = 1;
+    CONTENT_WARNING_MIXED = 2;
+    CONTENT_WARNING_NSFW = 3;
+}

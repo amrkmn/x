@@ -1,8 +1,9 @@
 import { gunzipSync } from 'node:zlib';
 
+import protobuf from 'protobufjs';
 import { expect, test } from 'vitest';
 
-import { decodeIndexPb, encodeIndexPb } from '../scripts/generate-index';
+import { decodeIndexPb, encodeAniyomiIndexPb, encodeIndexPb } from '../scripts/generate-index';
 import { isRecord } from '../scripts/releases/json';
 import type { JsonObject } from '../src/lib/validation';
 
@@ -22,6 +23,59 @@ function sourcesOf(extension: JsonObject): JsonObject[] {
     if (!Array.isArray(extension.sources)) throw new Error('bad shape');
     return extension.sources.filter(isRecord);
 }
+
+// Independent decoder contract transcribed from Aniyomi/Animiru's
+// NetworkAnimeExtensionStore models, so this test catches mismatched tags.
+const aniyomiConsumerType = protobuf
+    .parse(`
+        syntax = "proto3";
+        package aniyomi.consumer;
+        message NetworkAnimeExtensionStore {
+            string name = 1;
+            string badge_label = 2;
+            string signing_key = 3;
+            Contact contact = 4;
+            ExtensionList extension_list = 101;
+            string extension_list_url = 102;
+        }
+        message Contact {
+            string website = 1;
+            string discord = 2;
+        }
+        message ExtensionList {
+            repeated Extension extensions = 1;
+        }
+        message Extension {
+            string name = 1;
+            string package_name = 2;
+            Resources resources = 3;
+            string extension_lib = 4;
+            int64 version_code = 5;
+            string version_name = 6;
+            ContentWarning content_warning = 7;
+            bool is_torrent = 8;
+            repeated Source sources = 9;
+        }
+        message Resources {
+            string apk_url = 1;
+            string icon_url = 2;
+        }
+        message Source {
+            int64 id = 1;
+            string name = 2;
+            string language = 3;
+            string home_url = 4;
+            repeated string mirror_urls = 5;
+            string message = 6;
+        }
+        enum ContentWarning {
+            CONTENT_WARNING_UNSPECIFIED = 0;
+            CONTENT_WARNING_SAFE = 1;
+            CONTENT_WARNING_MIXED = 2;
+            CONTENT_WARNING_NSFW = 3;
+        }
+    `)
+    .root.lookupType('aniyomi.consumer.NetworkAnimeExtensionStore');
 
 function fullWrapper(): JsonObject {
     return {
@@ -68,6 +122,81 @@ function fullWrapper(): JsonObject {
         }
     };
 }
+
+test('Aniyomi index.pb preserves Aniyomi wire fields and overlays APK URLs', () => {
+    const releaseUrl =
+        'https://github.com/amrkmn/x/releases/download/abc1234-0/secozzi-stremio.apk';
+    const wrapper: JsonObject = {
+        name: 'Secozzi',
+        badgeLabel: 'SECO',
+        signingKey: 'secozzi-signing-key',
+        contact: { website: 'https://github.com/Secozzi/aniyomi-extensions' },
+        extensionList: {
+            extensions: [
+                {
+                    name: 'Stremio',
+                    packageName: 'eu.kanade.tachiyomi.animeextension.all.stremio',
+                    resources: {
+                        apkUrl: 'https://upstream.example/stremio.apk',
+                        iconUrl: 'https://upstream.example/stremio.png'
+                    },
+                    extensionLib: '17',
+                    versionCode: '17002',
+                    versionName: '17.2',
+                    contentWarning: 'CONTENT_WARNING_MIXED',
+                    isTorrent: true,
+                    sources: [
+                        {
+                            id: '8425771932667600381',
+                            name: 'Stremio',
+                            language: 'all',
+                            homeUrl: 'https://example.test/stremio',
+                            mirrorUrls: ['https://mirror.example.test/stremio'],
+                            message: 'torrent source'
+                        }
+                    ]
+                }
+            ]
+        }
+    };
+    const manifest = {
+        secozzi: {
+            'eu.kanade.tachiyomi.animeextension.all.stremio': {
+                apk: {
+                    name: 'secozzi-stremio.apk',
+                    sha256: 'a'.repeat(64),
+                    version: '17.2',
+                    source: 'secozzi',
+                    kind: 'apk' as const,
+                    url: releaseUrl
+                }
+            }
+        }
+    };
+    const encoded = Buffer.from(encodeAniyomiIndexPb(wrapper, { sourceKey: 'secozzi', manifest }));
+    expect(encoded.subarray(0, 2).toString('hex')).toBe('1f8b');
+    const decoded = aniyomiConsumerType.toObject(aniyomiConsumerType.decode(gunzipSync(encoded)), {
+        longs: String,
+        enums: String,
+        defaults: false
+    });
+
+    expect(decoded.signingKey).toBe('secozzi-signing-key');
+    const extension = extensionsOf(decoded)[0];
+    expect(extension.isTorrent).toBe(true);
+    expect(resourcesOf(extension)).toEqual({
+        apkUrl: releaseUrl,
+        iconUrl: 'https://upstream.example/stremio.png'
+    });
+    expect(sourcesOf(extension)[0]).toEqual({
+        id: '8425771932667600381',
+        name: 'Stremio',
+        language: 'all',
+        homeUrl: 'https://example.test/stremio',
+        mirrorUrls: ['https://mirror.example.test/stremio'],
+        message: 'torrent source'
+    });
+});
 
 test('index.pb round-trips wrapper JSON exactly', () => {
     const wrapper = fullWrapper();

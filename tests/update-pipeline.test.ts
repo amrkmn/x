@@ -21,7 +21,7 @@ import {
     pruneRemovedRepos,
     refreshMirrorIndexPb
 } from '../scripts/extensions';
-import { decodeIndexPb } from '../scripts/generate-index';
+import { decodeIndexPb, encodeAniyomiIndexPb } from '../scripts/generate-index';
 import { isRecord } from '../scripts/releases/json';
 
 let testDir: string;
@@ -894,7 +894,7 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
     expect(decodeIndexPb(await readFile(join(alphaDir, 'index.pb'))).name).toBe('Alpha');
 });
 
-test('refreshMirrorIndexPb overlays Mihon-shaped wrappers under other categories', async () => {
+test('refreshMirrorIndexPb uses the Aniyomi codec for Secozzi wrappers', async () => {
     const staticDir = join(testDir, 'static');
     const secozziDir = join(staticDir, 'secozzi');
     await mkdir(secozziDir, { recursive: true });
@@ -902,24 +902,27 @@ test('refreshMirrorIndexPb overlays Mihon-shaped wrappers under other categories
         join(secozziDir, 'index.json'),
         JSON.stringify({
             name: 'Secozzi',
+            signingKey: 'secozzi-signing-key',
             extensionList: {
                 extensions: [
                     {
-                        name: 'Covered',
-                        packageName: 'covered.pkg',
-                        resources: { apkUrl: 'https://upstream.example/secozzi.apk' }
+                        name: 'Stremio',
+                        packageName: 'stremio.pkg',
+                        resources: { apkUrl: 'https://upstream.example/stremio.apk' },
+                        isTorrent: true,
+                        sources: [{ id: '8425771932667600381', message: 'torrent source' }]
                     }
                 ]
             }
         })
     );
 
-    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc-0/secozzi-covered.apk';
+    const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc-0/secozzi-stremio.apk';
     const manifest = {
         secozzi: {
-            'covered.pkg': {
+            'stremio.pkg': {
                 apk: {
-                    name: 'secozzi-covered.apk',
+                    name: 'secozzi-stremio.apk',
                     sha256: 'b'.repeat(64),
                     version: '1.0.0',
                     source: 'secozzi',
@@ -932,6 +935,8 @@ test('refreshMirrorIndexPb overlays Mihon-shaped wrappers under other categories
     expect(await refreshMirrorIndexPb('aniyomi', 'secozzi', staticDir, manifest)).toBe(true);
     const index = JSON.parse(await readFile(join(secozziDir, 'index.json'), 'utf8'));
     expect(index.extensionList.extensions[0].resources.apkUrl).toBe(releaseUrl);
+    const generated = await readFile(join(secozziDir, 'index.pb'));
+    expect(generated.equals(Buffer.from(encodeAniyomiIndexPb(index)))).toBe(true);
 });
 
 test('overlayReleaseManifest cuts over every mirrored wrapper and skips flat indexes', async () => {
