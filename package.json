@@ -31,25 +31,25 @@
         "setup-hooks": "tsx scripts/setup-hooks.ts"
     },
     "dependencies": {
-        "dax": "^0.50.0",
+        "dax": "^0.50.1",
         "dotenv": "^18.0.8",
         "meilisearch": "^0.62.0",
         "minisearch": "^7.2.0",
         "protobufjs": "^8.8.1"
     },
     "devDependencies": {
-        "@astrojs/check": "^0.9.10",
-        "@astrojs/svelte": "^9.0.1",
+        "@astrojs/check": "^0.9.11",
+        "@astrojs/svelte": "^9.1.0",
         "@oxlint/plugins": "^1.89.0",
-        "@types/node": "^26.6.3",
-        "astro": "^7.3.5",
-        "oxfmt": "^0.71.0",
+        "@types/node": "^26.6.5",
+        "astro": "^7.4.1",
+        "oxfmt": "^0.73.0",
         "oxlint": "^1.89.0",
-        "svelte": "^5.57.1",
+        "svelte": "^5.57.2",
         "tsx": "^4.23.15",
         "typescript": "^6.0.3",
-        "vitest": "^5.0.2",
-        "wrangler": "^4.143.0"
+        "vitest": "^5.0.5",
+        "wrangler": "^4.151.2"
     },
     "devEngines": {
         "runtime": {
