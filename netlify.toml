@@ -4,6 +4,8 @@
 # so the CLI has explicit settings and never runs framework detection.
 [build]
 publish = "dist"
-# Fail closed if git builds are ever reconnected: production must come
-# prebuilt from the gated publisher flow, not from an in-place build.
-command = "echo 'production deploys come from GH Actions (update.yml)' && exit 1"
+# Production deploys come prebuilt from GH Actions (update.yml) via
+# `netlify deploy --prod --dir dist`. An empty command means the CLI
+# skips building and ships the directory as-is; git-connected builds
+# must stay disabled on the Netlify dashboard so nothing builds from main.
+command = ""
