@@ -320,7 +320,7 @@ test('publishes a full manifest and reruns unchanged bytes without creating rele
     const manifest = parseReleaseManifest(
         JSON.parse(new TextDecoder().decode(await client.downloadAsset(manifestAsset)))
     );
-    expect(manifest.keiyoushi['org.example.kei'].apk?.url).toContain('/0123456-0/');
+    expect(manifest.keiyoushi['org.example.kei'].apk?.url).toContain('/0123456/');
     expect(manifest.keiyoushi['org.example.kei'].jar?.sha256).toBe(hash(bytes('kei-jar')));
     expect(manifest.secozzi['org.example.secozzi'].jar).toBeUndefined();
     expect(manifest['yuzono/anime']['org.example.anime'].apk?.source).toBe('yuzono/anime');

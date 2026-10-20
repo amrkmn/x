@@ -163,7 +163,7 @@ function parseReleaseAssetUrl(urlValue: string, owner: string, repo: string): Re
 }
 
 function isPublisherTag(tag: string): boolean {
-    return /^[a-f0-9]{7}-\d+$/i.test(tag);
+    return /^[a-f0-9]{7}(-\d+)?$/i.test(tag);
 }
 
 export async function previousCompleteManifest(

@@ -45,6 +45,10 @@ export type {
     ReleaseManifest
 } from './releases/types';
 
+function releaseTag(shortSha: string, batchIndex: number, batchCount: number): string {
+    return batchCount === 1 ? shortSha : `${shortSha}-${batchIndex}`;
+}
+
 async function stageBatch(
     client: PublishOptions['client'],
     tag: string,
@@ -184,7 +188,7 @@ export async function publishReleases(
         const batches = batchArtifacts(changed);
 
         for (const [batchIndex, batch] of batches.entries()) {
-            const tag = `${shortSha}-${batchIndex}`;
+            const tag = releaseTag(shortSha, batchIndex, batches.length);
             for (const artifact of batch) {
                 const record = manifestRecord(
                     artifact,
@@ -210,7 +214,7 @@ export async function publishReleases(
         const staged: Array<{ release: ReleaseInfo; draft: boolean }> = [];
 
         for (const [batchIndex, batch] of batches.entries()) {
-            const tag = `${shortSha}-${batchIndex}`;
+            const tag = releaseTag(shortSha, batchIndex, batches.length);
             console.info(
                 `Staging release ${tag} (batch ${batchIndex + 1}/${batches.length}, ${batch.length} binaries)`
             );
