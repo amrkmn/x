@@ -7,7 +7,8 @@ Extension repository aggregator that syncs from multiple upstream sources. Updat
 ## Links
 
 - [x.noz.one](https://x.noz.one) / [x.ujol.workers.dev](https://x.ujol.workers.dev) — Cloudflare Workers Static Assets
-- [x.ujol.dev](https://x.ujol.dev) — Netlify
+- [x.ujol.dev](https://x.ujol.dev) — Netlify (primary domain)
+- [x.amar.kim](https://x.amar.kim) — Netlify (domain alias)
 
 ## Available Extensions
 
@@ -37,7 +38,7 @@ pnpm run lint           # Run Oxlint
 
 ## Hosting
 
-Production is built once on GitHub Actions (`.github/workflows/update.yml`, gated on publisher success) and shipped prebuilt to both hosts: Cloudflare Workers Static Assets via `wrangler deploy`, Netlify via `netlify deploy --prod --dir dist`. Direct production auto-deploys from `main` stay disabled on both dashboards. (`x.amar.kim` still points at the retired DUFS host pending a DNS cutover to Netlify.)
+Production is built once on GitHub Actions (`.github/workflows/update.yml`, gated on publisher success) and shipped prebuilt to both hosts: Cloudflare Workers Static Assets via `wrangler deploy`, Netlify via `netlify deploy --prod --dir dist`. Direct production auto-deploys from `main` stay disabled on both dashboards.
 
 ## Environment
 
