@@ -52,9 +52,7 @@ interface GenerateDataOptions {
     dataFile?: string;
     searchIndexFile?: string;
     staticDir?: string;
-    // Latest complete release-assets.json snapshot. Absent while the
-    // publisher has not run: entries keep their upstream URLs (no cutover;
-    // Phase 4 owns switching website/app links to release URLs).
+    // Manifest overlay; absent without a publisher run.
     manifest?: ReleaseManifest;
     manifestFile?: string;
 }
@@ -89,9 +87,7 @@ export function mirrorBaseUrl(): string {
     return (env.PUBLIC_SITE_URL || config.domains[0]).replace(/\/+$/, '');
 }
 
-// Point resource URLs at the mirror only when the file is actually mirrored;
-// otherwise keep the upstream URL (e.g. GitHub releases). Returns true when a
-// mirror reference points at a missing file (stale mirror).
+// Rewrite to mirror URLs only for mirrored files.
 async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boolean> {
     const url = `${mirrorBaseUrl()}/${key}`;
     let staleMirror = false;
@@ -193,13 +189,11 @@ function toExtensionList(
     );
 }
 
-// mihon uses the index.json wrapper; aniyomi the flat index.min.json array.
 function isMihonIndex(category: string): boolean {
     return category === 'mihon';
 }
 
-// Secozzi keeps its Aniyomi category but serves a Mihon-style wrapper;
-// detect wrapper entries by shape rather than category.
+// Secozzi serves a Mihon-style wrapper under Aniyomi.
 function isMihonEntry(raw: JsonValue): raw is JsonObject {
     return isJsonObject(raw) && (isStringValue(raw.packageName) || isJsonObject(raw.resources));
 }
@@ -209,9 +203,7 @@ async function loadRepoExtensions(
     repoPath: string,
     staticDir: string
 ): Promise<JsonValue[]> {
-    // Served index.pb paths map to the JSON wrapper index.json beside them.
-    // Mihon sources additionally resolve a configured index.min.json to the
-    // wrapper; flat JSON indexes are read as configured.
+    // index.pb maps to the sibling index.json wrapper.
     const jsonPath = isMihonIndex(category)
         ? repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
         : repoPath.replace(/^\//, '').replace(/index\.pb$/, 'index.json');
@@ -230,8 +222,6 @@ async function loadRepoExtensions(
 
     const rawIndex: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
     if (Array.isArray(rawIndex)) return rawIndex;
-    // Shape-aware: Secozzi's authoritative index.json is a Mihon-style
-    // NetworkExtensionStore wrapper despite its Aniyomi category.
     if (isJsonObject(rawIndex)) {
         const list = getMihonExtensions(rawIndex);
         if (list) return list;
@@ -239,7 +229,6 @@ async function loadRepoExtensions(
     throw new Error(`Invalid extension index at ${repoPath}: expected array`);
 }
 
-// Map a mihon wrapper entry to the search shape (packageName/resources/…).
 function entryFromMihon(raw: JsonObject): JsonObject {
     const resources = isJsonObject(raw.resources) ? raw.resources : {};
     const sources = raw.sources;
@@ -266,8 +255,7 @@ function entryFromMihon(raw: JsonObject): JsonObject {
     return entry;
 }
 
-// Overlay immutable release URLs onto a search entry when the manifest
-// covers its package; upstream URLs are kept otherwise.
+// Overlay release URLs when the manifest covers the package.
 function applyManifestUrls(
     entry: SearchIndexEntry,
     manifest: ReleaseManifest | undefined,
@@ -297,9 +285,7 @@ export async function loadReleaseManifest(
     }
 }
 
-// Download the newest published release-assets.json snapshot from GitHub
-// Releases. Public repository: no authentication needed. Returns undefined
-// when no published release (or no snapshot) exists yet.
+// Latest release-assets.json snapshot; undefined when absent.
 export async function fetchLatestReleaseManifest(
     fetcher: typeof fetch = fetch,
     retryDelays: number[] = [0, 5000, 15000]
@@ -310,9 +296,7 @@ export async function fetchLatestReleaseManifest(
         logger.warn('data', `release manifest fetch skip reason=${JSON.stringify(reason)}`);
         return undefined;
     };
-    // Shared-egress build environments routinely hit GitHub's unauthenticated
-    // quota (403/429); retry briefly, and authenticate when a token is
-    // available (build secret or local .env), which moves to per-token quota.
+    // Retry on rate limits; token moves to per-token quota.
     const headers = new Headers({ Accept: 'application/vnd.github+json' });
     const token = env.GITHUB_TOKEN;
     if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -397,7 +381,6 @@ async function generateSearchIndexJson(
             const formattedSourceName = formatSourceName(sourceName);
 
             for (const [index, rawExtension] of rawIndex.entries()) {
-                // Skip uninstallable entries (e.g. deprecation stubs) individually.
                 const entryPath = `${repo.path}[${index}]`;
                 let extension: SearchIndexEntry;
                 try {
@@ -427,10 +410,7 @@ async function generateSearchIndexJson(
                     );
                     continue;
                 }
-                // Flat Aniyomi indexes carry no apkUrl; synthesize the pinned
-                // upstream download URL so website buttons never point at the
-                // removed hosted /apk/ paths. The manifest overlay replaces
-                // these with immutable release URLs when it covers them.
+                // Flat indexes carry no apkUrl; synthesize the pinned upstream URL.
                 if (!extension.apkUrl && extension.apk && repo.commit) {
                     extension.apkUrl = flatUpstreamApkUrl(repo.source, repo.commit, extension.apk);
                 }
@@ -509,7 +489,7 @@ async function loadSyncedCommits(dataFile = DATA_FILE): Promise<Map<string, stri
                 if (entry.path && entry.commit) synced.set(entry.path, entry.commit);
             });
     } catch {
-        // data.json may not exist before the first full materialization.
+        // Ignore missing data.json before first materialization.
     }
 
     return synced;
@@ -536,7 +516,6 @@ export async function findExtensionUpdates(
                 if (!options.quick && existsSync(dest)) {
                     const staleMirror = await rewriteMirroredIndexFiles(dest, key);
                     if (staleMirror) {
-                        // Binaries moved to GitHub releases; rebuild the mirror fresh.
                         logger.info(
                             'extensions',
                             `stale mirror detected key=${JSON.stringify(key)}`
@@ -555,10 +534,6 @@ export async function findExtensionUpdates(
                     return { category, key, ext, hash: ext.commit || 'HEAD' };
                 }
 
-                // Sentinel is the JSON wrapper for Mihon (index.pb maps to
-                // the index.json beside it); Aniyomi follows the configured
-                // path basename, since Secozzi serves index.json under an
-                // Aniyomi category while others serve index.min.json.
                 const sentinel =
                     isMihonIndex(category) || ext.path.endsWith('index.json')
                         ? 'index.json'
@@ -603,10 +578,7 @@ export function applyCommitUpdates(data: ExtensionsData, updates: ExtensionUpdat
     }
 }
 
-// Phase 5: the artifact cache is removed. Older runs may still have left
-// APK/JAR files under static/ from before binaries left materialization.
-// Remove those subdirs deliberately per configured source so stale
-// binaries cannot leak into dist/.
+// Remove leftover APK/JAR dirs so binaries can't leak into dist.
 export async function pruneBinaryDirs(
     data: ExtensionsData,
     staticDir = STATIC_DIR
@@ -630,7 +602,7 @@ export async function pruneBinaryDirs(
     return pruned;
 }
 
-// Phase 3 gate: hosted output must contain no binary artifacts.
+// Hosted output must not contain binaries.
 export async function findBinaryArtifacts(dir: string): Promise<string[]> {
     const found: string[] = [];
     const scan = async (current: string): Promise<void> => {
@@ -646,13 +618,7 @@ export async function findBinaryArtifacts(dir: string): Promise<string[]> {
     return found;
 }
 
-// Phase 3 icon backfill: wrapper sources (Keiyoushi, Cursed, Secozzi)
-// reference icons from their upstream repos via iconUrl, but the mirrored
-// repo branches do not always ship the icon files (Keiyoushi ships ~2 of
-// 1439). Download missing icons into the per-source icon/ dir so the
-// mirror rewrite can point at them; failures keep the upstream URL.
-// Flat-array sources (Anime) carry no iconUrl and are skipped by
-// construction; their branch-shipped icons use the frontend fallback.
+// Download missing wrapper icons; failures keep the upstream URL.
 export const ICON_FETCH_CONCURRENCY = 8;
 export const ICON_FETCH_TIMEOUT_MS = 30_000;
 export const ICON_MAX_BYTES = 1024 * 1024;
@@ -761,8 +727,7 @@ export function shouldFailOnMaterializeErrors(): boolean {
     return isCI();
 }
 
-// Remove static dirs no longer configured in extensions.json, so removed
-// sources stay removed from disk state. Keeps keys and their nesting prefixes.
+// Remove unconfigured sources; keep nesting prefixes.
 export async function pruneRemovedRepos(
     data: ExtensionsData,
     staticDir = STATIC_DIR
@@ -797,18 +762,10 @@ export async function pruneRemovedRepos(
 }
 
 export interface MaterializeOptions {
-    // Latest complete release-assets.json snapshot. Covered index.json
-    // apkUrls are rewritten to release URLs before the mirror index.pb is
-    // regenerated; without one, upstream URLs are kept (no cutover).
     manifest?: ReleaseManifest;
 }
 
-// Phase 4: convert a flat Aniyomi legacy index (Yuzono Anime index.min.json)
-// to an Aniyomi-compatible index.pb. Store fields come from repo.json meta;
-// without that file the key stays JSON-only (legacy behavior). Pre-overlay
-// APK URLs point at the pinned upstream bytes; the manifest overlay inside
-// encodeAniyomiIndexPb replaces them with immutable release URLs when the
-// manifest covers the package. index.min.json itself is never rewritten.
+// Convert a flat Aniyomi index to Aniyomi PB; stays JSON-only without repo.json.
 export async function refreshFlatAnimeIndexPb(
     key: string,
     staticDir = STATIC_DIR,
@@ -818,8 +775,6 @@ export async function refreshFlatAnimeIndexPb(
     const dir = join(staticDir, key);
     const repoFile = join(dir, 'repo.json');
     if (!existsSync(repoFile)) return false;
-    // Canonical flat input is index.min.json; fall back to a flat index.json
-    // for sources that ship only that copy.
     let entries: JsonValue[] | undefined;
     for (const file of [join(dir, 'index.min.json'), join(dir, 'index.json')]) {
         if (!existsSync(file)) continue;
@@ -876,10 +831,7 @@ export async function refreshFlatAnimeIndexPb(
     return true;
 }
 
-// Phase 4: overlay release URLs and regenerate the public index.pb. Mihon
-// wrappers use the Mihon codec; wrapped Aniyomi sources (Secozzi) use the
-// Aniyomi codec; flat Aniyomi indexes (Yuzono Anime) convert legacy
-// index.min.json records to an Aniyomi PB via refreshFlatAnimeIndexPb.
+// Overlay release URLs and regenerate index.pb.
 export async function refreshMirrorIndexPb(
     category: string,
     key: string,
@@ -889,7 +841,6 @@ export async function refreshMirrorIndexPb(
 ): Promise<boolean> {
     const indexFile = join(staticDir, key, 'index.json');
     if (!existsSync(indexFile)) {
-        // No wrapper copy (flat Aniyomi sources ship index.min.json only).
         if (!isMihonIndex(category)) {
             return refreshFlatAnimeIndexPb(key, staticDir, repo, manifest);
         }
@@ -931,10 +882,7 @@ export async function refreshMirrorIndexPb(
     return true;
 }
 
-// Cutover pass for site builds: point every mirrored wrapper catalog at
-// release URLs from the latest complete manifest, independent of which
-// sources had upstream updates. Without a manifest this is a no-op
-// (upstream URLs kept). Returns the number of keys regenerated.
+// Point mirrored catalogs at release URLs; no-op without a manifest.
 export async function overlayReleaseManifest(
     data: ExtensionsData,
     staticDir = STATIC_DIR,
@@ -957,15 +905,7 @@ export async function overlayReleaseManifest(
     return regenerated;
 }
 
-// Phase 4: legacy redirect rules for flat Aniyomi clients. Maps each
-// current /<key>/apk/<filename> path from a flat index.min.json to that
-// package's immutable release URL with an explicit 302, so legacy Yuzono
-// Anime installs keep downloading after APK bytes leave the hosts.
-// The file is written to staticDir/_redirects (astro copies it to
-// dist/_redirects for Workers Static Assets and Netlify) and never carries
-// APK bytes. Fail-closed: without a manifest any stale file is removed and
-// nothing is generated; with a manifest every current APK must resolve to a
-// release URL or generation throws instead of advertising a partial map.
+// Legacy /apk/ redirects for flat clients. Fail-closed: missing URLs throw.
 export async function generateRedirects(
     data: ExtensionsData,
     staticDir = STATIC_DIR,
@@ -982,8 +922,7 @@ export async function generateRedirects(
     for (const [category, entries] of Object.entries(data)) {
         if (category !== 'aniyomi') continue;
         for (const [key, repo] of Object.entries(entries)) {
-            // Only flat legacy indexes served as index.min.json need apk-path
-            // redirects; wrapped sources serve versioned PB indexes instead.
+            // Only flat indexes need apk-path redirects.
             if (!repo.path.endsWith('index.min.json')) continue;
             const flatFile = join(staticDir, key, 'index.min.json');
             if (!existsSync(flatFile)) continue;
@@ -1057,9 +996,6 @@ export async function materializeExtensions(
                 // local icon files immediately.
                 await fetchMissingIcons(data, STATIC_DIR, fetch, [key]);
                 await rewriteMirroredIndexFiles(dest, key);
-                // Flat anime PB conversion needs the pinned source/commit for
-                // pre-overlay upstream APK URLs; index_v2 already points at
-                // the PB this step writes (or skips when repo.json is absent).
                 await refreshMirrorIndexPb(category, key, STATIC_DIR, options.manifest, {
                     ...ext,
                     commit: hash

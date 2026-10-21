@@ -11,11 +11,7 @@ import { manifestAsset } from './releases/manifest';
 import type { ReleaseManifest } from './releases/types';
 
 export interface IndexPbOptions {
-    // Latest complete release-assets.json snapshot. Covered packages get
-    // resources.apkUrl rewritten to the immutable release URL; everything
-    // else (including jarUrl) is preserved byte-for-byte semantically.
     manifest?: ReleaseManifest;
-    // extensions.json source key (manifest top-level key).
     sourceKey?: string;
 }
 
@@ -72,8 +68,7 @@ function asString(value: JsonValue | undefined): string | undefined {
     return undefined;
 }
 
-// JSON ids and versionCodes are strings (often exceeding 2^53); the proto
-// uses int64. Pass through as strings so protobufjs encodes via Long exactly.
+// IDs and versionCodes can exceed 2^53; keep as strings for int64 encoding.
 function asInt64(value: JsonValue | undefined): string | undefined {
     const text = asString(value);
     if (text === undefined || !/^-?\d+$/.test(text)) return undefined;
@@ -141,9 +136,6 @@ function extensionMessage(raw: JsonObject, options: IndexPbOptions): EncodedExte
     return { message, packageName };
 }
 
-// Encode a Mihon wrapper index.json object to gzipped index.pb bytes.
-// Only resources.apkUrl changes (via manifest); signingKey, metadata,
-// iconUrl/jarUrl, and APK bytes (referenced, never embedded) are preserved.
 export function encodeIndexPb(wrapper: JsonObject, options: IndexPbOptions = {}): Uint8Array {
     const type = indexTypes().store;
     const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : {};
@@ -167,8 +159,7 @@ export function encodeIndexPb(wrapper: JsonObject, options: IndexPbOptions = {})
     return gzipSync(type.encode(store).finish());
 }
 
-// Encode the Secozzi wrapper with Aniyomi's wire model. In particular,
-// field 8 is isTorrent and field 9 is sources; the Mihon codec differs.
+// Secozzi uses field 8 for isTorrent and field 9 for sources.
 export function encodeAniyomiIndexPb(
     wrapper: JsonObject,
     options: IndexPbOptions = {}
@@ -245,18 +236,7 @@ export function encodeAniyomiIndexPb(
     return gzipSync(types.store.encode(store).finish());
 }
 
-// Flat Aniyomi legacy indexes (Yuzono Anime upstream index.min.json) carry
-// per-entry {name, pkg, apk, lang, code, version, nsfw, sources[]} records
-// with no store wrapper. The field mapping below mirrors Aniyomi's own
-// NetworkLegacyAnimeExtension.toAvailableExtension, so the converted PB
-// behaves like the legacy JSON path in clients:
-// - strip the `Aniyomi: ` display prefix from the extension name;
-// - pkg -> packageName, version -> versionName, code -> int64 versionCode;
-// - nsfw -> contentWarning (1/true is NSFW, anything else is SAFE);
-// - source baseUrl -> homeUrl; isTorrent is always false;
-// - extensionLib uses the legacy rule version.substringBeforeLast('.');
-// - an empty/missing source list synthesizes the legacy default source
-//   (id 0, raw prefixed name, top-level lang, empty baseUrl).
+// Flat indexes carry {name, pkg, apk, lang, code, version, nsfw, sources[]} with no wrapper.
 export const ANIYOMI_NAME_PREFIX = 'Aniyomi: ';
 
 export interface FlatAnimeStoreMeta {
@@ -275,13 +255,7 @@ function flatAnimeContentWarning(nsfw: JsonValue | undefined): string {
     return nsfw === 1 || nsfw === true ? 'CONTENT_WARNING_NSFW' : 'CONTENT_WARNING_SAFE';
 }
 
-// Convert flat legacy records to a wrapper shaped for encodeAniyomiIndexPb.
-// resolveApkUrl supplies the pre-overlay APK URL per package (extensions.ts
-// passes the pinned upstream URL); the manifest overlay inside
-// encodeAniyomiIndexPb replaces it with the immutable release URL when the
-// manifest covers the package. iconBaseUrl is the mirror repo root, e.g.
-// https://x.noz.one/yuzono/anime. Entries without a package or APK filename
-// are skipped, mirroring the publisher's uninstallable-entry handling.
+// Convert flat records to a wrapper for encodeAniyomiIndexPb.
 export function flatAnimeToWrapper(
     entries: JsonValue[],
     meta: FlatAnimeStoreMeta,
@@ -350,9 +324,7 @@ export function flatAnimeToWrapper(
     };
 }
 
-// Decode index.pb bytes (gzipped as served, or raw) back to the wrapper
-// JSON shape: int64s as strings, enums as CONTENT_WARNING_* names, unset
-// fields omitted — directly comparable to index.json.
+// Decode index.pb bytes to the JSON shape; int64s as strings.
 function decodeStoreBytes(type: protobuf.Type, bytes: Uint8Array): JsonObject {
     const raw = Buffer.from(bytes);
     const payload =
@@ -371,8 +343,6 @@ export function decodeIndexPb(bytes: Uint8Array): JsonObject {
     return decodeStoreBytes(indexTypes().store, bytes);
 }
 
-// Aniyomi counterpart of decodeIndexPb, for converted flat indexes and
-// Secozzi wrappers. Same gzip handling and JSON-shape guarantees.
 export function decodeAniyomiIndexPb(bytes: Uint8Array): JsonObject {
     return decodeStoreBytes(aniyomiIndexTypes().store, bytes);
 }

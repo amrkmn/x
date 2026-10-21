@@ -232,7 +232,6 @@ class CounterLogger extends ThrottledProgressLogger {
     complete(stats: { valid?: number; invalid?: number; missing?: number; bytes?: number }): void {
         const elapsed = this.elapsedSeconds();
 
-        // emit final 100% progress line if the last progress() call didn't already
         if (this.lastLoggedCount < this.totalItems) {
             const pctFormatted = '100.00';
             if (this.totalBytes !== undefined) {

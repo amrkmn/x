@@ -32,7 +32,6 @@
     },
     "dependencies": {
         "dax": "^0.50.1",
-        "dotenv": "^18.0.8",
         "meilisearch": "^0.62.0",
         "minisearch": "^7.2.0",
         "protobufjs": "^8.8.1"

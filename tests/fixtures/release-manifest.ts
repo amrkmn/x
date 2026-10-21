@@ -1,22 +1,14 @@
 import { parseReleaseManifest } from '../../scripts/releases/manifest';
 import type { ReleaseManifest } from '../../scripts/releases/types';
 
-// Fixture-only manifest for Phase 4 development (encoder proof, URL
-// rewriting, frontend cutover). Sequencing decision: with no live publisher
-// run there is no real release-assets.json, so Phase 4 builds against this
-// fixture mirroring the exact ReleaseManifest schema. Fixture URLs must
-// never appear in deployable output — production keeps upstream URLs until
-// a real manifest exists (RELEASE_MANIFEST_FILE / manifest option absent).
+// Fixture-only manifest. Fixture URLs must never appear in deployable output.
 export const FIXTURE_RELEASE_TAG = 'abc1234-1';
 
 export function fixtureAssetUrl(name: string): string {
     return `https://github.com/amrkmn/x/releases/download/${FIXTURE_RELEASE_TAG}/${encodeURIComponent(name)}`;
 }
 
-// One representative package per retained source key: Mihon sources carry
-// apk+jar, Aniyomi sources apk-only (Secozzi/Anime ship no JARs). Returned
-// through parseReleaseManifest so every consumer is guaranteed a
-// schema-exact manifest.
+// One package per source key: Mihon carries apk+jar, Aniyomi apk-only.
 export function fixtureManifest(): ReleaseManifest {
     return parseReleaseManifest({
         keiyoushi: {

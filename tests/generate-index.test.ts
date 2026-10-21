@@ -31,8 +31,7 @@ function sourcesOf(extension: JsonObject): JsonObject[] {
     return extension.sources.filter(isRecord);
 }
 
-// Independent decoder contract transcribed from Aniyomi/Animiru's
-// NetworkAnimeExtensionStore models, so this test catches mismatched tags.
+// Independent decoder contract to catch mismatched tags.
 const aniyomiConsumerType = protobuf
     .parse(`
         syntax = "proto3";
@@ -263,7 +262,6 @@ test('index.pb swaps only manifest-covered apkUrls', () => {
 
     const extensions = extensionsOf(decoded);
     expect(resourcesOf(extensions[0]).apkUrl).toBe(releaseUrl);
-    // jarUrl/iconUrl preserved; uncovered entry keeps its upstream apkUrl.
     expect(resourcesOf(extensions[0]).jarUrl).toBe('https://upstream.example/full-v1.jar');
     expect(resourcesOf(extensions[1]).apkUrl).toBe('https://upstream.example/minimal-v2.apk');
     expect(decoded.signingKey).toBe(wrapper.signingKey);
@@ -289,8 +287,6 @@ test('flatAnimeExtensionLib follows the legacy substringBeforeLast rule', () => 
     expect(flatAnimeExtensionLib('')).toBe('');
 });
 
-// Yuzono Anime conversion: flat index.min.json records become Aniyomi PB
-// extensions decoded here against the independent consumer contract.
 test('flat anime records convert to Aniyomi PB with legacy behavior', () => {
     const releaseUrl =
         'https://github.com/amrkmn/x/releases/download/abc1234-0/yuzono-anime-animeonsen.apk';

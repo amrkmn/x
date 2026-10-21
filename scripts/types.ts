@@ -1,4 +1,3 @@
-// Type definitions for config.json
 export interface ExtensionConfig {
     source: string;
     name: string;

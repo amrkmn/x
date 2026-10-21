@@ -149,7 +149,7 @@ test('findExtensionUpdates marks repos with missing required files for materiali
 
     await mkdir(join(alphaDir, 'apk'), { recursive: true });
     await mkdir(join(alphaDir, 'icon'), { recursive: true });
-    // index.json omitted (mihon sentinel) — triggers re-materialization
+    // Missing index.json triggers re-materialization.
     await writeFile(join(alphaDir, 'index.min.json'), '[]');
     await writeFile(join(alphaDir, 'index.pb'), 'pb');
     await writeFile(join(alphaDir, 'repo.json'), '{}');
@@ -530,7 +530,6 @@ test('aniyomi wrapper index.json parses without changing category', async () => 
         'https://github.com/example/releases/download/abc/torbox.apk'
     );
 
-    // The wrapper sentinel is index.json, so a matching remote needs no refresh.
     const updates = await findExtensionUpdates(data, {
         quick: false,
         staticDir,
@@ -558,7 +557,6 @@ test('pruneBinaryDirs removes stale apk/jar dirs for configured sources only', a
     expect(existsSync(join(staticDir, 'alpha', 'apk'))).toBe(false);
     expect(existsSync(join(staticDir, 'alpha', 'icon'))).toBe(true);
     expect(existsSync(join(staticDir, 'beta', 'jar'))).toBe(false);
-    // Unconfigured dirs are pruneRemovedRepos territory, not binary pruning.
     expect(existsSync(join(staticDir, 'other', 'apk', 'z.apk'))).toBe(true);
 });
 
@@ -629,7 +627,6 @@ test('generateDataJson overlays release manifest URLs and keeps upstream URLs wi
     let searchIndex = JSON.parse(await readFile(searchIndexFile, 'utf8'));
     expect(searchIndex[0].apkUrl).toBe(releaseUrl);
 
-    // Catalog-only update with no manifest: upstream URLs are kept, no cutover.
     await generateDataJson(data, {
         commit: 'abcdef1234567',
         dataFile,
@@ -707,7 +704,6 @@ test('fetchMissingIcons mirrors wrapper iconUrls and keeps upstream URLs on fail
                 }
             })
         );
-        // Flat-array source without iconUrls is skipped by construction.
         await writeFile(
             join(betaDir, 'index.min.json'),
             JSON.stringify([{ name: 'Beta', pkg: 'beta.pkg', apk: 'beta.apk' }])
@@ -753,8 +749,6 @@ test('generateDataJson synthesizes pinned upstream apkUrls for flat entries', as
         ])
     );
 
-    // No manifest: flat entries resolve to the pinned upstream file, never
-    // a hosted /apk/ path.
     await generateDataJson(data, {
         commit: 'abcdef1234567',
         dataFile,
@@ -765,7 +759,6 @@ test('generateDataJson synthesizes pinned upstream apkUrls for flat entries', as
     expect(searchIndex).toHaveLength(1);
     expect(searchIndex[0].apkUrl).toBe(upstreamApk);
 
-    // A manifest covering the package wins over the upstream URL.
     const releaseUrl = 'https://github.com/amrkmn/x/releases/download/abc1234-1/beta-beta.apk';
     await generateDataJson(data, {
         commit: 'abcdef1234567',
@@ -884,12 +877,10 @@ test('refreshMirrorIndexPb overlays manifest apkUrls and regenerates index.pb fo
     expect(decodedResources[0].apkUrl).toBe(releaseUrl);
     expect(decodedResources[1].apkUrl).toBe('https://upstream.example/other.apk');
 
-    // Aniyomi sources keep their copied index.pb; flat categories are skipped.
     await writeFile(join(betaDir, 'index.min.json'), JSON.stringify([]));
     expect(await refreshMirrorIndexPb('aniyomi', 'beta', staticDir)).toBe(false);
     expect(existsSync(join(betaDir, 'index.pb'))).toBe(false);
 
-    // Without a manifest the pb still regenerates with upstream URLs kept.
     await writeFile(
         join(alphaDir, 'index.json'),
         JSON.stringify({
@@ -1045,7 +1036,6 @@ test('refreshMirrorIndexPb converts flat anime indexes to Aniyomi PB', async () 
         await refreshMirrorIndexPb('aniyomi', 'yuzono/anime', staticDir, manifest, flatAnimeRepo)
     ).toBe(true);
 
-    // index.min.json remains available and untouched for legacy clients.
     expect(await readFile(join(animeDir, 'index.min.json'), 'utf8')).toBe(files['index.min.json']);
     const decoded = decodeAniyomiIndexPb(await readFile(join(animeDir, 'index.pb')));
     expect(decoded.signingKey).toBe(
@@ -1062,11 +1052,9 @@ test('refreshMirrorIndexPb converts flat anime indexes to Aniyomi PB', async () 
     expect(onsen.resources.iconUrl).toBe(
         'https://x.noz.one/yuzono/anime/icon/eu.kanade.tachiyomi.animeextension.all.animeonsen.png'
     );
-    // Proto3 omits false booleans on decode; absent means not a torrent source.
     expect(onsen.isTorrent ?? false).toBe(false);
     if (!Array.isArray(onsen.sources)) throw new Error('bad shape');
     expect(onsen.sources).toHaveLength(1);
-    // Empty source lists synthesize the legacy default source.
     if (!Array.isArray(extensions[1].sources)) throw new Error('bad shape');
     expect(extensions[1].sources).toHaveLength(1);
 });
@@ -1114,7 +1102,6 @@ test('generateRedirects fails closed on incomplete manifests', async () => {
     const files = flatAnimeFiles();
     await writeFile(join(animeDir, 'index.min.json'), files['index.min.json']);
 
-    // One current APK without a release URL: throw instead of a partial map.
     const manifest = flatAnimeManifest();
     delete manifest['yuzono/anime']['eu.kanade.tachiyomi.animeextension.all.bare'];
     await expect(generateRedirects(flatAnimeData(), staticDir, { manifest })).rejects.toThrow(

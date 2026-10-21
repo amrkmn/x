@@ -125,8 +125,6 @@ async function updateExtensions(command: 'check' | 'static'): Promise<void> {
 
     if (updates.length === 0) {
         await persistQuickUpdates(false);
-        // Backfill wrapper icons missing from the mirrored branches without
-        // requiring an upstream revision change.
         await fetchMissingIcons(data);
         return;
     }
@@ -136,14 +134,11 @@ async function updateExtensions(command: 'check' | 'static'): Promise<void> {
         return;
     }
 
-    // One manifest snapshot for the whole run so index.json, index.pb, and
-    // the search index agree; absent without a publisher run.
+    // One snapshot for the run so outputs agree.
     const manifest = await loadReleaseManifest({});
     const { changed, failures } = await materializeExtensions(data, updates, {
         manifest
     });
-    // Materialization fetches icons per updated key; cover unchanged keys
-    // whose branches never shipped their icons.
     await fetchMissingIcons(data);
     await finalizeStaticUpdate(data, changed);
     reportMaterializeFailures(failures);
@@ -181,8 +176,6 @@ const commandHandlers = {
     },
     'prepare-dist': async () => {
         await updateExtensions('static');
-        // One manifest snapshot for index.pb overlays and _redirects so the
-        // built dist agrees on release URLs; absent without a publisher run.
         const data = await loadExtensionsData();
         const manifest = await loadReleaseManifest({});
         await overlayReleaseManifest(data, STATIC_DIR, { manifest });
@@ -195,11 +188,6 @@ const commandHandlers = {
             );
         }
     },
-    // Local full refresh (retired update-local.ts): same three stages as
-    // the pnpm update:static + data:generate + search:update chain, but
-    // in-process — no tsx subprocess round-trips. Unlike `prepare-dist`,
-    // this does not build dist/, generate _redirects, or fail on missing
-    // release manifests.
     local: async () => {
         const manifestPath = await fetchManifest();
         if (manifestPath) process.env.RELEASE_MANIFEST_FILE = manifestPath;

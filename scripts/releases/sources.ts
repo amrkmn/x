@@ -78,9 +78,7 @@ function rawUrl(source: string, commit: string, path: string): string {
     return `https://raw.githubusercontent.com/${owner}/${repo}/${commit}/${encodedPath}`;
 }
 
-// Pinned upstream download URL for a flat-index APK. Shared by the release
-// publisher (candidate discovery) and the website catalog (entries whose
-// indexes carry no apkUrl), so both resolve the same bytes.
+// Pinned upstream URL for a flat-index APK.
 export function flatUpstreamApkUrl(source: string, commit: string, fileName: string): string {
     return rawUrl(source, commit, `apk/${fileName}`);
 }

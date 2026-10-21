@@ -1,7 +1,3 @@
-/**
- * Creates a debounced version of a function that delays execution until after
- * the specified wait time has elapsed since the last invocation.
- */
 export function debounce<T extends (...args: any[]) => any>(
     func: T,
     wait: number

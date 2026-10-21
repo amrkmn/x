@@ -6,10 +6,6 @@ import type { EnrichedExtension } from './types.js';
 let miniSearch: MiniSearch | null = null;
 let allExtensions: EnrichedExtension[] = [];
 
-/**
- * Initialize MiniSearch index from fetched extension data.
- * Call this once with all extensions loaded from index.min.json files.
- */
 export function initMinisearch(extensions: EnrichedExtension[]) {
     allExtensions = extensions;
 
@@ -41,7 +37,6 @@ export function initMinisearch(extensions: EnrichedExtension[]) {
     miniSearch.addAll(
         extensions.map((ext) => ({
             ...ext,
-            // MiniSearch requires a unique numeric/string id field
             _id: `${ext.formattedSourceName};${ext.pkg}`
         }))
     );
@@ -51,10 +46,6 @@ export function isMinisearchReady(): boolean {
     return miniSearch !== null && allExtensions.length > 0;
 }
 
-/**
- * Search extensions using MiniSearch with same filters as Meilisearch.
- * Returns same shape: { hits, estimatedTotalHits }
- */
 export function searchExtensionsFallback(filters: SearchFilters) {
     if (!miniSearch) {
         throw new Error('MiniSearch not initialized');
@@ -63,12 +54,10 @@ export function searchExtensionsFallback(filters: SearchFilters) {
     const page = filters.page || 1;
     const limit = filters.limit || 50;
 
-    // Get candidate set — either full-text search or all extensions
     let candidates: EnrichedExtension[];
 
     if (filters.query && filters.query.trim() !== '') {
         const hits = miniSearch.search(filters.query);
-        // hits are sorted by score descending; map back to EnrichedExtension
         candidates = hits
             .map((h) => allExtensions.find((e) => `${e.formattedSourceName};${e.pkg}` === h.id))
             .filter((e): e is EnrichedExtension => e !== undefined);
@@ -76,7 +65,6 @@ export function searchExtensionsFallback(filters: SearchFilters) {
         candidates = [...allExtensions];
     }
 
-    // Apply filters
     if (filters.source && filters.source !== 'all')
         candidates = candidates.filter((e) => e.formattedSourceName === filters.source);
     if (filters.category && filters.category !== 'all')
@@ -92,14 +80,9 @@ export function searchExtensionsFallback(filters: SearchFilters) {
     return { hits, estimatedTotalHits: totalHits };
 }
 
-/**
- * Derive filter options from the loaded extension data.
- * Replaces Meilisearch facet queries when in fallback mode.
- */
 export function getFilterOptionsFallback() {
     const sources = [...new Set(allExtensions.map((e) => e.formattedSourceName))];
     const categories = [...new Set(allExtensions.map((e) => e.category))];
-    // Deduplicate case-insensitively but preserve original casing (e.g. zh-Hant, pt-BR)
     const seen = new Map<string, string>();
     for (const ext of allExtensions) {
         const key = ext.lang.toLowerCase();

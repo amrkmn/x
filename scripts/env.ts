@@ -1,16 +1,9 @@
-// Central environment loader. Import (directly or transitively) from every
-// script entrypoint so local `.env` files work without passing
-// `--env-file-if-exists=.env` to tsx — that flag logs errors on Actions
-// runners where no `.env` exists.
-//
-// dotenv silently no-ops when `.env` is missing and never overrides real
-// environment values, so Actions-provided env/secrets always win.
-import { config } from 'dotenv';
+// Load local `.env` if present. Real environment values always win.
+try {
+    process.loadEnvFile();
+} catch {}
 
-config();
-
-// Live getters (not a snapshot) so tests can assign `process.env.X = ...`
-// after import and still be observed.
+// Live getters so tests can assign `process.env.X` after import.
 export const env = {
     get PUBLIC_SITE_URL(): string | undefined {
         return process.env.PUBLIC_SITE_URL;
