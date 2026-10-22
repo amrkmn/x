@@ -73,6 +73,9 @@ export function searchExtensionsFallback(filters: SearchFilters) {
         candidates = candidates.filter((e) => e.lang.toLowerCase() === filters.lang!.toLowerCase());
     if (filters.nsfw === false) candidates = candidates.filter((e) => e.nsfw === 0);
 
+    if (filters.sort === 'name-asc') candidates.sort((a, b) => a.name.localeCompare(b.name));
+    else if (filters.sort === 'name-desc') candidates.sort((a, b) => b.name.localeCompare(a.name));
+
     const totalHits = candidates.length;
     const offset = (page - 1) * limit;
     const hits = candidates.slice(offset, offset + limit);

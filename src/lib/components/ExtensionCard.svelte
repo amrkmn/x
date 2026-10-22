@@ -64,17 +64,29 @@
             {:else}
                 Commit: N/A
             {/if}
+            {#if repo.extensionCount !== undefined}
+                {' '}· {repo.extensionCount} extensions
+            {/if}
         </div>
     </div>
     <div class="card-actions">
         <a
             href={`${protocol}://add-repo?url=${selectedDomain}${repo.path}`}
             class="btn btn-primary"
+            title={isMihon
+                ? 'Open in Mihon app (falls back to copy on desktop)'
+                : 'Open in Aniyomi app (falls back to copy on desktop)'}
         >
             Add Repo
         </a>
         {#if isMihon || hasPbIndex}
-            <button type="button" class="btn btn-secondary" onclick={copyIndexUrl}>
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick={copyIndexUrl}
+                aria-live="polite"
+                aria-label={`Copy index URL for ${repo.name}`}
+            >
                 {copied ? 'Copied' : 'Copy Index URL'}
             </button>
         {:else}

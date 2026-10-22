@@ -29,6 +29,8 @@
             alt={extension.name}
             class="extension-icon-small"
             loading="lazy"
+            width="32"
+            height="32"
             onerror={handleImageError}
         />
     </td>
@@ -49,9 +51,21 @@
         <span class="lang">{extension.lang}</span>
     </td>
     <td class="action-cell" data-label="Action">
-        <a href={extension.apkUrl} class="btn btn-primary btn-sm">APK</a>
-        {#if extension.jarUrl}
-            <a href={extension.jarUrl} class="btn btn-secondary btn-sm">Jar</a>
-        {/if}
+        <div class="action-buttons">
+            {#if extension.jarUrl}
+                <a
+                    href={extension.jarUrl}
+                    class="btn btn-secondary btn-sm"
+                    aria-label={`Download ${extension.name} version ${extension.version} Jar`}
+                    title={`Download ${extension.name} v${extension.version} Jar`}>Jar</a
+                >
+            {/if}
+            <a
+                href={extension.apkUrl}
+                class="btn btn-primary btn-sm"
+                aria-label={`Download ${extension.name} version ${extension.version} APK`}
+                title={`Download ${extension.name} v${extension.version} APK`}>APK</a
+            >
+        </div>
     </td>
 </tr>

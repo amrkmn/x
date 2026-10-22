@@ -56,9 +56,11 @@ const { source, commitLink, latestCommitHash } = data;
         <slot name="head" />
     </head>
     <body>
-        <slot />
+        <a href="#main" class="skip-link visually-hidden">Skip to content</a>
+        <main id="main">
+            <slot />
+        </main>
         <Footer
-            client:only="svelte"
             source={source}
             commitLink={commitLink}
             latestCommitHash={latestCommitHash}

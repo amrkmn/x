@@ -13,6 +13,7 @@ export interface SearchFilters {
     nsfw?: boolean;
     page?: number;
     limit?: number;
+    sort?: string;
 }
 
 export interface MeilisearchHit extends SearchIndexEntry {
@@ -42,6 +43,7 @@ interface SearchRequest {
     limit: number;
     offset: number;
     filter?: string[];
+    sort?: string[];
 }
 
 interface FacetRequest {
@@ -112,6 +114,9 @@ export async function searchExtensions(filters: SearchFilters): Promise<Meilisea
     };
 
     if (filterConditions.length > 0) body.filter = filterConditions;
+
+    if (filters.sort === 'name-asc') body.sort = ['name:asc'];
+    else if (filters.sort === 'name-desc') body.sort = ['name:desc'];
 
     const response = await fetch(`${client.host}/indexes/extensions/search`, {
         method: 'POST',

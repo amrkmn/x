@@ -8,8 +8,10 @@
     let { domains }: Props = $props();
 
     $effect(() => {
-        if (domains && domains.length > 0 && !$selectedDomain) {
-            $selectedDomain = domains[0];
+        if (domains && domains.length > 0) {
+            if (!$selectedDomain || !domains.includes($selectedDomain)) {
+                $selectedDomain = domains[0];
+            }
         }
     });
 

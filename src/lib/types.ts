@@ -16,6 +16,7 @@ export interface ExtensionRepo {
     name: string;
     path: string;
     commit?: string;
+    extensionCount?: number;
 }
 
 export interface AppData {

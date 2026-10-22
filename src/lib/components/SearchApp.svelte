@@ -49,9 +49,69 @@
     let selectedCategory = $state('all');
     let selectedLanguage = $state('all');
     let showNSFW = $state(true);
+    let sort = $state<'relevance' | 'asc' | 'desc'>('relevance');
 
     let searchRequestId = 0;
     let minisearchLoadPromise: Promise<void> | null = null;
+    let queryUrlSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function syncQueryToUrl() {
+        if (queryUrlSyncTimer) clearTimeout(queryUrlSyncTimer);
+        queryUrlSyncTimer = setTimeout(() => {
+            const params = new URLSearchParams(window.location.search);
+            if (query) params.set('q', query);
+            else params.delete('q');
+            params.set('page', '1');
+            window.history.replaceState({}, '', `?${params.toString()}`);
+            // Keep local state in sync without clobbering input focus:
+            currentPage = 1;
+        }, 350);
+    }
+
+    function handleQueryInput() {
+        currentPage = 1;
+        syncQueryToUrl();
+    }
+
+    function clearQuery() {
+        if (queryUrlSyncTimer) clearTimeout(queryUrlSyncTimer);
+        query = '';
+        currentPage = 1;
+        const params = new URLSearchParams(window.location.search);
+        params.delete('q');
+        params.set('page', '1');
+        window.history.replaceState({}, '', `?${params.toString()}`);
+        document.getElementById('search-input')?.focus();
+    }
+
+    function setSort(direction: 'relevance' | 'asc' | 'desc') {
+        updateParams({ sort: direction === 'relevance' ? null : direction });
+    }
+
+    const hasActiveFilters = $derived(
+        query !== '' ||
+            selectedSource !== 'all' ||
+            selectedCategory !== 'all' ||
+            selectedLanguage !== 'all' ||
+            !showNSFW ||
+            forceMinisearch ||
+            sort !== 'relevance' ||
+            resultsPerPage !== 10
+    );
+
+    function resetFilters() {
+        if (queryUrlSyncTimer) clearTimeout(queryUrlSyncTimer);
+        query = '';
+        selectedSource = 'all';
+        selectedCategory = 'all';
+        selectedLanguage = 'all';
+        showNSFW = true;
+        forceMinisearch = false;
+        sort = 'relevance';
+        resultsPerPage = 10;
+        currentPage = 1;
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 
     function parsePage(value: string | null): number {
         const parsed = Number.parseInt(value ?? '1', 10);
@@ -66,6 +126,15 @@
         selectedLanguage = params.get('lang') ?? 'all';
         showNSFW = params.get('nsfw') !== '0';
         currentPage = parsePage(params.get('page'));
+        const rawSort = params.get('sort');
+        sort =
+            rawSort === 'desc' || rawSort === 'name-desc'
+                ? 'desc'
+                : rawSort === 'asc' || rawSort === 'name-asc'
+                  ? 'asc'
+                  : 'relevance';
+        const rawPerPage = Number.parseInt(params.get('perPage') ?? '10', 10);
+        resultsPerPage = [10, 20, 50].includes(rawPerPage) ? rawPerPage : 10;
     }
 
     function updateParams(updates: Record<string, string | null>) {
@@ -134,7 +203,9 @@
         lang: string,
         nsfw: boolean,
         page: number,
-        offlineOnly: boolean
+        offlineOnly: boolean,
+        sortOrder: string,
+        limit: number
     ) {
         const filters = {
             query: q || undefined,
@@ -143,7 +214,13 @@
             lang: lang !== 'all' ? lang : undefined,
             nsfw,
             page,
-            limit: resultsPerPage
+            limit,
+            sort:
+                sortOrder === 'relevance'
+                    ? undefined
+                    : sortOrder === 'desc'
+                      ? 'name-desc'
+                      : 'name-asc'
         };
 
         try {
@@ -223,9 +300,22 @@
             lang: string,
             nsfw: boolean,
             page: number,
-            offlineOnly: boolean
+            offlineOnly: boolean,
+            sortOrder: string,
+            limit: number
         ) => {
-            void performSearch(requestId, q, source, category, lang, nsfw, page, offlineOnly);
+            void performSearch(
+                requestId,
+                q,
+                source,
+                category,
+                lang,
+                nsfw,
+                page,
+                offlineOnly,
+                sortOrder,
+                limit
+            );
         },
         300
     );
@@ -245,11 +335,15 @@
             selectedLanguage,
             showNSFW,
             currentPage,
-            forceMinisearch
+            forceMinisearch,
+            sort,
+            resultsPerPage
         );
     });
 
     onMount(async () => {
+        const handlePopState = () => readUrlParams();
+        window.addEventListener('popstate', handlePopState);
         readUrlParams();
 
         try {
@@ -283,25 +377,46 @@
             searchReady = meilisearchEnabled || minisearchReady;
             initializing = false;
         }
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            if (queryUrlSyncTimer) clearTimeout(queryUrlSyncTimer);
+        };
     });
 </script>
 
-<div class="container">
+<div class="container container-search">
     <div class="page-header">
         <h1>Search Extensions</h1>
         <a href="/" class="btn btn-secondary header-btn">Home</a>
     </div>
-    <div class="search-container">
+    <div class="search-container search-with-clear">
+        <label for="search-input" class="visually-hidden"
+            >Search extensions by name or package</label
+        >
         <input
+            id="search-input"
             type="text"
             class="search-input"
             placeholder="Search by name or package..."
-            value={query}
-            oninput={(e) => updateParams({ q: e.currentTarget.value || null })}
+            autocomplete="off"
+            spellcheck={false}
+            bind:value={query}
+            oninput={handleQueryInput}
         />
+        {#if query}
+            <button
+                type="button"
+                class="btn btn-secondary btn-sm search-clear"
+                onclick={clearQuery}
+                aria-label="Clear search"
+            >
+                Clear
+            </button>
+        {/if}
     </div>
     <div class="filter-bar">
-        <div class="filter-group">
+        <div class="filter-group filter-cat">
             <label for="category-filter">Category:</label>
             <select
                 id="category-filter"
@@ -318,7 +433,7 @@
                 {/each}
             </select>
         </div>
-        <div class="filter-group">
+        <div class="filter-group filter-src">
             <label for="source-filter">Source:</label>
             <select
                 id="source-filter"
@@ -335,7 +450,7 @@
                 {/each}
             </select>
         </div>
-        <div class="filter-group">
+        <div class="filter-group filter-lang">
             <label for="language-filter">Language:</label>
             <select
                 id="language-filter"
@@ -352,8 +467,40 @@
                 {/each}
             </select>
         </div>
-        <div class="filter-group filter-checkbox">
-            <label>
+        <div class="filter-group filter-sort3">
+            <span class="filter-label" id="sort-label">Sort:</span>
+            <div class="sort-segment" role="group" aria-labelledby="sort-label">
+                <button
+                    type="button"
+                    class={`btn btn-sm sort-seg-btn ${sort === 'relevance' ? 'btn-primary' : 'btn-secondary'}`}
+                    aria-pressed={sort === 'relevance'}
+                    aria-label="Sort by relevance"
+                    onclick={() => setSort('relevance')}
+                >
+                    Relevance
+                </button>
+                <button
+                    type="button"
+                    class={`btn btn-sm sort-seg-btn ${sort === 'asc' ? 'btn-primary' : 'btn-secondary'}`}
+                    aria-pressed={sort === 'asc'}
+                    aria-label="Sort names A to Z"
+                    onclick={() => setSort('asc')}
+                >
+                    A–Z
+                </button>
+                <button
+                    type="button"
+                    class={`btn btn-sm sort-seg-btn ${sort === 'desc' ? 'btn-primary' : 'btn-secondary'}`}
+                    aria-pressed={sort === 'desc'}
+                    aria-label="Sort names Z to A"
+                    onclick={() => setSort('desc')}
+                >
+                    Z–A
+                </button>
+            </div>
+        </div>
+        <div class="filter-group filter-nsfwbox">
+            <label class="filter-check">
                 <input
                     type="checkbox"
                     checked={showNSFW}
@@ -362,38 +509,90 @@
                 <span>Show NSFW</span>
             </label>
         </div>
-        {#if meilisearchEnabled}
-            <div class="filter-group filter-checkbox">
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={forceMinisearch}
-                        disabled={loadingOfflineIndex}
-                        onchange={() => (forceMinisearch = !forceMinisearch)}
-                    />
-                    <span
-                        >{loadingOfflineIndex
-                            ? 'Loading offline search…'
-                            : 'Use offline search'}</span
-                    >
-                </label>
-            </div>
-        {/if}
+        <div class="filter-group filter-reset-cell">
+            <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                disabled={!hasActiveFilters}
+                onclick={resetFilters}
+            >
+                Reset filters
+            </button>
+        </div>
     </div>
-    <div class="table-container">
+    <div class="results-toolbar">
+        <div class="results-status" role="status" aria-live="polite">
+            {#if initializing}
+                Loading extensions…
+            {:else if searching}
+                Searching…
+            {:else if hasSearched}
+                {#if totalHits > 0}
+                    Showing {Math.min((currentPage - 1) * resultsPerPage + 1, totalHits)} to {Math.min(
+                        currentPage * resultsPerPage,
+                        totalHits
+                    )} of {totalHits} results
+                {:else}
+                    No results found{query ? ` for "${query}"` : ''}.
+                {/if}
+            {/if}
+        </div>
+        <label class="perpage-label" for="perpage-select">
+            Per page:
+            <select
+                id="perpage-select"
+                class="perpage-select"
+                value={resultsPerPage.toString()}
+                onchange={(e) =>
+                    updateParams({
+                        perPage: e.currentTarget.value === '10' ? null : e.currentTarget.value
+                    })}
+            >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+        </label>
+    </div>
+    <div class="table-container" aria-busy={searching || initializing}>
         <table class="extensions-table">
             <thead>
                 <tr>
-                    <th style="width: 60px;">Icon</th>
-                    <th>Name / Package</th>
-                    <th>Version / Lang</th>
-                    <th style="width: 100px;">Action</th>
+                    <th scope="col" style="width: 60px;">Icon</th>
+                    <th scope="col">Name / Package</th>
+                    <th scope="col">Version / Lang</th>
+                    <th scope="col" style="width: 150px;">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {#each results as ext (ext.formattedSourceName + ';' + ext.pkg)}
-                    <ExtensionRow extension={ext} repoUrl={ext.repoUrl} />
-                {/each}
+                {#if (initializing || searching) && results.length === 0}
+                    {#each Array.from({ length: 5 }) as _, i (i)}
+                        <tr class="skeleton-row" aria-hidden="true">
+                            <td class="icon-cell"><div class="skeleton-bar skeleton-icon"></div></td
+                            >
+                            <td class="info-cell"
+                                ><div class="skeleton-bar" style="width: 70%;"></div>
+                                <div
+                                    class="skeleton-bar skeleton-sub"
+                                    style="width: 45%;"
+                                ></div></td
+                            >
+                            <td class="meta-cell"
+                                ><div class="skeleton-bar" style="width: 60px;"></div></td
+                            >
+                            <td class="action-cell"
+                                ><div
+                                    class="skeleton-bar"
+                                    style="width: 64px; height: 30px;"
+                                ></div></td
+                            >
+                        </tr>
+                    {/each}
+                {:else}
+                    {#each results as ext (ext.formattedSourceName + ';' + ext.pkg)}
+                        <ExtensionRow extension={ext} repoUrl={ext.repoUrl} />
+                    {/each}
+                {/if}
             </tbody>
         </table>
     </div>
@@ -401,19 +600,13 @@
         {@const startPage = Math.max(1, currentPage - 2)}
         {@const endPage = Math.min(totalPages, startPage + 4)}
         <div class="pagination-container">
-            <div class="pagination-info">
-                Showing {Math.min((currentPage - 1) * resultsPerPage + 1, totalHits)} to {Math.min(
-                    currentPage * resultsPerPage,
-                    totalHits
-                )} of {totalHits}
-                results
-            </div>
-            <div class="pagination-controls">
+            <nav class="pagination-controls" aria-label="Search results pages">
                 <button
                     class="btn btn-secondary btn-sm"
                     disabled={currentPage === 1}
                     onclick={() => updateParams({ page: '1' })}
                     title="First page"
+                    aria-label="Go to first page"
                 >
                     &lt;&lt;
                 </button>
@@ -421,6 +614,7 @@
                 <button
                     class="btn btn-secondary btn-sm"
                     disabled={currentPage === 1}
+                    aria-label="Go to previous page"
                     onclick={() =>
                         updateParams({
                             page: currentPage === 1 ? null : (currentPage - 1).toString()
@@ -435,6 +629,8 @@
                             class="btn btn-sm {pageNum === currentPage
                                 ? 'btn-primary'
                                 : 'btn-secondary'}"
+                            aria-label={`Go to page ${pageNum}`}
+                            aria-current={pageNum === currentPage ? 'page' : undefined}
                             onclick={() =>
                                 updateParams({
                                     page: pageNum === 1 ? null : pageNum.toString()
@@ -448,6 +644,7 @@
                 <button
                     class="btn btn-secondary btn-sm"
                     disabled={currentPage === totalPages}
+                    aria-label="Go to next page"
                     onclick={() => updateParams({ page: (currentPage + 1).toString() })}
                 >
                     &gt;
@@ -456,26 +653,45 @@
                 <button
                     class="btn btn-secondary btn-sm"
                     disabled={currentPage === totalPages}
-                    onclick={() => updateParams({ page: totalPages.toString() })}
                     title="Last page"
+                    aria-label="Go to last page"
+                    onclick={() => updateParams({ page: totalPages.toString() })}
                 >
                     &gt;&gt;
                 </button>
-            </div>
+            </nav>
         </div>
     {/if}
 
-    {#if initializing || searching}
-        <div style="text-align: center; padding: 20px;">Loading extensions...</div>
-    {:else if results.length === 0 && hasSearched}
-        <div style="text-align: center; padding: 20px;">No results found.</div>
+    {#if !initializing && !searching && results.length === 0 && hasSearched && hasActiveFilters}
+        <div style="text-align: center; padding: 12px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick={resetFilters}>
+                Clear filters
+            </button>
+        </div>
     {/if}
     {#if error}
-        <div style="text-align: center; margin-top: 50px; color: red;">{error}</div>
+        <div role="alert" style="text-align: center; margin-top: 50px; color: red;">{error}</div>
     {/if}
-    {#if usingFallback}
-        <div style="text-align: center; padding: 8px; opacity: 0.5; font-size: 0.8em;">
-            Using offline search
+    {#if meilisearchEnabled}
+        <div class="search-backend">
+            {#if usingFallback}
+                <span>Using offline search</span>
+                <span aria-hidden="true">·</span>
+            {/if}
+            <label class="filter-check">
+                <input
+                    type="checkbox"
+                    checked={forceMinisearch}
+                    disabled={loadingOfflineIndex}
+                    onchange={() => (forceMinisearch = !forceMinisearch)}
+                />
+                <span>{loadingOfflineIndex ? 'Loading offline search…' : 'Offline search'}</span>
+            </label>
+        </div>
+    {:else if usingFallback}
+        <div class="search-backend">
+            <span>Using offline search</span>
         </div>
     {/if}
 </div>
