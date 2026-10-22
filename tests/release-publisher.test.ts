@@ -10,6 +10,7 @@ import {
     publishReleases
 } from '../scripts/publish';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from '../scripts/publish';
+import { previousCompleteManifest } from '../scripts/releases/manifest';
 import type { ExtensionConfig } from '../scripts/types';
 import type { JsonValue } from '../src/lib/validation';
 
@@ -452,4 +453,74 @@ test('rejects a stale publisher commit before reading or creating releases', asy
         })
     ).rejects.toThrow('Stale publisher event');
     expect(client.releases).toHaveLength(0);
+});
+
+test('previousCompleteManifest prefers the newest snapshot regardless of list order', async () => {
+    // Production incident: the /releases listing returned the older a352baa-0
+    // before the newer 696e66e-0, so the publisher diffed against a stale
+    // manifest and re-uploaded 204 byte-identical yuzono/anime APKs.
+    const oldSha = hash(bytes('anime-apk-v1'));
+    const newSha = hash(bytes('anime-apk-v2'));
+    const manifestFor = (sha: string, tag: string) => ({
+        'yuzono/anime': {
+            'org.example.anime': {
+                apk: {
+                    name: 'yuzono-anime-anime-v1.apk',
+                    sha256: sha,
+                    version: '4.0.0',
+                    source: 'yuzono/anime',
+                    kind: 'apk' as const,
+                    url: `https://github.com/amrkmn/x/releases/download/${tag}/yuzono-anime-anime-v1.apk`
+                }
+            }
+        }
+    });
+    const oldBytes = bytes(JSON.stringify(manifestFor(oldSha, 'aaaaaaa-0')));
+    const newBytes = bytes(JSON.stringify(manifestFor(newSha, 'bbbbbbb-0')));
+    const payloads = new Map([
+        [1000, oldBytes],
+        [2000, newBytes]
+    ]);
+    // SAFETY: previousCompleteManifest only calls downloadAsset, which the
+    // stub implements; the remaining ReleaseClient members are unused here.
+    const client = {
+        downloadAsset: async (asset: ReleaseAssetInfo) => payloads.get(asset.id)!
+    } as ReleaseClient;
+    const releaseFor = (
+        id: number,
+        tag: string,
+        payload: Uint8Array,
+        apkSha: string
+    ): ReleaseInfo => ({
+        id,
+        tag,
+        targetCommitish: commit,
+        draft: false,
+        uploadUrl: 'https://uploads.example/releases/assets',
+        assets: [
+            {
+                id: id * 1000,
+                name: 'release-assets.json',
+                url: `https://api.example/assets/${id}`,
+                digest: `sha256:${hash(payload)}`
+            },
+            {
+                id: id * 1000 + 1,
+                name: 'yuzono-anime-anime-v1.apk',
+                url: `https://api.example/assets/${id}-apk`,
+                digest: `sha256:${apkSha}`
+            }
+        ]
+    });
+    const older = releaseFor(1, 'aaaaaaa-0', oldBytes, oldSha);
+    const newer = releaseFor(2, 'bbbbbbb-0', newBytes, newSha);
+
+    for (const order of [
+        [older, newer],
+        [newer, older]
+    ]) {
+        const previous = await previousCompleteManifest(order, client, 'amrkmn', 'x');
+        expect(previous['yuzono/anime']['org.example.anime'].apk?.sha256).toBe(newSha);
+        expect(previous['yuzono/anime']['org.example.anime'].apk?.url).toContain('/bbbbbbb-0/');
+    }
 });

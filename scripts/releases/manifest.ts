@@ -172,8 +172,10 @@ export async function previousCompleteManifest(
     owner: string,
     repo: string
 ): Promise<ReleaseManifest> {
-    const byTag = new Map(releases.map((release) => [release.tag, release]));
-    for (const release of releases) {
+    // The /releases listing is not guaranteed chronological; newest first.
+    const ordered = [...releases].sort((left, right) => right.id - left.id);
+    const byTag = new Map(ordered.map((release) => [release.tag, release]));
+    for (const release of ordered) {
         if (!isPublisherTag(release.tag) || release.draft) continue;
         const asset = release.assets.find(({ name }) => name === MANIFEST_NAME);
         if (!asset) continue;
