@@ -1,6 +1,14 @@
 name: Update Extensions
 
 on:
+    push:
+        branches:
+            - main
+        paths-ignore:
+            - 'extensions.json'
+            - 'README.md'
+            - '.github/workflows/check.yml'
+            - '.github/workflows/publish.yml'
     workflow_run:
         workflows:
             - Publish Release Artifacts
@@ -8,6 +16,7 @@ on:
             - completed
         branches:
             - main
+    workflow_dispatch:
 
 permissions:
     contents: read
@@ -19,12 +28,12 @@ concurrency:
 jobs:
     deploy:
         runs-on: ubuntu-latest
-        if: github.event.workflow_run.conclusion == 'success'
+        if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
-                  ref: ${{ github.event.workflow_run.head_sha || 'main' }}
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
             - name: Setup pnpm
               uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
@@ -49,13 +58,13 @@ jobs:
                   PUBLIC_ANALYTICS_DOMAIN: ${{ secrets.PUBLIC_ANALYTICS_DOMAIN }}
 
             - name: Deploy to Cloudflare Workers
-              run: pnpm wrangler deploy --message "deploy ${{ github.event.workflow_run.head_sha }}"
+              run: pnpm wrangler deploy --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
             - name: Deploy to Netlify
-              run: pnpx --package=netlify-cli netlify deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha }}"
+              run: pnpx --package=netlify-cli netlify deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
 
             - name: Update search index
               run: pnpm run search:update
