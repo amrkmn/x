@@ -385,10 +385,10 @@
     });
 </script>
 
-<div class="container container-search">
+<div class="container container-wide">
     <div class="page-header">
         <h1>Search Extensions</h1>
-        <a href="/" class="btn btn-secondary header-btn">Home</a>
+        <a href="/" class="btn btn-secondary header-btn" data-astro-prefetch="hover">Home</a>
     </div>
     <div class="search-container search-with-clear">
         <label for="search-input" class="visually-hidden"
