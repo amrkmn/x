@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import $ from 'dax';
 
 import { formatSourceName } from '../src/lib/search/utils';
-import type { Extension, SearchIndexEntry } from '../src/lib/types';
+import type { SearchIndexEntry } from '../src/lib/types';
 import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
 import { config } from './config';
@@ -229,6 +229,16 @@ async function loadRepoExtensions(
     throw new Error(`Invalid extension index at ${repoPath}: expected array`);
 }
 
+function websiteFromSources(sources: JsonValue | undefined): string | undefined {
+    if (!Array.isArray(sources)) return undefined;
+    const first = sources[0];
+    if (!isJsonObject(first)) return undefined;
+    const url = first.homeUrl ?? first.baseUrl;
+    if (!isStringValue(url)) return undefined;
+    if (!/^https?:\/\//.test(url)) return undefined;
+    return url;
+}
+
 function entryFromMihon(raw: JsonObject): JsonObject {
     const resources = isJsonObject(raw.resources) ? raw.resources : {};
     const sources = raw.sources;
@@ -252,6 +262,8 @@ function entryFromMihon(raw: JsonObject): JsonObject {
     if (isStringValue(resources.jarUrl)) entry.jarUrl = resources.jarUrl;
     if (isStringValue(resources.iconUrl)) entry.iconUrl = resources.iconUrl;
     if (raw.versionCode !== undefined) entry.code = Number(raw.versionCode);
+    const website = websiteFromSources(sources);
+    if (website) entry.website = website;
     return entry;
 }
 
@@ -384,14 +396,20 @@ async function generateSearchIndexJson(
                 const entryPath = `${repo.path}[${index}]`;
                 let extension: SearchIndexEntry;
                 try {
-                    let parsed: JsonObject | Extension;
+                    let parsed: JsonObject;
                     if (isMihonIndex(category) || isMihonEntry(rawExtension)) {
                         if (!isJsonObject(rawExtension)) {
                             throw new Error(`Invalid Mihon entry at ${entryPath}`);
                         }
                         parsed = entryFromMihon(rawExtension);
                     } else {
-                        parsed = parseExtension(rawExtension, entryPath);
+                        const flatEntry = parseExtension(rawExtension, entryPath);
+                        parsed = { ...flatEntry };
+                        // Flat indexes keep per-source baseUrl outside the parsed shape.
+                        if (isJsonObject(rawExtension)) {
+                            const website = websiteFromSources(rawExtension.sources);
+                            if (website) parsed.website = website;
+                        }
                     }
                     extension = parseSearchIndexEntry(
                         {

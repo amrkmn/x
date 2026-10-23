@@ -80,6 +80,7 @@ export function transformMeilisearchHit(hit: MeilisearchHit): SearchIndexEntry {
     if (hit.apkUrl) extension.apkUrl = hit.apkUrl;
     if (hit.jarUrl) extension.jarUrl = hit.jarUrl;
     if (hit.iconUrl) extension.iconUrl = hit.iconUrl;
+    if (hit.website) extension.website = hit.website;
     return extension;
 }
 

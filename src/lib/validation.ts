@@ -120,8 +120,9 @@ export function parseAppData(value: JsonValue): AppData {
 export function parseSearchIndexEntry(value: JsonValue, path: string): SearchIndexEntry {
     const record = asRecord(value, path);
     const extension = parseExtension(record, path);
+    const website = asOptionalString(record.website, `${path}.website`);
 
-    return {
+    const entry: SearchIndexEntry = {
         ...extension,
         code: asOptionalNumber(record.code, `${path}.code`),
         repoUrl: asString(record.repoUrl, `${path}.repoUrl`),
@@ -129,6 +130,8 @@ export function parseSearchIndexEntry(value: JsonValue, path: string): SearchInd
         formattedSourceName: asString(record.formattedSourceName, `${path}.formattedSourceName`),
         category: asString(record.category, `${path}.category`)
     };
+    if (website) entry.website = website;
+    return entry;
 }
 
 export function parseSearchIndex(value: JsonValue): SearchIndexEntry[] {

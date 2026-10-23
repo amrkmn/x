@@ -33,4 +33,5 @@ export interface SearchIndexEntry extends Extension {
     sourceName: string;
     formattedSourceName: string;
     category: string;
+    website?: string;
 }

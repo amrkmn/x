@@ -36,7 +36,19 @@
     </td>
     <td class="info-cell" data-label="Extension">
         <div class="extension-name">
-            {extension.name}
+            {#if extension.website}
+                <a
+                    href={extension.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="extension-name-link"
+                    title={`Open ${extension.name} website`}
+                >
+                    {extension.name}
+                </a>
+            {:else}
+                {extension.name}
+            {/if}
             {#if extension.nsfw === 1}
                 <span class="nsfw-badge">NSFW</span>
             {/if}

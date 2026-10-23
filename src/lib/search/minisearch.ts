@@ -25,7 +25,8 @@ export function initMinisearch(extensions: EnrichedExtension[]) {
             'repoUrl',
             'sourceName',
             'formattedSourceName',
-            'category'
+            'category',
+            'website'
         ],
         searchOptions: {
             prefix: true,
