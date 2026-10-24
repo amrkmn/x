@@ -7,6 +7,7 @@ import Base from '../layouts/Base.astro';
 
 const data = loadAppData();
 const { extensions, domains } = data;
+const initialDomain = domains[0] ?? '';
 ---
 
 <Base
@@ -23,11 +24,11 @@ const { extensions, domains } = data;
             >
         </div>
 
-        <MirrorSelector client:only="svelte" {domains} />
+        <MirrorSelector client:load {domains} {initialDomain} />
 
         {
             Object.entries(extensions).map(([category, repos]) => (
-                <ExtensionCategory client:only="svelte" {category} {repos} />
+                <ExtensionCategory client:load {category} {repos} {initialDomain} />
             ))
         }
         <br />

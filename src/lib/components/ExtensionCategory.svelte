@@ -7,9 +7,11 @@
     interface Props {
         category: string;
         repos: ExtensionRepo[];
+        initialDomain?: string;
     }
 
-    let { category, repos }: Props = $props();
+    let { category, repos, initialDomain = '' }: Props = $props();
+    let domain = $derived($selectedDomain || initialDomain);
 
     let protocol = $derived(category.toLowerCase() === 'mihon' ? 'tachiyomi' : 'aniyomi');
     let title = $derived(category.charAt(0).toUpperCase() + category.slice(1));
@@ -19,7 +21,7 @@
     <h2>{title} Extensions</h2>
     <div class="grid">
         {#each repos as repo}
-            <ExtensionCard {repo} {protocol} selectedDomain={$selectedDomain} />
+            <ExtensionCard {repo} {protocol} selectedDomain={domain} />
         {/each}
     </div>
 </div>

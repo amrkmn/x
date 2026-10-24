@@ -3,15 +3,21 @@
 
     interface Props {
         domains: string[];
+        initialDomain?: string;
     }
 
-    let { domains }: Props = $props();
+    let { domains, initialDomain = '' }: Props = $props();
 
     $effect(() => {
         if (domains && domains.length > 0) {
-            if (!$selectedDomain || !domains.includes($selectedDomain)) {
-                $selectedDomain = domains[0];
+            if ($selectedDomain && domains.includes($selectedDomain)) return;
+            let fallback =
+                initialDomain && domains.includes(initialDomain) ? initialDomain : domains[0];
+            if (typeof window !== 'undefined') {
+                const own = window.location.origin;
+                if (domains.includes(own)) fallback = own;
             }
+            $selectedDomain = fallback;
         }
     });
 
