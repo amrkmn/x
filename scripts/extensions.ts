@@ -941,7 +941,7 @@ export async function generateRedirects(
         if (category !== 'aniyomi') continue;
         for (const [key, repo] of Object.entries(entries)) {
             // Only flat indexes need apk-path redirects.
-            if (!repo.path.endsWith('index.min.json')) continue;
+            if (!repo.path.endsWith('index.min.json') && !repo.path.endsWith('index.pb')) continue;
             const flatFile = join(staticDir, key, 'index.min.json');
             if (!existsSync(flatFile)) continue;
             let parsed: JsonValue;

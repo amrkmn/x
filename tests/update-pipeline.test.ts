@@ -940,7 +940,7 @@ test('refreshMirrorIndexPb uses the Aniyomi codec for Secozzi wrappers', async (
 const flatAnimeRepo = {
     name: 'Yuzono Anime',
     source: 'https://github.com/yuzono/anime-repo@repo',
-    path: '/yuzono/anime/index.min.json',
+    path: '/yuzono/anime/index.pb',
     category: 'aniyomi' as const,
     commit: 'd4fac05022c1bd92ac5af66b890b8d57fd7684dc'
 };

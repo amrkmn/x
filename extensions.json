@@ -26,7 +26,7 @@
         "yuzono/anime": {
             "source": "https://github.com/yuzono/anime-repo@repo",
             "name": "Yuzono Anime",
-            "path": "/yuzono/anime/index.min.json",
+            "path": "/yuzono/anime/index.pb",
             "category": "aniyomi",
             "commit": "a993b03baf039bfd8b36a821aa6ce0010bf9eda2"
         }
