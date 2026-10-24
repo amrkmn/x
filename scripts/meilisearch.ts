@@ -5,6 +5,7 @@ import { Meilisearch } from 'meilisearch';
 
 import type { SearchIndexEntry } from '../src/lib/types';
 import { parseSearchIndex } from '../src/lib/validation';
+import { config } from './config';
 import { env } from './env';
 import { logger } from './log';
 
@@ -48,6 +49,17 @@ export async function updateMeilisearch() {
         if (!allExtensions.length) {
             logger.warn('search', 'index update skipped reason="no_documents"');
             return;
+        }
+
+        // Every indexed APK should point at our own releases. Anything else means
+        // the index was built without a manifest (or the manifest lacks coverage).
+        const releasePrefix = `https://github.com/${config.github.owner}/${config.github.repo}/releases/`;
+        const upstream = allExtensions.filter((ext) => !ext.apkUrl?.startsWith(releasePrefix));
+        if (upstream.length > 0) {
+            logger.warn(
+                'search',
+                `index update has upstream urls count=${upstream.length} sample=${JSON.stringify(upstream.slice(0, 3).map((ext) => ext.pkg))}`
+            );
         }
 
         const existingDocs = await index.getDocuments<{ id: string }>({
