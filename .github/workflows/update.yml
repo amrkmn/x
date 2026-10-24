@@ -26,9 +26,9 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
-    deploy:
+    build:
         runs-on: ubuntu-latest
-        if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+        if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.head_repository.full_name == github.repository) }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,38 +42,107 @@ jobs:
                   cache: true
 
             - name: Fetch latest release manifest
-              id: manifest
               run: |
                   mkdir -p /tmp/manifest
                   curl -fSL -o /tmp/manifest/release-assets.json "https://github.com/${{ github.repository }}/releases/latest/download/release-assets.json"
-                  echo "path=/tmp/manifest/release-assets.json" >> "$GITHUB_OUTPUT"
 
             - name: Prepare dist
               run: pnpm run prepare:dist
               env:
-                  RELEASE_MANIFEST_FILE: ${{ steps.manifest.outputs.path }}
+                  RELEASE_MANIFEST_FILE: /tmp/manifest/release-assets.json
                   PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
                   PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
                   PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
                   PUBLIC_ANALYTICS_DOMAIN: ${{ secrets.PUBLIC_ANALYTICS_DOMAIN }}
 
+            - name: Upload dist
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: dist
+                  path: dist/
+                  retention-days: 1
+
+            - name: Upload release manifest
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: release-manifest
+                  path: /tmp/manifest/release-assets.json
+                  retention-days: 1
+
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                target: [cloudflare, netlify, grebedoc]
+        steps:
+            - name: Checkout repository
+              if: matrix.target == 'cloudflare'
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Download dist
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                  name: dist
+                  path: dist
+
+            - name: Setup pnpm
+              if: matrix.target == 'cloudflare' || matrix.target == 'netlify'
+              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
+              with:
+                  runtime: node@24
+                  cache: true
+
             - name: Deploy to Cloudflare Workers
+              if: matrix.target == 'cloudflare'
               run: pnpm wrangler deploy --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
             - name: Deploy to Netlify
-              run: pnpx --package=netlify-cli netlify deploy --prod --dir dist --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }} --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
+              if: matrix.target == 'netlify'
+              run: pnpx --package=netlify-cli@27.14.2 netlify deploy --prod --dir dist --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
+              env:
+                  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+                  NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
             - name: Deploy to grebedoc
+              if: matrix.target == 'grebedoc'
               run: |
                   tar -I 'zstd -3' -cf dist.tar.zst -C dist .
                   curl -fSL https://grebedoc.dev/ -X PUT \
                       -H "Host: x.amar.kim" \
-                      -H "Authorization: Pages ${{ secrets.GIT_PAGES_PASSWORD }}" \
+                      -H "Authorization: Pages $GIT_PAGES_PASSWORD" \
                       -H "Content-Type: application/x-tar+zstd" \
                       --data-binary @dist.tar.zst
+              env:
+                  GIT_PAGES_PASSWORD: ${{ secrets.GIT_PAGES_PASSWORD }}
+
+    search-index:
+        needs: [build, deploy]
+        if: ${{ !cancelled() && needs.build.result == 'success' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Setup pnpm
+              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
+              with:
+                  runtime: node@24
+                  cache: true
+
+            - name: Download release manifest
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                  name: release-manifest
+                  path: /tmp/manifest
 
             - name: Update search index
               run: pnpm run search:update
