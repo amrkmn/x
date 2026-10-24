@@ -1110,6 +1110,35 @@ test('generateRedirects fails closed on incomplete manifests', async () => {
     expect(existsSync(join(staticDir, '_redirects'))).toBe(false);
 });
 
+test('generateRedirects skips index.pb repos without published artifacts', async () => {
+    const staticDir = join(testDir, 'static');
+    const secozziDir = join(staticDir, 'secozzi');
+    await mkdir(secozziDir, { recursive: true });
+    await writeFile(
+        join(secozziDir, 'index.min.json'),
+        JSON.stringify([
+            {
+                name: 'Outdated App, switch to Animiru 0.20+',
+                pkg: 'eu.kanade.tachiyomi.extension.all.animiru',
+                apk: 'tachiyomi-all.animiru-v17.1.apk'
+            }
+        ])
+    );
+    const data: ExtensionsData = {
+        mihon: {},
+        aniyomi: {
+            secozzi: {
+                name: 'Secozzi',
+                source: 'https://example.test/secozzi',
+                path: '/secozzi/index.pb',
+                category: 'aniyomi',
+                commit: 'c1'
+            }
+        }
+    };
+    expect(await generateRedirects(data, staticDir, { manifest: flatAnimeManifest() })).toBe(0);
+});
+
 test('generateRedirects is a no-op without a manifest and clears stale rules', async () => {
     const staticDir = join(testDir, 'static');
     await mkdir(staticDir, { recursive: true });

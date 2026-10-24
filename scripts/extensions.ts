@@ -940,8 +940,9 @@ export async function generateRedirects(
     for (const [category, entries] of Object.entries(data)) {
         if (category !== 'aniyomi') continue;
         for (const [key, repo] of Object.entries(entries)) {
-            // Only flat indexes need apk-path redirects.
-            if (!repo.path.endsWith('index.min.json') && !repo.path.endsWith('index.pb')) continue;
+            // Only yuzono/anime ever served legacy /apk/ URLs; other index.pb
+            // repos (e.g. secozzi) ship an unpublished deprecation stub.
+            if (!repo.path.endsWith('index.min.json') && key !== 'yuzono/anime') continue;
             const flatFile = join(staticDir, key, 'index.min.json');
             if (!existsSync(flatFile)) continue;
             let parsed: JsonValue;
