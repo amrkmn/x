@@ -26,40 +26,27 @@ interface IndexTypes {
 let cachedTypes: IndexTypes | undefined;
 let cachedAniyomiTypes: IndexTypes | undefined;
 
+function loadProtoTypes(flavor: 'mihon' | 'aniyomi', storeTypeName: string): IndexTypes {
+    const protoPath = join(
+        dirname(fileURLToPath(import.meta.url)),
+        'proto',
+        flavor,
+        'extensionstore.proto'
+    );
+    const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
+    return {
+        store: parsed.root.lookupType(`${flavor}.extensionstore.${storeTypeName}`),
+        extension: parsed.root.lookupType(`${flavor}.extensionstore.Extension`),
+        source: parsed.root.lookupType(`${flavor}.extensionstore.Source`)
+    };
+}
+
 function indexTypes(): IndexTypes {
-    if (!cachedTypes) {
-        const protoPath = join(
-            dirname(fileURLToPath(import.meta.url)),
-            'proto',
-            'mihon',
-            'extensionstore.proto'
-        );
-        const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
-        cachedTypes = {
-            store: parsed.root.lookupType('mihon.extensionstore.NetworkExtensionStore'),
-            extension: parsed.root.lookupType('mihon.extensionstore.Extension'),
-            source: parsed.root.lookupType('mihon.extensionstore.Source')
-        };
-    }
-    return cachedTypes;
+    return (cachedTypes ??= loadProtoTypes('mihon', 'NetworkExtensionStore'));
 }
 
 function aniyomiIndexTypes(): IndexTypes {
-    if (!cachedAniyomiTypes) {
-        const protoPath = join(
-            dirname(fileURLToPath(import.meta.url)),
-            'proto',
-            'aniyomi',
-            'extensionstore.proto'
-        );
-        const parsed = protobuf.parse(readFileSync(protoPath, 'utf8'));
-        cachedAniyomiTypes = {
-            store: parsed.root.lookupType('aniyomi.extensionstore.NetworkAnimeExtensionStore'),
-            extension: parsed.root.lookupType('aniyomi.extensionstore.Extension'),
-            source: parsed.root.lookupType('aniyomi.extensionstore.Source')
-        };
-    }
-    return cachedAniyomiTypes;
+    return (cachedAniyomiTypes ??= loadProtoTypes('aniyomi', 'NetworkAnimeExtensionStore'));
 }
 
 function asString(value: JsonValue | undefined): string | undefined {
@@ -71,8 +58,7 @@ function asString(value: JsonValue | undefined): string | undefined {
 // IDs and versionCodes can exceed 2^53; keep as strings for int64 encoding.
 function asInt64(value: JsonValue | undefined): string | undefined {
     const text = asString(value);
-    if (text === undefined || !/^-?\d+$/.test(text)) return undefined;
-    return text;
+    return text && /^-?\d+$/.test(text) ? text : undefined;
 }
 
 const CONTENT_WARNINGS = new Set([
@@ -82,89 +68,12 @@ const CONTENT_WARNINGS = new Set([
     'CONTENT_WARNING_NSFW'
 ]);
 
-interface EncodedExtension {
-    message: protobuf.Message;
-    packageName: string;
-}
-
-function extensionMessage(raw: JsonObject, options: IndexPbOptions): EncodedExtension {
-    const resources = isRecord(raw.resources) ? raw.resources : {};
-    const packageName = asString(raw.packageName) ?? '';
-    let apkUrl = asString(resources.apkUrl) ?? '';
-    if (options.manifest && options.sourceKey && packageName) {
-        const asset = manifestAsset(options.manifest, options.sourceKey, packageName, 'apk');
-        if (asset) apkUrl = asset.url;
-    }
-    const sources: protobuf.Message[] = [];
-    if (Array.isArray(raw.sources)) {
-        for (const entry of raw.sources) {
-            if (!isRecord(entry)) continue;
-            const id = asInt64(entry.id);
-            if (id === undefined) continue;
-            const homeUrl = asString(entry.homeUrl);
-            const mirrors = Array.isArray(entry.mirrorUrls)
-                ? entry.mirrorUrls.filter(isString)
-                : [];
-            const source = {
-                id,
-                name: asString(entry.name) ?? '',
-                language: asString(entry.language) ?? '',
-                homeUrl,
-                mirrorUrls: mirrors.length > 0 ? mirrors : undefined
-            };
-            sources.push(indexTypes().source.fromObject(source));
-        }
-    }
-    const warning = asString(raw.contentWarning);
-    const message = indexTypes().extension.fromObject({
-        name: asString(raw.name) ?? '',
-        packageName,
-        resources: {
-            apkUrl,
-            iconUrl: asString(resources.iconUrl) ?? '',
-            jarUrl: asString(resources.jarUrl) ?? ''
-        },
-        extensionLib: asString(raw.extensionLib) ?? '',
-        versionCode: asInt64(raw.versionCode) ?? '0',
-        versionName: asString(raw.versionName) ?? '',
-        contentWarning:
-            warning !== undefined && CONTENT_WARNINGS.has(warning)
-                ? warning
-                : 'CONTENT_WARNING_UNSPECIFIED',
-        sources
-    });
-    return { message, packageName };
-}
-
-export function encodeIndexPb(wrapper: JsonObject, options: IndexPbOptions = {}): Uint8Array {
-    const type = indexTypes().store;
-    const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : {};
-    const rawExtensions = Array.isArray(list.extensions) ? list.extensions : [];
-    const contact = isRecord(wrapper.contact) ? wrapper.contact : {};
-    const extensions: protobuf.Message[] = [];
-    for (const raw of rawExtensions) {
-        if (!isRecord(raw)) continue;
-        extensions.push(extensionMessage(raw, options).message);
-    }
-    const store = type.fromObject({
-        name: asString(wrapper.name) ?? '',
-        badgeLabel: asString(wrapper.badgeLabel) ?? '',
-        signingKey: asString(wrapper.signingKey) ?? '',
-        contact: {
-            website: asString(contact.website) ?? '',
-            discord: asString(contact.discord) ?? ''
-        },
-        extensionList: { extensions }
-    });
-    return gzipSync(type.encode(store).finish());
-}
-
-// Secozzi uses field 8 for isTorrent and field 9 for sources.
-export function encodeAniyomiIndexPb(
+function encodeStore(
+    types: IndexTypes,
     wrapper: JsonObject,
-    options: IndexPbOptions = {}
+    options: IndexPbOptions,
+    isAniyomi = false
 ): Uint8Array {
-    const types = aniyomiIndexTypes();
     const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : {};
     const rawExtensions = Array.isArray(list.extensions) ? list.extensions : [];
     const contact = isRecord(wrapper.contact) ? wrapper.contact : {};
@@ -186,16 +95,17 @@ export function encodeAniyomiIndexPb(
                 if (!isRecord(entry)) continue;
                 const id = asInt64(entry.id);
                 if (id === undefined) continue;
+                const mirrors = Array.isArray(entry.mirrorUrls)
+                    ? entry.mirrorUrls.filter(isString)
+                    : [];
                 sources.push(
                     types.source.fromObject({
                         id,
                         name: asString(entry.name) ?? '',
                         language: asString(entry.language) ?? '',
                         homeUrl: asString(entry.homeUrl),
-                        mirrorUrls: Array.isArray(entry.mirrorUrls)
-                            ? entry.mirrorUrls.filter(isString)
-                            : [],
-                        message: asString(entry.message)
+                        mirrorUrls: mirrors.length > 0 ? mirrors : undefined,
+                        ...(isAniyomi && { message: asString(entry.message) })
                     })
                 );
             }
@@ -208,7 +118,8 @@ export function encodeAniyomiIndexPb(
                 packageName,
                 resources: {
                     apkUrl,
-                    iconUrl: asString(resources.iconUrl) ?? ''
+                    iconUrl: asString(resources.iconUrl) ?? '',
+                    ...(!isAniyomi && { jarUrl: asString(resources.jarUrl) ?? '' })
                 },
                 extensionLib: asString(raw.extensionLib) ?? '',
                 versionCode: asInt64(raw.versionCode) ?? '0',
@@ -217,7 +128,7 @@ export function encodeAniyomiIndexPb(
                     warning !== undefined && CONTENT_WARNINGS.has(warning)
                         ? warning
                         : 'CONTENT_WARNING_UNSPECIFIED',
-                isTorrent: raw.isTorrent === true,
+                ...(isAniyomi && { isTorrent: raw.isTorrent === true }),
                 sources
             })
         );
@@ -234,6 +145,18 @@ export function encodeAniyomiIndexPb(
         extensionList: { extensions }
     });
     return gzipSync(types.store.encode(store).finish());
+}
+
+export function encodeIndexPb(wrapper: JsonObject, options: IndexPbOptions = {}): Uint8Array {
+    return encodeStore(indexTypes(), wrapper, options, false);
+}
+
+// Secozzi uses field 8 for isTorrent and field 9 for sources.
+export function encodeAniyomiIndexPb(
+    wrapper: JsonObject,
+    options: IndexPbOptions = {}
+): Uint8Array {
+    return encodeStore(aniyomiIndexTypes(), wrapper, options, true);
 }
 
 // Flat indexes carry {name, pkg, apk, lang, code, version, nsfw, sources[]} with no wrapper.
@@ -267,13 +190,7 @@ export function flatAnimeToWrapper(
         if (!isRecord(entry)) continue;
         const packageName = asString(entry.pkg);
         const fileName = asString(entry.apk);
-        if (
-            packageName === undefined ||
-            fileName === undefined ||
-            fileName === '' ||
-            fileName.includes('/') ||
-            fileName.includes('\\')
-        ) {
+        if (!packageName || !fileName || fileName.includes('/') || fileName.includes('\\')) {
             continue;
         }
         const rawName = asString(entry.name) ?? packageName;
@@ -288,14 +205,13 @@ export function flatAnimeToWrapper(
             if (!isRecord(source)) continue;
             const id = asInt64(source.id);
             if (id === undefined) continue;
-            const record: JsonObject = {
+            const homeUrl = asString(source.baseUrl);
+            sources.push({
                 id,
                 name: asString(source.name) ?? '',
-                language: asString(source.lang) ?? ''
-            };
-            const homeUrl = asString(source.baseUrl);
-            if (homeUrl !== undefined) record.homeUrl = homeUrl;
-            sources.push(record);
+                language: asString(source.lang) ?? '',
+                ...(homeUrl !== undefined && { homeUrl })
+            });
         }
         if (sources.length === 0 && rawSources.length === 0) {
             sources.push({ id: '0', name: rawName, language: lang });
@@ -331,12 +247,11 @@ function decodeStoreBytes(type: protobuf.Type, bytes: Uint8Array): JsonObject {
         raw.length >= 2 && raw.subarray(0, 2).equals(GZIP_MAGIC) ? gunzipSync(raw) : raw;
     // SAFETY: toObject with these conversion options emits only JSON scalar
     // values, arrays, and plain objects, which structurally match JsonObject.
-    const decoded = type.toObject(type.decode(payload), {
+    return type.toObject(type.decode(payload), {
         longs: String,
         enums: String,
         defaults: false
     }) as JsonObject;
-    return decoded;
 }
 
 export function decodeIndexPb(bytes: Uint8Array): JsonObject {

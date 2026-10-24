@@ -3,7 +3,7 @@ import type { ExtensionConfig } from '../types';
 import { isRecord, isString, optionalUrl, requiredString } from './json';
 import type { ArtifactKind, Candidate } from './types';
 
-const SOURCE_KEYS = ['keiyoushi', 'yuzono/cursed', 'secozzi', 'yuzono/anime'];
+const SOURCE_KEYS = ['keiyoushi', 'yuzono/cursed', 'secozzi', 'yuzono/anime'] as const;
 
 interface SourceSpec {
     category: 'mihon' | 'aniyomi';

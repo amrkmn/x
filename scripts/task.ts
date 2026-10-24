@@ -39,15 +39,8 @@ export type TaskCommand =
     | 'local'
     | 'publish';
 
-export function parseTask(args: string[]): TaskCommand {
-    if (args.includes('--generate-only')) return 'data';
-    if (args.includes('--update-search')) return 'search';
-    if (args.includes('--quick')) return 'check';
-    if (args.includes('--sync')) return 'static';
-
-    const [command] = args;
-
-    if (
+function isTaskCommand(command: string | undefined): command is TaskCommand {
+    return (
         command === 'check' ||
         command === 'static' ||
         command === 'data' ||
@@ -55,11 +48,17 @@ export function parseTask(args: string[]): TaskCommand {
         command === 'prepare-dist' ||
         command === 'local' ||
         command === 'publish'
-    ) {
-        return command;
-    }
+    );
+}
 
-    return 'check';
+export function parseTask(args: string[]): TaskCommand {
+    if (args.includes('--generate-only')) return 'data';
+    if (args.includes('--update-search')) return 'search';
+    if (args.includes('--quick')) return 'check';
+    if (args.includes('--sync')) return 'static';
+
+    const [command] = args;
+    return isTaskCommand(command) ? command : 'check';
 }
 
 async function persistQuickUpdates(updated: boolean): Promise<void> {

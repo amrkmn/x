@@ -13,6 +13,7 @@ import { env, isCI } from './env';
 import type { FlatAnimeStoreMeta } from './generate-index';
 import { encodeAniyomiIndexPb, encodeIndexPb, flatAnimeToWrapper } from './generate-index';
 import { logger } from './log';
+import { isRecord, isString } from './releases/json';
 import { MANIFEST_NAME, manifestAsset, parseReleaseManifest } from './releases/manifest';
 import { flatUpstreamApkUrl } from './releases/sources';
 import type { ReleaseManifest } from './releases/types';
@@ -64,23 +65,9 @@ interface FindExtensionUpdatesOptions {
     loadSyncedCommits?: () => Promise<Map<string, string>>;
 }
 
-function isJsonObject(value: JsonValue | undefined): value is JsonObject {
-    return (
-        value !== undefined &&
-        value !== null &&
-        !Array.isArray(value) &&
-        Object.getPrototypeOf(value) === Object.prototype
-    );
-}
-
-function isStringValue(value: JsonValue | undefined): value is string {
-    return value !== undefined && value !== null && String(value) === value;
-}
-
 function getMihonExtensions(index: JsonObject): JsonValue[] | undefined {
     const wrapper = index.extensionList;
-    if (!isJsonObject(wrapper) || !Array.isArray(wrapper.extensions)) return undefined;
-    return wrapper.extensions;
+    return isRecord(wrapper) && Array.isArray(wrapper.extensions) ? wrapper.extensions : undefined;
 }
 
 export function mirrorBaseUrl(): string {
@@ -116,8 +103,7 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
     try {
         const idx: JsonObject = JSON.parse(await readFile(join(dest, 'index.json'), 'utf8'));
         for (const ext of getMihonExtensions(idx) ?? []) {
-            const res =
-                isJsonObject(ext) && isJsonObject(ext.resources) ? ext.resources : undefined;
+            const res = isRecord(ext) && isRecord(ext.resources) ? ext.resources : undefined;
             if (!res) continue;
             rewrite(
                 res,
@@ -135,7 +121,7 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
                     .split('/')
                     .pop() ?? ''
             );
-            if (isJsonObject(ext) && isStringValue(ext.packageName)) {
+            if (isRecord(ext) && isString(ext.packageName)) {
                 rewrite(res, 'iconUrl', 'icon', `${ext.packageName}.png`);
             }
         }
@@ -195,7 +181,7 @@ function isMihonIndex(category: string): boolean {
 
 // Secozzi serves a Mihon-style wrapper under Aniyomi.
 function isMihonEntry(raw: JsonValue): raw is JsonObject {
-    return isJsonObject(raw) && (isStringValue(raw.packageName) || isJsonObject(raw.resources));
+    return isRecord(raw) && (isString(raw.packageName) || isRecord(raw.resources));
 }
 
 async function loadRepoExtensions(
@@ -203,15 +189,16 @@ async function loadRepoExtensions(
     repoPath: string,
     staticDir: string
 ): Promise<JsonValue[]> {
-    // index.pb maps to the sibling index.json wrapper.
+    const cleanPath = repoPath.replace(/^\//, '');
     const jsonPath = isMihonIndex(category)
-        ? repoPath.replace(/^\//, '').replace(/index\.(min\.json|pb)$/, 'index.json')
-        : repoPath.replace(/^\//, '').replace(/index\.pb$/, 'index.json');
+        ? cleanPath.replace(/index\.(min\.json|pb)$/, 'index.json')
+        : cleanPath.replace(/index\.pb$/, 'index.json');
     const repoFile = join(staticDir, jsonPath);
     if (!existsSync(repoFile)) return [];
+
+    const raw: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
     if (isMihonIndex(category)) {
-        const wrapper: JsonObject = JSON.parse(await readFile(repoFile, 'utf8'));
-        const list = getMihonExtensions(wrapper);
+        const list = isRecord(raw) ? getMihonExtensions(raw) : undefined;
         if (!list) {
             throw new Error(
                 `Invalid extension index at ${repoPath}: expected extensionList.extensions`
@@ -220,34 +207,29 @@ async function loadRepoExtensions(
         return list;
     }
 
-    const rawIndex: JsonValue = JSON.parse(await readFile(repoFile, 'utf8'));
-    if (Array.isArray(rawIndex)) return rawIndex;
-    if (isJsonObject(rawIndex)) {
-        const list = getMihonExtensions(rawIndex);
+    if (Array.isArray(raw)) return raw;
+    if (isRecord(raw)) {
+        const list = getMihonExtensions(raw);
         if (list) return list;
     }
     throw new Error(`Invalid extension index at ${repoPath}: expected array`);
 }
 
 function websiteFromSources(sources: JsonValue | undefined): string | undefined {
-    if (!Array.isArray(sources)) return undefined;
-    const first = sources[0];
-    if (!isJsonObject(first)) return undefined;
-    const url = first.homeUrl ?? first.baseUrl;
-    if (!isStringValue(url)) return undefined;
-    if (!/^https?:\/\//.test(url)) return undefined;
-    return url;
+    if (!Array.isArray(sources) || !isRecord(sources[0])) return undefined;
+    const url = sources[0].homeUrl ?? sources[0].baseUrl;
+    return isString(url) && /^https?:\/\//.test(url) ? url : undefined;
 }
 
 function entryFromMihon(raw: JsonObject): JsonObject {
-    const resources = isJsonObject(raw.resources) ? raw.resources : {};
+    const resources = isRecord(raw.resources) ? raw.resources : {};
     const sources = raw.sources;
-    const source = Array.isArray(sources) && isJsonObject(sources[0]) ? sources[0] : undefined;
+    const source = Array.isArray(sources) && isRecord(sources[0]) ? sources[0] : undefined;
     const entry: JsonObject = {
         pkg: String(raw.packageName),
         name: String(raw.name),
         version: String(raw.versionName ?? ''),
-        lang: isStringValue(source?.language) ? source.language : '',
+        lang: isString(source?.language) ? source.language : '',
         apk:
             String(resources.apkUrl ?? '')
                 .split('/')
@@ -258,9 +240,9 @@ function entryFromMihon(raw: JsonObject): JsonObject {
                 ? 1
                 : 0
     };
-    if (isStringValue(resources.apkUrl)) entry.apkUrl = resources.apkUrl;
-    if (isStringValue(resources.jarUrl)) entry.jarUrl = resources.jarUrl;
-    if (isStringValue(resources.iconUrl)) entry.iconUrl = resources.iconUrl;
+    if (isString(resources.apkUrl)) entry.apkUrl = resources.apkUrl;
+    if (isString(resources.jarUrl)) entry.jarUrl = resources.jarUrl;
+    if (isString(resources.iconUrl)) entry.iconUrl = resources.iconUrl;
     if (raw.versionCode !== undefined) entry.code = Number(raw.versionCode);
     const website = websiteFromSources(sources);
     if (website) entry.website = website;
@@ -328,8 +310,8 @@ export async function fetchLatestReleaseManifest(
         return undefined;
     };
     const response = await get(`${api}/releases?per_page=30`);
-    if (!response) return skip('list retries exhausted');
-    if (!response.ok) return skip(`list HTTP ${response.status}`);
+    if (!response?.ok)
+        return skip(response ? `list HTTP ${response.status}` : 'list retries exhausted');
     let releases: JsonValue;
     try {
         releases = JSON.parse(await response.text());
@@ -338,7 +320,7 @@ export async function fetchLatestReleaseManifest(
     }
     if (!Array.isArray(releases)) return skip('invalid list shape');
     const published = releases.filter(
-        (value): value is JsonObject => isJsonObject(value) && value.draft !== true
+        (value): value is JsonObject => isRecord(value) && value.draft !== true
     );
     published.sort((left, right) =>
         String(left.created_at ?? '').localeCompare(String(right.created_at ?? ''))
@@ -347,16 +329,19 @@ export async function fetchLatestReleaseManifest(
     if (!latest) return skip('no published releases');
     const assets = Array.isArray(latest.assets) ? latest.assets : [];
     const snapshot = assets.find(
-        (asset): asset is JsonObject => isJsonObject(asset) && asset.name === MANIFEST_NAME
+        (asset): asset is JsonObject => isRecord(asset) && asset.name === MANIFEST_NAME
     );
     const downloadUrl =
-        snapshot && isStringValue(snapshot.browser_download_url)
+        snapshot && isString(snapshot.browser_download_url)
             ? snapshot.browser_download_url
             : undefined;
     if (!downloadUrl) return skip('no manifest asset');
     const assetResponse = await get(downloadUrl);
-    if (!assetResponse) return skip('download retries exhausted');
-    if (!assetResponse.ok) return skip(`download HTTP ${assetResponse.status}`);
+    if (!assetResponse?.ok) {
+        return skip(
+            assetResponse ? `download HTTP ${assetResponse.status}` : 'download retries exhausted'
+        );
+    }
     try {
         return parseReleaseManifest(JSON.parse(await assetResponse.text()));
     } catch {
@@ -398,7 +383,7 @@ async function generateSearchIndexJson(
                 try {
                     let parsed: JsonObject;
                     if (isMihonIndex(category) || isMihonEntry(rawExtension)) {
-                        if (!isJsonObject(rawExtension)) {
+                        if (!isRecord(rawExtension)) {
                             throw new Error(`Invalid Mihon entry at ${entryPath}`);
                         }
                         parsed = entryFromMihon(rawExtension);
@@ -406,7 +391,7 @@ async function generateSearchIndexJson(
                         const flatEntry = parseExtension(rawExtension, entryPath);
                         parsed = { ...flatEntry };
                         // Flat indexes keep per-source baseUrl outside the parsed shape.
-                        if (isJsonObject(rawExtension)) {
+                        if (isRecord(rawExtension)) {
                             const website = websiteFromSources(rawExtension.sources);
                             if (website) parsed.website = website;
                         }
@@ -485,8 +470,7 @@ function parseSourceUrl(source: string): ParsedSource {
     if (idx === -1) return { url: source };
     const url = source.slice(0, idx);
     const branch = source.slice(idx + 1);
-    if (!branch) return { url };
-    return { url, branch };
+    return branch ? { url, branch } : { url };
 }
 
 async function getRemoteHead(source: string): Promise<string> {
@@ -531,33 +515,28 @@ export async function findExtensionUpdates(
                 const dest = join(staticDir, key);
                 const syncedHash = synced.get(ext.path);
 
-                if (!options.quick && existsSync(dest)) {
-                    const staleMirror = await rewriteMirroredIndexFiles(dest, key);
-                    if (staleMirror) {
-                        logger.info(
-                            'extensions',
-                            `stale mirror detected key=${JSON.stringify(key)}`
-                        );
-                        await rm(dest, { recursive: true, force: true });
-                        return {
-                            category,
-                            key,
-                            ext,
-                            hash: ext.commit || 'HEAD'
-                        };
+                if (!options.quick) {
+                    if (existsSync(dest)) {
+                        const staleMirror = await rewriteMirroredIndexFiles(dest, key);
+                        if (staleMirror) {
+                            logger.info(
+                                'extensions',
+                                `stale mirror detected key=${JSON.stringify(key)}`
+                            );
+                            await rm(dest, { recursive: true, force: true });
+                            return { category, key, ext, hash: ext.commit || 'HEAD' };
+                        }
+                    } else {
+                        return { category, key, ext, hash: ext.commit || 'HEAD' };
                     }
-                }
 
-                if (!options.quick && !existsSync(dest)) {
-                    return { category, key, ext, hash: ext.commit || 'HEAD' };
-                }
-
-                const sentinel =
-                    isMihonIndex(category) || ext.path.endsWith('index.json')
-                        ? 'index.json'
-                        : (ext.path.split('/').pop() ?? 'index.min.json');
-                if (!options.quick && !existsSync(join(dest, sentinel))) {
-                    return { category, key, ext, hash: ext.commit || 'HEAD' };
+                    const sentinel =
+                        isMihonIndex(category) || ext.path.endsWith('index.json')
+                            ? 'index.json'
+                            : (ext.path.split('/').pop() ?? 'index.min.json');
+                    if (!existsSync(join(dest, sentinel))) {
+                        return { category, key, ext, hash: ext.commit || 'HEAD' };
+                    }
                 }
 
                 const remoteHash = await remoteHead(ext.source);
@@ -668,10 +647,9 @@ export async function fetchMissingIcons(
             }
             for (const raw of entries) {
                 if (!isMihonEntry(raw)) continue;
-                const pkg = isStringValue(raw.packageName) ? raw.packageName : '';
-                const resources = isJsonObject(raw.resources) ? raw.resources : undefined;
-                const iconUrl =
-                    resources && isStringValue(resources.iconUrl) ? resources.iconUrl : '';
+                const pkg = isString(raw.packageName) ? raw.packageName : '';
+                const resources = isRecord(raw.resources) ? raw.resources : undefined;
+                const iconUrl = resources && isString(resources.iconUrl) ? resources.iconUrl : '';
                 if (!pkg || !iconUrl || !/^https?:\/\//.test(iconUrl)) continue;
                 if (pkg.includes('/') || pkg.includes('\\') || pkg.includes('..')) continue;
                 const dest = join(staticDir, key, 'icon', `${pkg}.png`);
@@ -802,28 +780,28 @@ export async function refreshFlatAnimeIndexPb(
                 entries = candidate;
                 break;
             }
-        } catch {
-            continue;
-        }
+        } catch {}
     }
+    if (!entries) return false;
+
     let repoJson: JsonObject;
     try {
         repoJson = JSON.parse(await readFile(repoFile, 'utf8'));
     } catch {
         return false;
     }
-    if (!entries) return false;
-    const meta = isJsonObject(repoJson.meta) ? repoJson.meta : undefined;
+    const meta = isRecord(repoJson.meta) ? repoJson.meta : undefined;
     if (!meta) return false;
-    const name = isStringValue(meta.name) ? meta.name : undefined;
-    const signingKey = isStringValue(meta.signingKeyFingerprint)
+    const name = isString(meta.name) ? meta.name : undefined;
+    const signingKey = isString(meta.signingKeyFingerprint)
         ? meta.signingKeyFingerprint
         : undefined;
-    const website = isStringValue(meta.website) ? meta.website : undefined;
+    const website = isString(meta.website) ? meta.website : undefined;
     if (!name || !signingKey || !website) return false;
+
     const storeMeta: FlatAnimeStoreMeta = {
         name,
-        badgeLabel: isStringValue(meta.shortName) ? meta.shortName : name,
+        badgeLabel: isString(meta.shortName) ? meta.shortName : name,
         signingKey,
         website
     };
@@ -840,7 +818,7 @@ export async function refreshFlatAnimeIndexPb(
         join(dir, 'index.pb'),
         encodeAniyomiIndexPb(wrapper, { manifest, sourceKey: key })
     );
-    const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
+    const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : undefined;
     const count = list && Array.isArray(list.extensions) ? list.extensions.length : 0;
     logger.info(
         'extensions',
@@ -859,13 +837,12 @@ export async function refreshMirrorIndexPb(
 ): Promise<boolean> {
     const indexFile = join(staticDir, key, 'index.json');
     if (!existsSync(indexFile)) {
-        if (!isMihonIndex(category)) {
-            return refreshFlatAnimeIndexPb(key, staticDir, repo, manifest);
-        }
-        return false;
+        return isMihonIndex(category)
+            ? false
+            : refreshFlatAnimeIndexPb(key, staticDir, repo, manifest);
     }
     const wrapper: JsonObject = JSON.parse(await readFile(indexFile, 'utf8'));
-    const list = isJsonObject(wrapper.extensionList) ? wrapper.extensionList : undefined;
+    const list = isRecord(wrapper.extensionList) ? wrapper.extensionList : undefined;
     const rawExtensions = list && Array.isArray(list.extensions) ? list.extensions : [];
     const wrapped = list !== undefined && Array.isArray(list.extensions);
     if (!isMihonIndex(category) && !wrapped) {
@@ -873,9 +850,9 @@ export async function refreshMirrorIndexPb(
     }
     let overlaid = 0;
     for (const raw of rawExtensions) {
-        if (!isJsonObject(raw)) continue;
-        const resources = isJsonObject(raw.resources) ? raw.resources : undefined;
-        const packageName = isStringValue(raw.packageName) ? raw.packageName : '';
+        if (!isRecord(raw)) continue;
+        const resources = isRecord(raw.resources) ? raw.resources : undefined;
+        const packageName = isString(raw.packageName) ? raw.packageName : '';
         if (!resources || !packageName || !manifest) continue;
         const asset = manifestAsset(manifest, key, packageName, 'apk');
         if (asset && resources.apkUrl !== asset.url) {
@@ -937,34 +914,29 @@ export async function generateRedirects(
         return 0;
     }
     const rules: string[] = [];
-    for (const [category, entries] of Object.entries(data)) {
-        if (category !== 'aniyomi') continue;
-        for (const [key, repo] of Object.entries(entries)) {
-            // Only yuzono/anime ever served legacy /apk/ URLs; other index.pb
-            // repos (e.g. secozzi) ship an unpublished deprecation stub.
-            if (!repo.path.endsWith('index.min.json') && key !== 'yuzono/anime') continue;
-            const flatFile = join(staticDir, key, 'index.min.json');
-            if (!existsSync(flatFile)) continue;
-            let parsed: JsonValue;
-            try {
-                parsed = JSON.parse(await readFile(flatFile, 'utf8'));
-            } catch {
-                continue;
+    for (const [key, repo] of Object.entries(data.aniyomi ?? {})) {
+        // Only yuzono/anime ever served legacy /apk/ URLs; other index.pb
+        // repos (e.g. secozzi) ship an unpublished deprecation stub.
+        if (!repo.path.endsWith('index.min.json') && key !== 'yuzono/anime') continue;
+        const flatFile = join(staticDir, key, 'index.min.json');
+        if (!existsSync(flatFile)) continue;
+        let parsed: JsonValue;
+        try {
+            parsed = JSON.parse(await readFile(flatFile, 'utf8'));
+        } catch {
+            continue;
+        }
+        if (!Array.isArray(parsed)) continue;
+        for (const entry of parsed) {
+            if (!isRecord(entry)) continue;
+            const packageName = isString(entry.pkg) ? entry.pkg : undefined;
+            const fileName = isString(entry.apk) ? entry.apk : undefined;
+            if (!packageName || !fileName) continue;
+            const asset = manifestAsset(manifest, key, packageName, 'apk');
+            if (!asset) {
+                throw new Error(`redirects fail-closed: no release URL for ${key}/${packageName}`);
             }
-            if (!Array.isArray(parsed)) continue;
-            for (const entry of parsed) {
-                if (!isJsonObject(entry)) continue;
-                const packageName = isStringValue(entry.pkg) ? entry.pkg : undefined;
-                const fileName = isStringValue(entry.apk) ? entry.apk : undefined;
-                if (!packageName || !fileName) continue;
-                const asset = manifestAsset(manifest, key, packageName, 'apk');
-                if (!asset) {
-                    throw new Error(
-                        `redirects fail-closed: no release URL for ${key}/${packageName}`
-                    );
-                }
-                rules.push(`/${key}/apk/${fileName} ${asset.url} 302`);
-            }
+            rules.push(`/${key}/apk/${fileName} ${asset.url} 302`);
         }
     }
     await writeFile(outFile, `${rules.join('\n')}\n`);

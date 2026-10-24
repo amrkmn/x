@@ -6,9 +6,9 @@ import { config } from './config';
 import { env } from './env';
 import { GitHubReleaseClient } from './releases/github-client';
 import {
-    MANIFEST_NAME,
     batchArtifacts,
     identity,
+    MANIFEST_NAME,
     manifestAsset,
     manifestRecord,
     previousCompleteManifest,
@@ -20,6 +20,7 @@ import {
 } from './releases/manifest';
 import { discoverCandidates } from './releases/sources';
 import type {
+    Candidate,
     HashedArtifact,
     PublishOptions,
     ReleaseInfo,
@@ -28,8 +29,8 @@ import type {
 import { parseExtensionsData } from './validation';
 
 export {
-    MAX_BINARIES_PER_RELEASE,
     batchArtifacts,
+    MAX_BINARIES_PER_RELEASE,
     parseReleaseManifest
 } from './releases/manifest';
 export { discoverCandidates } from './releases/sources';
@@ -47,6 +48,17 @@ export type {
 
 function releaseTag(shortSha: string, batchIndex: number, batchCount: number): string {
     return batchCount === 1 ? shortSha : `${shortSha}-${batchIndex}`;
+}
+
+function recordManifestAsset(
+    manifest: ReleaseManifest,
+    candidate: Candidate,
+    name: string,
+    sha256: string,
+    url: string
+): void {
+    ((manifest[candidate.source] ??= {})[candidate.packageName] ??= {})[candidate.kind] =
+        manifestRecord(candidate, name, sha256, url);
 }
 
 async function stageBatch(
@@ -126,17 +138,15 @@ export async function publishReleases(
                 candidate.packageName,
                 candidate.kind
             );
-            if (candidate.upstreamSha256 && old?.sha256 === candidate.upstreamSha256) {
-                current[candidate.source] ??= {};
-                current[candidate.source][candidate.packageName] ??= {};
-                current[candidate.source][candidate.packageName][candidate.kind] = manifestRecord(
-                    candidate,
-                    old.name,
-                    old.sha256,
-                    old.url
-                );
+
+            const recordUnchanged = (sha: string) => {
+                recordManifestAsset(current, candidate, old!.name, sha, old!.url);
                 verified += 1;
                 progress(index);
+            };
+
+            if (candidate.upstreamSha256 && old?.sha256 === candidate.upstreamSha256) {
+                recordUnchanged(old.sha256);
                 continue;
             }
             let response;
@@ -161,16 +171,7 @@ export async function publishReleases(
             }
 
             if (old?.sha256 === hash) {
-                current[candidate.source] ??= {};
-                current[candidate.source][candidate.packageName] ??= {};
-                current[candidate.source][candidate.packageName][candidate.kind] = manifestRecord(
-                    candidate,
-                    old.name,
-                    hash,
-                    old.url
-                );
-                verified += 1;
-                progress(index);
+                recordUnchanged(hash);
                 continue;
             }
 
@@ -190,15 +191,13 @@ export async function publishReleases(
         for (const [batchIndex, batch] of batches.entries()) {
             const tag = releaseTag(shortSha, batchIndex, batches.length);
             for (const artifact of batch) {
-                const record = manifestRecord(
+                recordManifestAsset(
+                    current,
                     artifact,
                     artifact.name,
                     artifact.sha256,
                     releaseUrl(owner, repo, tag, artifact.name)
                 );
-                current[artifact.source] ??= {};
-                current[artifact.source][artifact.packageName] ??= {};
-                current[artifact.source][artifact.packageName][artifact.kind] = record;
             }
         }
 

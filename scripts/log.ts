@@ -2,7 +2,7 @@ import { env, isCI } from './env';
 
 type LogLevel = 'info' | 'warn' | 'error';
 
-const SCOPE_COLORS = new Map([
+const SCOPE_COLORS = new Map<string, string>([
     ['extensions', '\x1b[35m'],
     ['task', '\x1b[34m'],
     ['search', '\x1b[32m'],
@@ -10,32 +10,25 @@ const SCOPE_COLORS = new Map([
 ]);
 
 function supportsColor(): boolean {
-    return process.stdout.isTTY && env.NO_COLOR === undefined;
+    return Boolean(process.stdout.isTTY && env.NO_COLOR === undefined);
 }
 
+const CI_ENV_VARS = [
+    'GITHUB_ACTIONS',
+    'GITLAB_CI',
+    'CIRCLECI',
+    'TRAVIS',
+    'JENKINS_HOME',
+    'BUILDKITE',
+    'DRONE',
+    'RENDER',
+    'CF_PAGES',
+    'VERCEL'
+];
+
 function isInteractiveTerminal(): boolean {
-    if (!process.stdout.isTTY) return false;
-    if (env.TERM === 'dumb') return false;
-    if (isCI()) return false;
-
-    const ciEnvVars = [
-        'GITHUB_ACTIONS',
-        'GITLAB_CI',
-        'CIRCLECI',
-        'TRAVIS',
-        'JENKINS_HOME',
-        'BUILDKITE',
-        'DRONE',
-        'RENDER',
-        'CF_PAGES',
-        'VERCEL'
-    ];
-
-    for (const envVar of ciEnvVars) {
-        if (process.env[envVar]) return false;
-    }
-
-    return true;
+    if (!process.stdout.isTTY || env.TERM === 'dumb' || isCI()) return false;
+    return !CI_ENV_VARS.some((envVar) => process.env[envVar]);
 }
 
 export function formatTransferStats(
@@ -73,9 +66,7 @@ class ScopeFormatter {
     progressPrefix(prefix: string): string {
         const match = prefix.match(/^\[([^\]]+)\](.*)$/);
         if (!match) return prefix;
-
-        const [, scope, rest] = match;
-        return `${this.prefix(scope)}${rest}`;
+        return `${this.prefix(match[1])}${match[2]}`;
     }
 }
 
@@ -88,7 +79,6 @@ class TerminalWriter {
         if (this.progressActive) {
             this.endProgressLine();
         }
-
         const fn = level === 'info' ? console.log : level === 'warn' ? console.warn : console.error;
         fn(message, ...args);
     }
@@ -97,10 +87,9 @@ class TerminalWriter {
         if (this.interactive) {
             this.progressActive = !newline;
             process.stdout.write(`\r\x1b[K${message}${newline ? '\n' : ''}`);
-            return;
+        } else {
+            console.log(message);
         }
-
-        console.log(message);
     }
 
     endProgressLine(): void {
@@ -162,12 +151,10 @@ class TransferLogger extends ThrottledProgressLogger {
 
     complete(bytes: number): void {
         if (bytes <= 0) return;
-
         if (this.lastRenderedBytes === bytes) {
             this.writer.endProgressLine();
             return;
         }
-
         this.lastRenderedBytes = bytes;
         this.write(this.message(bytes), true);
     }
@@ -175,26 +162,22 @@ class TransferLogger extends ThrottledProgressLogger {
 
 class CounterLogger extends ThrottledProgressLogger {
     private readonly startTime = Date.now();
-    private readonly scope: string;
     private readonly prefix: string;
     private lastLoggedBucket = 0;
     private lastLoggedCount = 0;
     private readonly bucketSize: number;
-    private readonly isInteractive: boolean;
 
     constructor(
         writer: TerminalWriter,
         private readonly formatter: ScopeFormatter,
-        scope: string,
+        private readonly scope: string,
         label: string,
         private readonly totalItems: number,
         private readonly totalBytes?: number,
         private readonly action?: string
     ) {
         super(writer, 200);
-        this.isInteractive = writer.isInteractive;
-        this.bucketSize = this.isInteractive ? 0 : 10;
-        this.scope = scope;
+        this.bucketSize = writer.isInteractive ? 0 : 10;
         this.prefix = this.formatter.progressPrefix(`[${scope}] ${label}`);
     }
 
@@ -207,23 +190,24 @@ class CounterLogger extends ThrottledProgressLogger {
         const bucket = this.bucketSize > 0 ? Math.floor(percent / this.bucketSize) : 0;
 
         if (bytes !== undefined && this.totalBytes !== undefined) {
-            const shouldLog = this.isInteractive
+            const shouldLog = this.writer.isInteractive
                 ? this.shouldLog()
                 : bucket > this.lastLoggedBucket;
             if (shouldLog) {
                 const elapsed = this.elapsedSeconds();
                 const speedMiBs = bytes / (1024 * 1024) / elapsed;
-                const pctFormatted = percent.toFixed(2);
                 this.write(
-                    `${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
+                    `${this.prefix} ${current}/${this.totalItems}(${percent.toFixed(2)}%) ${speedMiBs.toFixed(2)}MiB/s`,
                     false
                 );
                 this.lastLoggedBucket = bucket;
                 this.lastLoggedCount = current;
             }
         } else if (this.shouldLog()) {
-            const pctFormatted = percent.toFixed(2);
-            this.write(`${this.prefix} ${current}/${this.totalItems}(${pctFormatted}%)`, false);
+            this.write(
+                `${this.prefix} ${current}/${this.totalItems}(${percent.toFixed(2)}%)`,
+                false
+            );
             this.lastLoggedCount = current;
         }
         return this;
@@ -233,19 +217,15 @@ class CounterLogger extends ThrottledProgressLogger {
         const elapsed = this.elapsedSeconds();
 
         if (this.lastLoggedCount < this.totalItems) {
-            const pctFormatted = '100.00';
-            if (this.totalBytes !== undefined) {
-                const speedMiBs = this.totalBytes / (1024 * 1024) / elapsed;
-                this.write(
-                    `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%) ${speedMiBs.toFixed(2)}MiB/s`,
-                    false
-                );
-            } else {
-                this.write(
-                    `${this.prefix} ${this.totalItems}/${this.totalItems}(${pctFormatted}%)`,
-                    false
-                );
-            }
+            const pct = '100.00';
+            const suffix =
+                this.totalBytes !== undefined
+                    ? ` ${(this.totalBytes / (1024 * 1024) / elapsed).toFixed(2)}MiB/s`
+                    : '';
+            this.write(
+                `${this.prefix} ${this.totalItems}/${this.totalItems}(${pct}%)${suffix}`,
+                false
+            );
         }
         this.writer.endProgressLine();
         const { valid, invalid, missing, bytes } = stats;

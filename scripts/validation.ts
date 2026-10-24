@@ -1,20 +1,8 @@
+import type { JsonValue } from '../src/lib/validation';
+import { isRecord, isString } from './releases/json';
 import type { ExtensionConfig } from './types';
 
-type JsonPrimitive = string | number | boolean | null;
-type JsonValue = JsonPrimitive | JsonValue[] | JsonObject;
-interface JsonObject {
-    [key: string]: JsonValue;
-}
-
-function isRecord(value: JsonValue): value is JsonObject {
-    return value !== null && Object.getPrototypeOf(value) === Object.prototype;
-}
-
-function isString(value: JsonValue): value is string {
-    return value !== null && value !== undefined && String(value) === value;
-}
-
-function asString(value: JsonValue, path: string): string {
+function asString(value: JsonValue | undefined, path: string): string {
     if (!isString(value) || value.length === 0) {
         throw new Error(`Invalid ${path}: expected non-empty string`);
     }
@@ -22,7 +10,7 @@ function asString(value: JsonValue, path: string): string {
 }
 
 export function parseExtensionConfig(
-    value: JsonValue,
+    value: JsonValue | undefined,
     path: string,
     category: string
 ): ExtensionConfig {
@@ -46,7 +34,7 @@ export function parseExtensionConfig(
     return result;
 }
 
-export function parseExtensionsData(value: JsonValue) {
+export function parseExtensionsData(value: JsonValue | undefined) {
     if (!isRecord(value)) throw new Error('Invalid extensions data: expected object');
 
     const result: Record<string, Record<string, ExtensionConfig>> = {};
