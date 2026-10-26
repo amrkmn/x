@@ -7,8 +7,8 @@ Extension repository aggregator that syncs from multiple upstream sources. Updat
 ## Links
 
 - [x.noz.one](https://x.noz.one) / [x.ujol.workers.dev](https://x.ujol.workers.dev) — Cloudflare Workers Static Assets
-- [x.ujol.dev](https://x.ujol.dev) — Netlify (primary domain)
-- [x.amar.kim](https://x.amar.kim) — Netlify (domain alias)
+- [x.ujol.dev](https://x.ujol.dev) — Netlify
+- [x.amar.kim](https://x.amar.kim) — Grebedoc (`grebedoc.dev` static pages host)
 
 ## Available Extensions
 
@@ -40,7 +40,7 @@ pnpm run lint           # Run Oxlint
 
 ## Hosting
 
-Production is built once on GitHub Actions (`.github/workflows/update.yml`, gated on publisher success) and shipped prebuilt to both hosts: Cloudflare Workers Static Assets via `wrangler deploy`, Netlify via `netlify deploy --prod --dir dist`. Direct production auto-deploys from `main` stay disabled on both dashboards.
+Production is built once on GitHub Actions (`.github/workflows/update.yml`, gated on publisher success) and shipped prebuilt to three hosts: Cloudflare Workers Static Assets via `wrangler deploy`, Netlify via `netlify deploy --prod --dir dist`, and Grebedoc (`grebedoc.dev`) via tar.zst upload. Direct production auto-deploys from `main` stay disabled on both Cloudflare and Netlify dashboards.
 
 ## Environment
 
