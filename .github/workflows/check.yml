@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
     check-updates:
-        runs-on: avrea-ubuntu-latest-1-vcpu
+        runs-on: avrea-ubuntu-latest-2-vcpu
         permissions:
             contents: write
 
