@@ -143,11 +143,43 @@ export class GitHubReleaseClient implements ReleaseClient {
         await this.json(response);
     }
 
+    async ensureTagRef(tag: string, sha: string): Promise<void> {
+        const existing = await this.getTagCommit(tag);
+        if (existing) {
+            if (existing.toLowerCase() !== sha.toLowerCase()) {
+                throw new Error(`Conflicting tag ${tag} points at ${existing}, expected ${sha}`);
+            }
+            return;
+        }
+        const response = await this.request(this.api('/git/refs'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ref: `refs/tags/${tag}`,
+                sha
+            })
+        });
+        if (response.status !== 201) {
+            const detail = await response.text();
+            const current = await this.getTagCommit(tag);
+            if (!current || current.toLowerCase() !== sha.toLowerCase()) {
+                throw new Error(
+                    `Failed to create tag ref refs/tags/${tag} (${response.status}): ${detail.slice(0, 500)}`
+                );
+            }
+        }
+    }
+
     async publishDraft(release: ReleaseInfo): Promise<void> {
+        await this.ensureTagRef(release.tag, release.targetCommitish);
         const response = await this.request(this.api(`/releases/${release.id}`), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ draft: false })
+            body: JSON.stringify({
+                tag_name: release.tag,
+                target_commitish: release.targetCommitish,
+                draft: false
+            })
         });
         await this.json(response);
     }
