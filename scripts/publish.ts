@@ -1,6 +1,8 @@
+import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { config } from './config';
 import { env } from './env';
@@ -46,8 +48,45 @@ export type {
     ReleaseManifest
 } from './releases/types';
 
-function releaseTag(shortSha: string, batchIndex: number, batchCount: number): string {
-    return batchCount === 1 ? shortSha : `${shortSha}-${batchIndex}`;
+const execFileAsync = promisify(execFile);
+
+export async function isExtensionsModified(commit: string): Promise<boolean | null> {
+    try {
+        const { stdout } = await execFileAsync('git', [
+            'diff-tree',
+            '--no-commit-id',
+            '--name-only',
+            '-r',
+            commit
+        ]);
+        const files = stdout
+            .split('\n')
+            .map((f) => f.trim())
+            .filter(Boolean);
+        return files.includes('extensions.json');
+    } catch {
+        return null;
+    }
+}
+
+export async function getExtensionsCommitCount(commit: string): Promise<number | null> {
+    try {
+        const { stdout } = await execFileAsync('git', [
+            'rev-list',
+            '--count',
+            commit,
+            '--',
+            'extensions.json'
+        ]);
+        const count = parseInt(stdout.trim(), 10);
+        return Number.isFinite(count) ? count : null;
+    } catch {
+        return null;
+    }
+}
+
+export function releaseTag(commitCount: number, batchIndex: number): string {
+    return `v0.${commitCount}.${batchIndex}`;
 }
 
 function recordManifestAsset(
@@ -101,6 +140,16 @@ export async function publishReleases(
     const commit = options.commit.toLowerCase();
     if (!/^[a-f0-9]{40}$/.test(commit))
         throw new Error(`Invalid publishing commit: ${options.commit}`);
+
+    const extensionsModified =
+        options.commitCount !== undefined ? true : await isExtensionsModified(commit);
+    if (extensionsModified === false) {
+        console.info(`Skipping release publishing: extensions.json was not modified in ${commit}`);
+        return { binaries: 0, releases: 0 };
+    }
+
+    const commitCount = options.commitCount ?? (await getExtensionsCommitCount(commit)) ?? 1;
+
     const assertCurrentMain = async (): Promise<void> => {
         const currentMainSha = (await options.client.currentMainSha()).toLowerCase();
         if (currentMainSha !== commit) {
@@ -185,11 +234,10 @@ export async function publishReleases(
         }
 
         changed.sort((left, right) => identity(left).localeCompare(identity(right)));
-        const shortSha = commit.slice(0, 7);
         const batches = batchArtifacts(changed);
 
         for (const [batchIndex, batch] of batches.entries()) {
-            const tag = releaseTag(shortSha, batchIndex, batches.length);
+            const tag = releaseTag(commitCount, batchIndex);
             for (const artifact of batch) {
                 recordManifestAsset(
                     current,
@@ -213,7 +261,7 @@ export async function publishReleases(
         const staged: Array<{ release: ReleaseInfo; draft: boolean }> = [];
 
         for (const [batchIndex, batch] of batches.entries()) {
-            const tag = releaseTag(shortSha, batchIndex, batches.length);
+            const tag = releaseTag(commitCount, batchIndex);
             console.info(
                 `Staging release ${tag} (batch ${batchIndex + 1}/${batches.length}, ${batch.length} binaries)`
             );

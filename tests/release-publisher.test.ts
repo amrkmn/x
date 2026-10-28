@@ -7,7 +7,8 @@ import {
     batchArtifacts,
     discoverCandidates,
     parseReleaseManifest,
-    publishReleases
+    publishReleases,
+    releaseTag
 } from '../scripts/publish';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from '../scripts/publish';
 import { previousCompleteManifest } from '../scripts/releases/manifest';
@@ -258,13 +259,13 @@ test('rejects retired Kohi-den and requires exactly the four retained sources', 
     const { fetcher } = sourceData();
     const retired = {
         ...data,
-        aniyomi: {
-            ...data.aniyomi,
+        mihon: {
+            ...data.mihon,
             'kohi-den': {
-                source: 'https://example.invalid/kohi-den/extensions@repo',
+                source: 'https://github.com/kohi-den/extensions@repo',
                 name: 'Kohi-den',
                 path: '/kohi-den/index.min.json',
-                category: 'aniyomi' as const,
+                category: 'mihon' as const,
                 commit
             }
         }
@@ -301,10 +302,23 @@ test('batches no more than 999 binaries per release', () => {
     expect(() => batchArtifacts([1], 0)).toThrow('Invalid batch size');
 });
 
+test('formats tags using v0.<commits>.<batch>', () => {
+    expect(releaseTag(757, 0)).toBe('v0.757.0');
+    expect(releaseTag(757, 1)).toBe('v0.757.1');
+});
+
 test('publishes a full manifest and reruns unchanged bytes without creating releases', async () => {
     const source = sourceData();
     const client = new MemoryReleaseClient();
-    const options = { data, commit, client, fetcher: source.fetcher, owner: 'amrkmn', repo: 'x' };
+    const options = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
 
     const first = await publishReleases(options);
     expect(first).toEqual({ binaries: 6, releases: 1 });
@@ -321,7 +335,7 @@ test('publishes a full manifest and reruns unchanged bytes without creating rele
     const manifest = parseReleaseManifest(
         JSON.parse(new TextDecoder().decode(await client.downloadAsset(manifestAsset)))
     );
-    expect(manifest.keiyoushi['org.example.kei'].apk?.url).toContain('/0123456/');
+    expect(manifest.keiyoushi['org.example.kei'].apk?.url).toContain('/v0.1.0/');
     expect(manifest.keiyoushi['org.example.kei'].jar?.sha256).toBe(hash(bytes('kei-jar')));
     expect(manifest.secozzi['org.example.secozzi'].jar).toBeUndefined();
     expect(manifest['yuzono/anime']['org.example.anime'].apk?.source).toBe('yuzono/anime');
@@ -341,7 +355,7 @@ test('skips downloads when upstream checksums match the previous manifest', asyn
         if (!url.endsWith('.json')) artifactDownloads += 1;
         return source.fetcher(input);
     };
-    const options = { data, commit, client, fetcher, owner: 'amrkmn', repo: 'x' };
+    const options = { data, commit, client, fetcher, owner: 'amrkmn', repo: 'x', commitCount: 1 };
 
     expect(await publishReleases(options)).toEqual({ binaries: 6, releases: 1 });
     expect(artifactDownloads).toBe(6);
@@ -354,7 +368,15 @@ test('skips downloads when upstream checksums match the previous manifest', asyn
 test('metadata-only changes create no release', async () => {
     const source = sourceData();
     const client = new MemoryReleaseClient();
-    const options = { data, commit, client, fetcher: source.fetcher, owner: 'amrkmn', repo: 'x' };
+    const options = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
     await publishReleases(options);
 
     const indexUrl = `https://raw.githubusercontent.com/keiyoushi/extensions/${commit}/index.json`;
@@ -388,7 +410,15 @@ test('resumes a matching draft without replacing assets after an interrupted upl
     const source = sourceData();
     const client = new MemoryReleaseClient();
     client.failAfterUpload = 1;
-    const options = { data, commit, client, fetcher: source.fetcher, owner: 'amrkmn', repo: 'x' };
+    const options = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
 
     await expect(publishReleases(options)).rejects.toThrow('Simulated lost upload response');
     expect(client.releases[0].draft).toBe(true);
@@ -404,7 +434,15 @@ test('resumes a matching draft without replacing assets after an interrupted upl
 test('fails on a conflicting published asset and does not overwrite it', async () => {
     const source = sourceData();
     const client = new MemoryReleaseClient();
-    const options = { data, commit, client, fetcher: source.fetcher, owner: 'amrkmn', repo: 'x' };
+    const options = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
     await publishReleases(options);
 
     const changedBytes = bytes('different upstream bytes');

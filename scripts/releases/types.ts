@@ -64,6 +64,7 @@ export interface ReleaseClient {
 export interface PublishOptions {
     data: Record<string, Record<string, ExtensionConfig>>;
     commit: string;
+    commitCount?: number;
     client: ReleaseClient;
     fetcher?: typeof fetch;
     tempRoot?: string;
