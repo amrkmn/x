@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
     publish:
-        runs-on: avrea-ubuntu-latest
+        runs-on: avrea-ubuntu-latest-1-vcpu
         if: github.ref == 'refs/heads/main'
 
         steps:

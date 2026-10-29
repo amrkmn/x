@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
     build:
-        runs-on: avrea-ubuntu-latest
+        runs-on: avrea-ubuntu-latest-1-vcpu
         if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.head_repository.full_name == github.repository) }}
         steps:
             - name: Checkout repository
@@ -71,7 +71,7 @@ jobs:
 
     deploy:
         needs: build
-        runs-on: avrea-ubuntu-latest
+        runs-on: avrea-ubuntu-latest-1-vcpu
         strategy:
             fail-fast: false
             matrix:
@@ -125,7 +125,7 @@ jobs:
     search-index:
         needs: [build, deploy]
         if: ${{ !cancelled() && needs.build.result == 'success' }}
-        runs-on: avrea-ubuntu-latest
+        runs-on: avrea-ubuntu-latest-1-vcpu
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
