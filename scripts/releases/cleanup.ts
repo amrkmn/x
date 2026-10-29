@@ -2,7 +2,13 @@ import { config } from '../config';
 import { env } from '../env';
 import { GitHubReleaseClient } from './github-client';
 import { MANIFEST_NAME, previousCompleteManifest, releaseUrl } from './manifest';
-import type { CleanupOptions, CleanupResult, ReleaseManifest } from './types';
+import type {
+    CleanupOptions,
+    CleanupResult,
+    ReleaseAssetInfo,
+    ReleaseClient,
+    ReleaseManifest
+} from './types';
 
 export function getReferencedUrls(manifest: ReleaseManifest): Set<string> {
     const urls = new Set<string>();
@@ -18,9 +24,41 @@ export function getReferencedUrls(manifest: ReleaseManifest): Set<string> {
     return urls;
 }
 
+export async function deleteAssetsPool(
+    assets: ReleaseAssetInfo[],
+    client: ReleaseClient,
+    concurrency = 5,
+    delayMs = 50,
+    tag = ''
+): Promise<void> {
+    if (!client.deleteAsset || assets.length === 0) return;
+
+    let index = 0;
+    const workers = Array.from({ length: Math.min(concurrency, assets.length) }, async () => {
+        while (index < assets.length) {
+            const current = assets[index++];
+            if (!current) break;
+            try {
+                await client.deleteAsset!(current.id);
+            } catch (error) {
+                console.warn(
+                    `Could not delete asset ${tag}/${current.name} (${current.id}): ${error}`
+                );
+            }
+            if (delayMs > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
+            }
+        }
+    });
+
+    await Promise.all(workers);
+}
+
 export async function cleanupReleases(options: CleanupOptions): Promise<CleanupResult> {
     const owner = options.owner ?? config.github.owner;
     const repo = options.repo ?? config.github.repo;
+    const concurrency = options.concurrency ?? 5;
+    const delayMs = options.delayMs ?? 50;
 
     const releases = await options.client.listReleases();
     const manifest =
@@ -58,13 +96,45 @@ export async function cleanupReleases(options: CleanupOptions): Promise<CleanupR
 
         // If no active binaries remain and it is not the latest release, delete the entire release
         if (!isLatest && referencedBinaries.length === 0) {
+            const initialAssetCount = release.assets.length;
             console.info(
-                `Deleting obsolete release ${release.tag} (${release.assets.length} unreferenced assets)`
+                `Deleting obsolete release ${release.tag} (${initialAssetCount} unreferenced assets)`
             );
             if (!options.dryRun) {
-                if (options.client.deleteRelease) {
-                    await options.client.deleteRelease(release.id);
+                // If a release contains more than 100 assets, GitHub times out with a 502 Server Error
+                // when deleting the release in a single request. Prune its assets first.
+                if (release.assets.length > 100 && options.client.deleteAsset) {
+                    await deleteAssetsPool(
+                        release.assets,
+                        options.client,
+                        concurrency,
+                        delayMs,
+                        release.tag
+                    );
                 }
+
+                if (options.client.deleteRelease) {
+                    try {
+                        await options.client.deleteRelease(release.id);
+                    } catch (error) {
+                        console.warn(
+                            `deleteRelease failed for ${release.tag}: ${error}. Falling back to asset pruning...`
+                        );
+                        if (options.client.deleteAsset) {
+                            await deleteAssetsPool(
+                                release.assets,
+                                options.client,
+                                concurrency,
+                                delayMs,
+                                release.tag
+                            );
+                            await options.client.deleteRelease(release.id);
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
+
                 if (options.client.deleteTagRef) {
                     try {
                         await options.client.deleteTagRef(release.tag);
@@ -74,23 +144,25 @@ export async function cleanupReleases(options: CleanupOptions): Promise<CleanupR
                 }
             }
             deletedReleases += 1;
-            deletedAssets += release.assets.length;
-            if (options.delayMs) {
-                await new Promise((resolve) => setTimeout(resolve, options.delayMs));
-            }
+            deletedAssets += initialAssetCount;
             continue;
         }
 
         // If the release still contains active binaries, delete only the unreferenced binary assets
-        for (const asset of unreferencedBinaries) {
-            console.info(`Deleting unreferenced asset ${release.tag}/${asset.name}`);
+        if (unreferencedBinaries.length > 0) {
+            console.info(
+                `Deleting ${unreferencedBinaries.length} unreferenced assets from ${release.tag}`
+            );
             if (!options.dryRun && options.client.deleteAsset) {
-                await options.client.deleteAsset(asset.id);
+                await deleteAssetsPool(
+                    unreferencedBinaries,
+                    options.client,
+                    concurrency,
+                    delayMs,
+                    release.tag
+                );
             }
-            deletedAssets += 1;
-            if (options.delayMs) {
-                await new Promise((resolve) => setTimeout(resolve, options.delayMs));
-            }
+            deletedAssets += unreferencedBinaries.length;
         }
     }
 
@@ -108,7 +180,8 @@ export async function runCleanup(): Promise<void> {
     const client = new GitHubReleaseClient(token, config.github.owner, config.github.repo);
     const result = await cleanupReleases({
         client,
-        delayMs: 100
+        concurrency: 5,
+        delayMs: 50
     });
 
     console.info(

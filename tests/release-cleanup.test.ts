@@ -14,6 +14,7 @@ class MockReleaseClient implements ReleaseClient {
     deletedAssets: number[] = [];
     deletedReleases: number[] = [];
     deletedTags: string[] = [];
+    failDeleteReleaseOnce = false;
 
     async currentMainSha(): Promise<string> {
         return '0123456789abcdef0123456789abcdef01234567';
@@ -55,6 +56,10 @@ class MockReleaseClient implements ReleaseClient {
     }
 
     async deleteRelease(releaseId: number): Promise<void> {
+        if (this.failDeleteReleaseOnce) {
+            this.failDeleteReleaseOnce = false;
+            throw new Error('502 Server Error / Gateway Timeout');
+        }
         this.deletedReleases.push(releaseId);
         this.releases = this.releases.filter((r) => r.id !== releaseId);
     }
@@ -233,6 +238,121 @@ test('deletes unreferenced assets and deletes completely obsolete releases', asy
         deletedReleases: 1,
         dryRun: false
     });
+});
+
+test('prunes assets before deleting obsolete releases with > 100 assets to prevent GitHub 502 timeout', async () => {
+    const client = new MockReleaseClient();
+
+    // Large release with 120 unreferenced assets
+    const largeAssets: ReleaseAssetInfo[] = [];
+    for (let i = 1; i <= 120; i++) {
+        largeAssets.push(asset(i, `old-${i}.apk`));
+    }
+
+    const largeRelease: ReleaseInfo = {
+        id: 100,
+        tag: 'large-batch',
+        targetCommitish: 'sha1',
+        draft: false,
+        uploadUrl: 'https://uploads.example/100',
+        assets: largeAssets
+    };
+
+    const latestRelease: ReleaseInfo = {
+        id: 200,
+        tag: 'v0.1.0',
+        targetCommitish: 'sha2',
+        draft: false,
+        uploadUrl: 'https://uploads.example/200',
+        assets: [asset(999, 'active.apk')]
+    };
+
+    client.releases = [largeRelease, latestRelease];
+
+    const manifest: ReleaseManifest = {
+        s: {
+            p: {
+                apk: {
+                    name: 'active.apk',
+                    sha256: 'a'.repeat(64),
+                    version: '1',
+                    source: 's',
+                    kind: 'apk',
+                    url: 'https://github.com/amrkmn/x/releases/download/v0.1.0/active.apk'
+                }
+            }
+        }
+    };
+
+    const result = await cleanupReleases({
+        client,
+        owner: 'amrkmn',
+        repo: 'x',
+        manifest,
+        delayMs: 0
+    });
+
+    // All 120 assets must have been deleted via deleteAsset
+    expect(client.deletedAssets).toHaveLength(120);
+    // Release must have been deleted via deleteRelease
+    expect(client.deletedReleases).toEqual([100]);
+    expect(result.deletedAssets).toBe(120);
+    expect(result.deletedReleases).toBe(1);
+});
+
+test('falls back to asset pruning if deleteRelease fails initially', async () => {
+    const client = new MockReleaseClient();
+    client.failDeleteReleaseOnce = true;
+
+    const obsoleteRelease: ReleaseInfo = {
+        id: 10,
+        tag: 'failing-release',
+        targetCommitish: 'sha1',
+        draft: false,
+        uploadUrl: 'https://uploads.example/10',
+        assets: [asset(1, 'old1.apk'), asset(2, 'old2.apk')]
+    };
+
+    const latestRelease: ReleaseInfo = {
+        id: 20,
+        tag: 'v0.1.0',
+        targetCommitish: 'sha2',
+        draft: false,
+        uploadUrl: 'https://uploads.example/20',
+        assets: [asset(3, 'active.apk')]
+    };
+
+    client.releases = [obsoleteRelease, latestRelease];
+
+    const manifest: ReleaseManifest = {
+        s: {
+            p: {
+                apk: {
+                    name: 'active.apk',
+                    sha256: 'a'.repeat(64),
+                    version: '1',
+                    source: 's',
+                    kind: 'apk',
+                    url: 'https://github.com/amrkmn/x/releases/download/v0.1.0/active.apk'
+                }
+            }
+        }
+    };
+
+    const result = await cleanupReleases({
+        client,
+        owner: 'amrkmn',
+        repo: 'x',
+        manifest,
+        delayMs: 0
+    });
+
+    // Assets were pruned in fallback
+    expect(client.deletedAssets).toContain(1);
+    expect(client.deletedAssets).toContain(2);
+    // Release was successfully retried and deleted
+    expect(client.deletedReleases).toEqual([10]);
+    expect(result.deletedReleases).toBe(1);
 });
 
 test('dry run reports deletions without modifying client state', async () => {

@@ -81,6 +81,7 @@ export interface CleanupOptions {
     repo?: string;
     dryRun?: boolean;
     delayMs?: number;
+    concurrency?: number;
     manifest?: ReleaseManifest;
 }
 
