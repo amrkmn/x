@@ -183,4 +183,40 @@ export class GitHubReleaseClient implements ReleaseClient {
         });
         await this.json(response);
     }
+
+    async deleteAsset(assetId: number): Promise<void> {
+        const response = await this.request(this.api(`/releases/assets/${assetId}`), {
+            method: 'DELETE'
+        });
+        if (!response.ok && response.status !== 404) {
+            const detail = await response.text();
+            throw new Error(
+                `Failed to delete asset ${assetId} (${response.status}): ${detail.slice(0, 500)}`
+            );
+        }
+    }
+
+    async deleteRelease(releaseId: number): Promise<void> {
+        const response = await this.request(this.api(`/releases/${releaseId}`), {
+            method: 'DELETE'
+        });
+        if (!response.ok && response.status !== 404) {
+            const detail = await response.text();
+            throw new Error(
+                `Failed to delete release ${releaseId} (${response.status}): ${detail.slice(0, 500)}`
+            );
+        }
+    }
+
+    async deleteTagRef(tag: string): Promise<void> {
+        const response = await this.request(this.api(`/git/refs/tags/${encodeURIComponent(tag)}`), {
+            method: 'DELETE'
+        });
+        if (!response.ok && response.status !== 404) {
+            const detail = await response.text();
+            throw new Error(
+                `Failed to delete tag ref ${tag} (${response.status}): ${detail.slice(0, 500)}`
+            );
+        }
+    }
 }

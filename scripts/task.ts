@@ -29,6 +29,7 @@ import {
 import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
 import { runPublisher } from './publish';
+import { runCleanup } from './releases/cleanup';
 
 export type TaskCommand =
     | 'check'
@@ -37,7 +38,8 @@ export type TaskCommand =
     | 'search'
     | 'prepare-dist'
     | 'local'
-    | 'publish';
+    | 'publish'
+    | 'cleanup';
 
 function isTaskCommand(command: string | undefined): command is TaskCommand {
     return (
@@ -47,7 +49,8 @@ function isTaskCommand(command: string | undefined): command is TaskCommand {
         command === 'search' ||
         command === 'prepare-dist' ||
         command === 'local' ||
-        command === 'publish'
+        command === 'publish' ||
+        command === 'cleanup'
     );
 }
 
@@ -206,6 +209,9 @@ const commandHandlers = {
     },
     publish: async () => {
         await runPublisher();
+    },
+    cleanup: async () => {
+        await runCleanup();
     }
 } satisfies Record<Exclude<TaskCommand, 'check' | 'static'>, () => Promise<void>>;
 

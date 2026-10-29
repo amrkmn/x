@@ -59,6 +59,9 @@ export interface ReleaseClient {
     createDraft(tag: string, targetSha: string): Promise<ReleaseInfo>;
     uploadAsset(release: ReleaseInfo, name: string, path: string): Promise<void>;
     publishDraft(release: ReleaseInfo): Promise<void>;
+    deleteAsset?(assetId: number): Promise<void>;
+    deleteRelease?(releaseId: number): Promise<void>;
+    deleteTagRef?(tag: string): Promise<void>;
 }
 
 export interface PublishOptions {
@@ -70,4 +73,19 @@ export interface PublishOptions {
     tempRoot?: string;
     owner?: string;
     repo?: string;
+}
+
+export interface CleanupOptions {
+    client: ReleaseClient;
+    owner?: string;
+    repo?: string;
+    dryRun?: boolean;
+    delayMs?: number;
+    manifest?: ReleaseManifest;
+}
+
+export interface CleanupResult {
+    deletedAssets: number;
+    deletedReleases: number;
+    dryRun: boolean;
 }

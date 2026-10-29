@@ -1,0 +1,35 @@
+name: Clean Up Releases
+
+on:
+    schedule:
+        - cron: '30 3 * * *'
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-cleanup
+    cancel-in-progress: false
+
+jobs:
+    cleanup:
+        runs-on: avrea-ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ github.sha }}
+
+            - name: Setup pnpm
+              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
+              with:
+                  runtime: node@24
+                  cache: true
+
+            - name: Clean up unreferenced release assets
+              run: pnpm run cleanup:releases
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

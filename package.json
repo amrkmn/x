@@ -22,6 +22,7 @@
         "update:check": "tsx scripts/task.ts check",
         "update:local": "tsx scripts/task.ts local",
         "publish:releases": "tsx scripts/task.ts publish",
+        "cleanup:releases": "tsx scripts/task.ts cleanup",
         "update:static": "tsx scripts/task.ts static",
         "data:generate": "tsx scripts/task.ts data",
         "search:update": "tsx scripts/task.ts search",
