@@ -56,3 +56,7 @@ Script/CI environment variables:
 - `MEILISEARCH_HOST` / `MEILISEARCH_MASTER_KEY` (optional) — Meilisearch server and master key for `search:update`; index update is skipped when unset
 - `RELEASE_MANIFEST_FILE` — path to `release-assets.json` for data generation; set automatically by CI (`update.yml` manifest step) and `update:local`
 - `GITHUB_TOKEN` — GitHub token for `publish:releases` (CI secret `GH_TOKEN`) and authenticated release-manifest fetches
+
+## License
+
+[MIT](LICENSE) © 2026 [Amar Tukimin](https://github.com/amrkmn)
