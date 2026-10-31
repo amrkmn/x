@@ -51,13 +51,16 @@ export type {
 
 const execFileAsync = promisify(execFile);
 
+const gitExec = (args: string[]) =>
+    execFileAsync('git', args, { env: { ...process.env, GIT_NO_LAZY_FETCH: '1' } });
+
 export async function isExtensionsModified(
     commit: string,
     baseCommit?: string
 ): Promise<boolean | null> {
     try {
         if (baseCommit) {
-            const { stdout } = await execFileAsync('git', [
+            const { stdout } = await gitExec([
                 'diff',
                 '--name-only',
                 baseCommit,
@@ -67,7 +70,7 @@ export async function isExtensionsModified(
             ]);
             return stdout.trim().length > 0;
         }
-        const { stdout } = await execFileAsync('git', [
+        const { stdout } = await gitExec([
             'diff-tree',
             '--no-commit-id',
             '--name-only',
@@ -86,13 +89,7 @@ export async function isExtensionsModified(
 
 export async function getExtensionsCommitCount(commit: string): Promise<number | null> {
     try {
-        const { stdout } = await execFileAsync('git', [
-            'rev-list',
-            '--count',
-            commit,
-            '--',
-            'extensions.json'
-        ]);
+        const { stdout } = await gitExec(['rev-list', '--count', commit, '--', 'extensions.json']);
         const count = parseInt(stdout.trim(), 10);
         return Number.isFinite(count) ? count : null;
     } catch {
@@ -106,7 +103,7 @@ export async function detectChangedSources(
 ): Promise<Set<string> | null> {
     if (!baseCommit) return null;
     try {
-        const { stdout } = await execFileAsync('git', ['show', `${baseCommit}:extensions.json`]);
+        const { stdout } = await gitExec(['show', `${baseCommit}:extensions.json`]);
         const previousData = parseExtensionsData(JSON.parse(stdout));
         const changed = new Set<string>();
         for (const [category, extensions] of Object.entries(currentData)) {
