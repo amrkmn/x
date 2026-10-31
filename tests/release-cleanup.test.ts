@@ -225,10 +225,10 @@ test('deletes unreferenced assets and deletes completely obsolete releases', asy
     expect(client.deletedTags).toEqual(['v0.1.0']);
 
     // Release 2: extC-v1 kept, extD-v1 (asset 6) deleted
-    expect(client.deletedAssets).toContain(6);
+    expect(client.deletedAssets).toEqual([6]);
 
-    // Release 3 (latest): completely untouched
-    expect(client.deletedReleases).not.toContain(30);
+    // Releases 2 and 3 remain active
+    expect(client.releases.map((r) => r.id)).toEqual([20, 30]);
 
     // Summary count:
     // release 1 (3 assets) + release 2 extD-v1 (1 asset) = 4 assets deleted

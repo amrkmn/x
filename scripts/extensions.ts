@@ -460,12 +460,12 @@ export async function generateDataJson(
     logger.info('data', `data generate complete commit=${commit.substring(0, 7)}`);
 }
 
-interface ParsedSource {
+export interface ParsedSource {
     url: string;
     branch?: string;
 }
 
-function parseSourceUrl(source: string): ParsedSource {
+export function parseSourceUrl(source: string): ParsedSource {
     const idx = source.lastIndexOf('@');
     if (idx === -1) return { url: source };
     const url = source.slice(0, idx);
@@ -473,7 +473,7 @@ function parseSourceUrl(source: string): ParsedSource {
     return branch ? { url, branch } : { url };
 }
 
-async function getRemoteHead(source: string): Promise<string> {
+export async function getRemoteHead(source: string): Promise<string> {
     const { url, branch } = parseSourceUrl(source);
     const ref = branch ? `refs/heads/${branch}` : 'HEAD';
     const output = (await $`git ls-remote ${url} ${ref}`.text()).trim();
@@ -705,7 +705,7 @@ export async function fetchMissingIcons(
     return result;
 }
 
-async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {
+export async function cloneRepository(source: string, temp: string): Promise<'sparse' | 'full'> {
     const { url, branch } = parseSourceUrl(source);
     const branchArgs = branch ? ['--branch', branch] : [];
     try {

@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import $ from 'dax';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 
+import { cloneRepository, findExtensionUpdates, parseSourceUrl } from '../scripts/extensions';
+
 let testDir: string;
 let remoteDir: string;
 
@@ -33,29 +35,28 @@ afterEach(async () => {
 });
 
 test('cloneRepository clones default branch when no @branch', async () => {
-    const masterHead = await $`git -C ${remoteDir} rev-parse master`.text();
-    const masterSha = masterHead.trim();
+    const masterSha = (await $`git -C ${remoteDir} rev-parse master`.text()).trim();
+    const cloneDir = join(testDir, 'clone-default');
 
-    const lsRemote = await $`git ls-remote ${remoteDir} HEAD`.text();
-    const defaultSha = lsRemote.trim().split(/\s+/)[0];
+    const mode = await cloneRepository(remoteDir, cloneDir);
 
-    expect(defaultSha).toBe(masterSha);
+    expect(['sparse', 'full']).toContain(mode);
+    const headSha = (await $`git -C ${cloneDir} rev-parse HEAD`.text()).trim();
+    expect(headSha).toBe(masterSha);
 });
 
 test('cloneRepository with @branch clones the specified branch', async () => {
-    const repoHead = await $`git -C ${remoteDir} rev-parse repo`.text();
-    const repoBranchSha = repoHead.trim();
+    const repoBranchSha = (await $`git -C ${remoteDir} rev-parse repo`.text()).trim();
+    const cloneDir = join(testDir, 'clone-repo');
 
-    const lsRemote = await $`git ls-remote ${remoteDir} refs/heads/repo`.text();
-    const branchSha = lsRemote.trim().split(/\s+/)[0];
+    const mode = await cloneRepository(`${remoteDir}@repo`, cloneDir);
 
-    expect(branchSha).toBe(repoBranchSha);
+    expect(['sparse', 'full']).toContain(mode);
+    const headSha = (await $`git -C ${cloneDir} rev-parse HEAD`.text()).trim();
+    expect(headSha).toBe(repoBranchSha);
 });
 
 test('parseSourceUrl extracts branch from @branch syntax', async () => {
-    const mod = await import('../scripts/extensions');
-    const { findExtensionUpdates } = mod;
-
     const staticDir = join(testDir, 'static');
     await mkdir(staticDir, { recursive: true });
 
@@ -73,13 +74,7 @@ test('parseSourceUrl extracts branch from @branch syntax', async () => {
         },
         {
             quick: true,
-            staticDir,
-            getRemoteHead: async (source: string) => {
-                const { url, branch } = parseSourceUrlExt(source);
-                const ref = branch ? `refs/heads/${branch}` : 'HEAD';
-                const output = (await $`git ls-remote ${url} ${ref}`.text()).trim();
-                return output.split(/\s+/)[0] ?? '';
-            }
+            staticDir
         }
     );
 
@@ -88,34 +83,19 @@ test('parseSourceUrl extracts branch from @branch syntax', async () => {
     expect(updates[0].hash).toBe(repoHead);
 });
 
-// Inline copy since parseSourceUrl is module-private
-interface ParsedSource {
-    url: string;
-    branch?: string;
-}
-
-function parseSourceUrlExt(source: string): ParsedSource {
-    const idx = source.lastIndexOf('@');
-    if (idx === -1) return { url: source };
-    const url = source.slice(0, idx);
-    const branch = source.slice(idx + 1);
-    if (!branch) return { url };
-    return { url, branch };
-}
-
 test('parseSourceUrl handles various URL patterns', () => {
-    const r1 = parseSourceUrlExt('https://github.com/user/repo');
+    const r1 = parseSourceUrl('https://github.com/user/repo');
     expect(r1).toEqual({ url: 'https://github.com/user/repo' });
 
-    const r2 = parseSourceUrlExt('https://github.com/user/repo@main');
+    const r2 = parseSourceUrl('https://github.com/user/repo@main');
     expect(r2).toEqual({ url: 'https://github.com/user/repo', branch: 'main' });
 
-    const r3 = parseSourceUrlExt('https://github.com/Secozzi/aniyomi-extensions@repo');
+    const r3 = parseSourceUrl('https://github.com/Secozzi/aniyomi-extensions@repo');
     expect(r3).toEqual({ url: 'https://github.com/Secozzi/aniyomi-extensions', branch: 'repo' });
 
-    const r4 = parseSourceUrlExt('https://github.com/user/repo@');
+    const r4 = parseSourceUrl('https://github.com/user/repo@');
     expect(r4).toEqual({ url: 'https://github.com/user/repo' });
 
-    const r5 = parseSourceUrlExt('https://github.com/org@user/repo@dev');
+    const r5 = parseSourceUrl('https://github.com/org@user/repo@dev');
     expect(r5).toEqual({ url: 'https://github.com/org@user/repo', branch: 'dev' });
 });

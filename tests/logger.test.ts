@@ -14,20 +14,18 @@ test('formatTransferStats formats bytes with totalBytes', () => {
 
 test('formatTransferStats handles small values', () => {
     const result = formatTransferStats(1024, 1);
-    expect(result).toContain('0.00MiB');
-    expect(result).toContain('0.00MiB/s');
+    expect(result).toBe('0.00MiB(0.00%) 0.00MiB/s');
 });
 
 test('formatTransferStats handles zero elapsed time', () => {
     const bytes = 1024 * 1024;
     const result = formatTransferStats(bytes, 0);
-    expect(result).toContain('1.00MiB');
-    expect(result).toContain('0.00MiB/s');
+    expect(result).toBe('1.00MiB(0.00%) 0.00MiB/s');
 });
 
 test('formatTransferStats caps percentage at 100%', () => {
     const result = formatTransferStats(15 * 1024 * 1024, 1, 10 * 1024 * 1024);
-    expect(result).toContain('100.00%');
+    expect(result).toBe('15.00/10.00MiB(100.00%) 15.00MiB/s');
 });
 
 test('Logger clears progress line before writing log output', () => {

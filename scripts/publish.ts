@@ -131,15 +131,24 @@ async function runConcurrent<T, R>(
     const results: R[] = Array.from({ length: items.length });
     let currentIndex = 0;
     const workerCount = Math.min(limit, items.length);
+    let firstError: Error | undefined;
+    let hasError = false;
 
     const workers = Array.from({ length: workerCount }, async () => {
-        while (currentIndex < items.length) {
+        while (!hasError && currentIndex < items.length) {
             const index = currentIndex++;
-            results[index] = await fn(items[index], index);
+            try {
+                results[index] = await fn(items[index], index);
+            } catch (err) {
+                hasError = true;
+                firstError ??= err instanceof Error ? err : new Error(String(err));
+                break;
+            }
         }
     });
 
     await Promise.all(workers);
+    if (firstError) throw firstError;
     return results;
 }
 
@@ -162,7 +171,8 @@ async function stageBatch(
     client: PublishOptions['client'],
     tag: string,
     commit: string,
-    expected: Map<string, { sha256: string; path: string }>
+    expected: Map<string, { sha256: string; path: string }>,
+    uploadConcurrency: number = UPLOAD_CONCURRENCY
 ): Promise<{ release: ReleaseInfo; draft: boolean }> {
     let release = await client.getRelease(tag);
     const tagCommit = await client.getTagCommit(tag);
@@ -182,7 +192,7 @@ async function stageBatch(
     if (release.draft) {
         console.info(`Uploading ${missing.length} assets to ${tag}`);
         const draft = release;
-        await runConcurrent(missing, UPLOAD_CONCURRENCY, (name) =>
+        await runConcurrent(missing, uploadConcurrency, (name) =>
             client.uploadAsset(draft, name, expected.get(name)!.path)
         );
         release = (await client.getRelease(tag)) ?? release;
@@ -393,7 +403,15 @@ export async function publishReleases(
                 sha256: manifestHash,
                 path: manifestPath
             });
-            staged.push(await stageBatch(options.client, tag, commit, expected));
+            staged.push(
+                await stageBatch(
+                    options.client,
+                    tag,
+                    commit,
+                    expected,
+                    options.concurrency ?? UPLOAD_CONCURRENCY
+                )
+            );
         }
 
         await assertCurrentMain();

@@ -23,11 +23,7 @@ import {
     refreshFlatAnimeIndexPb,
     refreshMirrorIndexPb
 } from '../scripts/extensions';
-import {
-    decodeAniyomiIndexPb,
-    decodeIndexPb,
-    encodeAniyomiIndexPb
-} from '../scripts/generate-index';
+import { decodeAniyomiIndexPb, decodeIndexPb } from '../scripts/generate-index';
 import { isRecord } from '../scripts/releases/json';
 import type { ReleaseManifest } from '../scripts/releases/types';
 
@@ -934,7 +930,15 @@ test('refreshMirrorIndexPb uses the Aniyomi codec for Secozzi wrappers', async (
     const index = JSON.parse(await readFile(join(secozziDir, 'index.json'), 'utf8'));
     expect(index.extensionList.extensions[0].resources.apkUrl).toBe(releaseUrl);
     const generated = await readFile(join(secozziDir, 'index.pb'));
-    expect(generated.equals(Buffer.from(encodeAniyomiIndexPb(index)))).toBe(true);
+    const decoded = decodeAniyomiIndexPb(generated);
+    expect(decoded.signingKey).toBe(index.signingKey);
+    const list = decoded.extensionList;
+    if (!isRecord(list) || !Array.isArray(list.extensions)) throw new Error('bad shape');
+    const extensions = list.extensions.filter(isRecord);
+    expect(extensions).toHaveLength(1);
+    expect(extensions[0].name).toBe('Stremio');
+    if (!isRecord(extensions[0].resources)) throw new Error('bad shape');
+    expect(extensions[0].resources.apkUrl).toBe(releaseUrl);
 });
 
 const flatAnimeRepo = {
@@ -1027,11 +1031,6 @@ test('refreshMirrorIndexPb converts flat anime indexes to Aniyomi PB', async () 
     await writeFile(join(animeDir, 'repo.json'), files['repo.json']);
 
     const manifest = flatAnimeManifest();
-    const onsenUrl =
-        manifest['yuzono/anime']?.['eu.kanade.tachiyomi.animeextension.all.animeonsen']?.apk?.url;
-    expect(onsenUrl).toBe(
-        'https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-animeonsen.apk'
-    );
     expect(
         await refreshMirrorIndexPb('aniyomi', 'yuzono/anime', staticDir, manifest, flatAnimeRepo)
     ).toBe(true);
@@ -1048,7 +1047,9 @@ test('refreshMirrorIndexPb converts flat anime indexes to Aniyomi PB', async () 
     const onsen = extensions[0];
     expect(onsen.name).toBe('AnimeOnsen');
     if (!isRecord(onsen.resources)) throw new Error('bad shape');
-    expect(onsen.resources.apkUrl).toBe(onsenUrl);
+    expect(onsen.resources.apkUrl).toBe(
+        'https://github.com/amrkmn/x/releases/download/abc-0/yuzono-anime-animeonsen.apk'
+    );
     expect(onsen.resources.iconUrl).toBe(
         'https://x.noz.one/yuzono/anime/icon/eu.kanade.tachiyomi.animeextension.all.animeonsen.png'
     );

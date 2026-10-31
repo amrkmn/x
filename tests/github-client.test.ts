@@ -49,9 +49,9 @@ test('retries a rate-limited asset upload until it succeeds', async () => {
 
     await client.uploadAsset(release, 'org.example.apk', path);
 
-    expect(calls).toHaveLength(2);
-    expect(calls[0]).toContain('name=org.example.apk');
-    expect(calls[1]).toContain('name=org.example.apk');
+    const expectedUrl =
+        'https://uploads.example/repos/owner/repo/releases/1/assets?name=org.example.apk';
+    expect(calls).toEqual([expectedUrl, expectedUrl]);
 });
 
 test('gives up after bounded retries while rate limited', async () => {

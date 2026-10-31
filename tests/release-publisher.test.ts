@@ -422,9 +422,10 @@ test('resumes a matching draft without replacing assets after an interrupted upl
 
     await expect(publishReleases(options)).rejects.toThrow('Simulated lost upload response');
     expect(client.releases[0].draft).toBe(true);
-    const interrupted = client.releases[0].assets.map((asset) => asset.name);
-    expect(interrupted.length).toBeGreaterThan(0);
-    expect(new Set(interrupted).size).toBe(interrupted.length);
+    const initialAssets = [...client.releases[0].assets];
+    expect(initialAssets.length).toBeGreaterThanOrEqual(1);
+    expect(initialAssets.length).toBeLessThan(7);
+    expect(client.uploadCount).toBe(initialAssets.length);
 
     const retry = await publishReleases(options);
     expect(retry).toEqual({ binaries: 6, releases: 1 });
@@ -432,6 +433,11 @@ test('resumes a matching draft without replacing assets after an interrupted upl
     expect(client.releases[0].draft).toBe(false);
     expect(client.releases[0].assets).toHaveLength(7);
     expect(client.uploadCount).toBe(7);
+
+    // Verify existing assets were preserved without being replaced or re-uploaded
+    for (const asset of initialAssets) {
+        expect(client.releases[0].assets).toContainEqual(asset);
+    }
 });
 
 test('fails on a conflicting published asset and does not overwrite it', async () => {
@@ -599,7 +605,7 @@ test('handles string content hash in upstream release-assets.json (new Keiyoushi
 
     const first = await publishReleases(options);
     expect(first).toEqual({ binaries: 6, releases: 1 });
-    expect(client.releases[0].assets.some((a) => a.name === 'keiyoushi-kei-v1.apk')).toBe(true);
+    expect(client.releases[0].assets.map((a) => a.name)).toContain('keiyoushi-kei-v1.apk');
 });
 
 test('publishes only changed sources when changedSources is provided and carries over previous manifest', async () => {
