@@ -50,8 +50,22 @@ export type {
 
 const execFileAsync = promisify(execFile);
 
-export async function isExtensionsModified(commit: string): Promise<boolean | null> {
+export async function isExtensionsModified(
+    commit: string,
+    baseCommit?: string
+): Promise<boolean | null> {
     try {
+        if (baseCommit) {
+            const { stdout } = await execFileAsync('git', [
+                'diff',
+                '--name-only',
+                baseCommit,
+                commit,
+                '--',
+                'extensions.json'
+            ]);
+            return stdout.trim().length > 0;
+        }
         const { stdout } = await execFileAsync('git', [
             'diff-tree',
             '--no-commit-id',
@@ -185,15 +199,6 @@ export async function publishReleases(
     if (!/^[a-f0-9]{40}$/.test(commit))
         throw new Error(`Invalid publishing commit: ${options.commit}`);
 
-    const extensionsModified =
-        options.commitCount !== undefined ? true : await isExtensionsModified(commit);
-    if (extensionsModified === false) {
-        console.info(`Skipping release publishing: extensions.json was not modified in ${commit}`);
-        return { binaries: 0, releases: 0 };
-    }
-
-    const commitCount = options.commitCount ?? (await getExtensionsCommitCount(commit)) ?? 1;
-
     const assertCurrentMain = async (): Promise<void> => {
         const currentMainSha = (await options.client.currentMainSha()).toLowerCase();
         if (currentMainSha !== commit) {
@@ -208,6 +213,20 @@ export async function publishReleases(
     const previousInfo = await previousCompleteRelease(releases, options.client, owner, repo);
     const previous = previousInfo?.manifest ?? {};
     const previousCommit = previousInfo?.release.targetCommitish;
+
+    const isManualDispatch = env.GITHUB_EVENT_NAME === 'workflow_dispatch';
+    const extensionsModified =
+        options.commitCount !== undefined || isManualDispatch
+            ? true
+            : await isExtensionsModified(commit, previousCommit);
+    if (extensionsModified === false) {
+        console.info(
+            `Skipping release publishing: extensions.json was not modified between ${previousCommit ?? 'initial'} and ${commit}`
+        );
+        return { binaries: 0, releases: 0 };
+    }
+
+    const commitCount = options.commitCount ?? (await getExtensionsCommitCount(commit)) ?? 1;
 
     const detectedChanged =
         options.changedSources !== undefined
