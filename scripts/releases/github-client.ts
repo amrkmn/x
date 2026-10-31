@@ -5,6 +5,24 @@ import { config } from '../config';
 import { isString, requiredArray, requiredNumber, requiredObject, requiredString } from './json';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from './types';
 
+const UPLOAD_ATTEMPTS = 5;
+const RETRYABLE_UPLOAD_STATUSES = new Set([403, 429, 500, 502, 503, 504]);
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+function uploadRetryDelay(response: Response, attempt: number): number {
+    const retryAfter = response.headers.get('retry-after');
+    if (retryAfter !== null) {
+        const seconds = Number(retryAfter);
+        if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+    }
+    if (response.headers.get('x-ratelimit-remaining') === '0') {
+        const reset = Number(response.headers.get('x-ratelimit-reset'));
+        if (Number.isFinite(reset) && reset > 0) return Math.max(reset * 1000 - Date.now(), 1000);
+    }
+    return Math.min(1000 * 2 ** attempt, 60_000);
+}
+
 export class GitHubReleaseClient implements ReleaseClient {
     constructor(
         private readonly token: string,
@@ -135,12 +153,21 @@ export class GitHubReleaseClient implements ReleaseClient {
         const bytes = await readFile(path);
         const body = new ArrayBuffer(bytes.byteLength);
         new Uint8Array(body).set(bytes);
-        const response = await this.request(url.toString(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/octet-stream' },
-            body
-        });
-        await this.json(response);
+        for (let attempt = 1; ; attempt += 1) {
+            const response = await this.request(url.toString(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body
+            });
+            if (!RETRYABLE_UPLOAD_STATUSES.has(response.status) || attempt >= UPLOAD_ATTEMPTS) {
+                await this.json(response);
+                return;
+            }
+            await response.text();
+            const delay = uploadRetryDelay(response, attempt);
+            console.warn(`Retrying upload of ${name} in ${delay}ms (status ${response.status})`);
+            await sleep(delay);
+        }
     }
 
     async ensureTagRef(tag: string, sha: string): Promise<void> {

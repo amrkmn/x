@@ -422,13 +422,16 @@ test('resumes a matching draft without replacing assets after an interrupted upl
 
     await expect(publishReleases(options)).rejects.toThrow('Simulated lost upload response');
     expect(client.releases[0].draft).toBe(true);
-    expect(client.releases[0].assets).toHaveLength(1);
+    const interrupted = client.releases[0].assets.map((asset) => asset.name);
+    expect(interrupted.length).toBeGreaterThan(0);
+    expect(new Set(interrupted).size).toBe(interrupted.length);
 
     const retry = await publishReleases(options);
     expect(retry).toEqual({ binaries: 6, releases: 1 });
     expect(client.releases).toHaveLength(1);
     expect(client.releases[0].draft).toBe(false);
     expect(client.releases[0].assets).toHaveLength(7);
+    expect(client.uploadCount).toBe(7);
 });
 
 test('fails on a conflicting published asset and does not overwrite it', async () => {

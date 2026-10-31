@@ -120,6 +120,8 @@ export async function detectChangedSources(
     }
 }
 
+const UPLOAD_CONCURRENCY = 4;
+
 async function runConcurrent<T, R>(
     items: T[],
     limit: number,
@@ -179,9 +181,10 @@ async function stageBatch(
     const missing = await verifyReleaseAssets(client, release, expected, release.draft);
     if (release.draft) {
         console.info(`Uploading ${missing.length} assets to ${tag}`);
-        for (const name of missing) {
-            await client.uploadAsset(release, name, expected.get(name)!.path);
-        }
+        const draft = release;
+        await runConcurrent(missing, UPLOAD_CONCURRENCY, (name) =>
+            client.uploadAsset(draft, name, expected.get(name)!.path)
+        );
         release = (await client.getRelease(tag)) ?? release;
         await verifyReleaseAssets(client, release, expected, false);
     }
