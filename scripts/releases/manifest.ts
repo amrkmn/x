@@ -166,12 +166,12 @@ function isPublisherTag(tag: string): boolean {
     return /^v0\.\d+\.\d+$/i.test(tag) || /^[a-f0-9]{7}(-\d+)?$/i.test(tag);
 }
 
-export async function previousCompleteManifest(
+export async function previousCompleteRelease(
     releases: ReleaseInfo[],
     client: ReleaseClient,
     owner: string,
     repo: string
-): Promise<ReleaseManifest> {
+): Promise<{ release: ReleaseInfo; manifest: ReleaseManifest } | undefined> {
     // The /releases listing is not guaranteed chronological; newest first.
     const ordered = [...releases].sort((left, right) => right.id - left.id);
     const byTag = new Map(ordered.map((release) => [release.tag, release]));
@@ -222,9 +222,19 @@ export async function previousCompleteManifest(
             }
             if (!complete) break;
         }
-        if (complete) return manifest;
+        if (complete) return { release, manifest };
     }
-    return {};
+    return undefined;
+}
+
+export async function previousCompleteManifest(
+    releases: ReleaseInfo[],
+    client: ReleaseClient,
+    owner: string,
+    repo: string
+): Promise<ReleaseManifest> {
+    const result = await previousCompleteRelease(releases, client, owner, repo);
+    return result?.manifest ?? {};
 }
 
 export function releaseUrl(owner: string, repo: string, tag: string, name: string): string {

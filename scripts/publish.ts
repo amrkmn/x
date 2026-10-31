@@ -13,7 +13,7 @@ import {
     MANIFEST_NAME,
     manifestAsset,
     manifestRecord,
-    previousCompleteManifest,
+    previousCompleteRelease,
     releaseUrl,
     serializeManifest,
     sha256,
@@ -83,6 +83,50 @@ export async function getExtensionsCommitCount(commit: string): Promise<number |
     } catch {
         return null;
     }
+}
+
+export async function detectChangedSources(
+    currentData: Record<string, Record<string, ExtensionConfig>>,
+    baseCommit?: string
+): Promise<Set<string> | null> {
+    if (!baseCommit) return null;
+    try {
+        const { stdout } = await execFileAsync('git', ['show', `${baseCommit}:extensions.json`]);
+        const previousData = parseExtensionsData(JSON.parse(stdout));
+        const changed = new Set<string>();
+        for (const [category, extensions] of Object.entries(currentData)) {
+            for (const [key, ext] of Object.entries(extensions)) {
+                const prev = previousData[category]?.[key];
+                if (!prev || prev.commit !== ext.commit) {
+                    changed.add(key);
+                }
+            }
+        }
+        return changed;
+    } catch {
+        return null;
+    }
+}
+
+async function runConcurrent<T, R>(
+    items: T[],
+    limit: number,
+    fn: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+    if (items.length === 0) return [];
+    const results: R[] = Array.from({ length: items.length });
+    let currentIndex = 0;
+    const workerCount = Math.min(limit, items.length);
+
+    const workers = Array.from({ length: workerCount }, async () => {
+        while (currentIndex < items.length) {
+            const index = currentIndex++;
+            results[index] = await fn(items[index], index);
+        }
+    });
+
+    await Promise.all(workers);
+    return results;
 }
 
 export function releaseTag(commitCount: number, batchIndex: number): string {
@@ -161,13 +205,37 @@ export async function publishReleases(
     await assertCurrentMain();
 
     const releases = await options.client.listReleases();
-    const previous = await previousCompleteManifest(releases, options.client, owner, repo);
-    const candidates = await discoverCandidates(options.data, options.fetcher);
+    const previousInfo = await previousCompleteRelease(releases, options.client, owner, repo);
+    const previous = previousInfo?.manifest ?? {};
+    const previousCommit = previousInfo?.release.targetCommitish;
+
+    const detectedChanged =
+        options.changedSources !== undefined
+            ? new Set(options.changedSources)
+            : await detectChangedSources(options.data, previousCommit);
+
+    const current: ReleaseManifest = {};
+
+    // For any source whose commit didn't change, carry over previous manifest entries directly
+    if (detectedChanged) {
+        for (const extensions of Object.values(options.data)) {
+            for (const key of Object.keys(extensions)) {
+                if (!detectedChanged.has(key) && previous[key]) {
+                    current[key] = JSON.parse(JSON.stringify(previous[key]));
+                }
+            }
+        }
+    }
+
+    const candidates = await discoverCandidates(
+        options.data,
+        options.fetcher,
+        detectedChanged ?? undefined
+    );
     console.info(`Discovered ${candidates.length} candidates`);
     const tempDir = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'x-releases-'));
 
     try {
-        const current: ReleaseManifest = {};
         const changed: HashedArtifact[] = [];
         const names = new Set<string>();
         let verified = 0;
@@ -179,8 +247,12 @@ export async function publishReleases(
             }
         };
 
+        const toDownload: Array<{
+            candidate: Candidate;
+            index: number;
+        }> = [];
+
         for (const [index, candidate] of candidates.entries()) {
-            const position = `${index + 1}/${candidates.length}`;
             const old = manifestAsset(
                 previous,
                 candidate.source,
@@ -198,29 +270,54 @@ export async function publishReleases(
                 recordUnchanged(old.sha256);
                 continue;
             }
-            let response;
-            try {
-                response = await (options.fetcher ?? fetch)(candidate.downloadUrl);
-            } catch (error) {
-                throw new Error(
-                    `Artifact download failed [${position}]: ${candidate.downloadUrl} (${error instanceof Error ? error.message : error})`
-                );
+
+            toDownload.push({ candidate, index });
+        }
+
+        const concurrency = options.concurrency ?? 20;
+        const downloaded = await runConcurrent(
+            toDownload,
+            concurrency,
+            async ({ candidate, index }) => {
+                const position = `${index + 1}/${candidates.length}`;
+                let response;
+                try {
+                    response = await (options.fetcher ?? fetch)(candidate.downloadUrl);
+                } catch (error) {
+                    throw new Error(
+                        `Artifact download failed [${position}]: ${candidate.downloadUrl} (${error instanceof Error ? error.message : error})`
+                    );
+                }
+                if (!response.ok)
+                    throw new Error(
+                        `Artifact download failed (${response.status}) [${position}]: ${candidate.downloadUrl}`
+                    );
+                const bytes = new Uint8Array(await response.arrayBuffer());
+                if (bytes.byteLength === 0)
+                    throw new Error(`Empty artifact: ${candidate.downloadUrl}`);
+                const hash = sha256(bytes);
+                if (candidate.upstreamSha256 && candidate.upstreamSha256 !== hash) {
+                    throw new Error(
+                        `Upstream checksum mismatch: ${candidate.source}/${candidate.packageName}/${candidate.kind}`
+                    );
+                }
+
+                return { candidate, index, bytes, hash };
             }
-            if (!response.ok)
-                throw new Error(
-                    `Artifact download failed (${response.status}) [${position}]: ${candidate.downloadUrl}`
-                );
-            const bytes = new Uint8Array(await response.arrayBuffer());
-            if (bytes.byteLength === 0) throw new Error(`Empty artifact: ${candidate.downloadUrl}`);
-            const hash = sha256(bytes);
-            if (candidate.upstreamSha256 && candidate.upstreamSha256 !== hash) {
-                throw new Error(
-                    `Upstream checksum mismatch: ${candidate.source}/${candidate.packageName}/${candidate.kind}`
-                );
-            }
+        );
+
+        for (const { candidate, index, bytes, hash } of downloaded) {
+            const old = manifestAsset(
+                previous,
+                candidate.source,
+                candidate.packageName,
+                candidate.kind
+            );
 
             if (old?.sha256 === hash) {
-                recordUnchanged(hash);
+                recordManifestAsset(current, candidate, old.name, hash, old.url);
+                verified += 1;
+                progress(index);
                 continue;
             }
 

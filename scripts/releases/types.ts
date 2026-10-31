@@ -73,6 +73,8 @@ export interface PublishOptions {
     tempRoot?: string;
     owner?: string;
     repo?: string;
+    changedSources?: Set<string> | string[];
+    concurrency?: number;
 }
 
 export interface CleanupOptions {

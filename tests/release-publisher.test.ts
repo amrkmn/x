@@ -562,3 +562,101 @@ test('previousCompleteManifest prefers the newest snapshot regardless of list or
         expect(previous['yuzono/anime']['org.example.anime'].apk?.url).toContain('/bbbbbbb-0/');
     }
 });
+
+test('handles string content hash in upstream release-assets.json (new Keiyoushi schema)', async () => {
+    const source = sourceData();
+    // Replace Keiyoushi release-assets.json with a plain string content hash per package
+    const keiManifestUrl = `https://raw.githubusercontent.com/keiyoushi/extensions/${commit}/release-assets.json`;
+    source.contents.set(
+        keiManifestUrl,
+        bytes(
+            JSON.stringify({
+                'org.example.kei':
+                    '89dd31084528c5b936b5cd73f6cebd5c22a6ccff3fd7dad321898d70588e1788'
+            })
+        )
+    );
+
+    const candidates = await discoverCandidates(data, source.fetcher);
+    const keiApk = candidates.find((c) => c.source === 'keiyoushi' && c.kind === 'apk');
+    expect(keiApk).toBeDefined();
+    expect(keiApk?.upstreamName).toBe('kei-v1.apk');
+    expect(keiApk?.upstreamSha256).toBeUndefined();
+
+    const client = new MemoryReleaseClient();
+    const options = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
+
+    const first = await publishReleases(options);
+    expect(first).toEqual({ binaries: 6, releases: 1 });
+    expect(client.releases[0].assets.some((a) => a.name === 'keiyoushi-kei-v1.apk')).toBe(true);
+});
+
+test('publishes only changed sources when changedSources is provided and carries over previous manifest', async () => {
+    const source = sourceData();
+    const client = new MemoryReleaseClient();
+    const initialOptions = {
+        data,
+        commit,
+        client,
+        fetcher: source.fetcher,
+        owner: 'amrkmn',
+        repo: 'x',
+        commitCount: 1
+    };
+
+    // First publish creates initial complete release
+    await publishReleases(initialOptions);
+    expect(client.releases).toHaveLength(1);
+
+    // Now update Kei bytes and its manifest sha256 so Kei has changed bytes
+    const newBytes = bytes('updated-kei-apk-bytes');
+    source.contents.set(apkUrls.keiyoushi, newBytes);
+    const sourceManifestUrl = `https://raw.githubusercontent.com/keiyoushi/extensions/${commit}/release-assets.json`;
+    const sourceManifest = JSON.parse(
+        new TextDecoder().decode(source.contents.get(sourceManifestUrl)!)
+    );
+    sourceManifest['org.example.kei'].apk.sha256 = hash(newBytes);
+    source.contents.set(sourceManifestUrl, bytes(JSON.stringify(sourceManifest)));
+
+    const fetchedUrls: string[] = [];
+    const trackingFetcher: typeof fetch = async (input) => {
+        fetchedUrls.push(String(input));
+        return source.fetcher(input);
+    };
+
+    const second = await publishReleases({
+        ...initialOptions,
+        commitCount: 2,
+        fetcher: trackingFetcher,
+        changedSources: ['keiyoushi']
+    });
+
+    // Only 1 binary changed (Kei apk)
+    expect(second).toEqual({ binaries: 1, releases: 1 });
+    expect(client.releases).toHaveLength(2);
+
+    // Verify that index.json was NOT fetched for cursed, secozzi, or anime
+    expect(fetchedUrls.some((u) => u.includes('cursed-manga-repo'))).toBe(false);
+    expect(fetchedUrls.some((u) => u.includes('Secozzi'))).toBe(false);
+    expect(fetchedUrls.some((u) => u.includes('anime-repo'))).toBe(false);
+
+    // Verify that the new release manifest still has ALL sources
+    const latestManifestAsset = client.releases[1].assets.find(
+        (a) => a.name === 'release-assets.json'
+    )!;
+    const latestManifest = parseReleaseManifest(
+        JSON.parse(new TextDecoder().decode(await client.downloadAsset(latestManifestAsset)))
+    );
+    expect(latestManifest.keiyoushi['org.example.kei'].apk?.url).toContain('/v0.2.0/');
+    expect(latestManifest['yuzono/cursed']['org.example.cursed'].apk?.url).toContain('/v0.1.0/');
+    expect(latestManifest.secozzi['org.example.secozzi'].apk?.url).toContain('/v0.1.0/');
+    expect(latestManifest['yuzono/anime']['org.example.anime'].apk?.url).toContain('/v0.1.0/');
+});

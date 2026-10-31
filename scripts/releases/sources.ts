@@ -132,25 +132,27 @@ function sourceAssetRecord(
     manifest: JsonObject,
     packageName: string,
     kind: ArtifactKind,
-    source: string
-): UpstreamAssetInfo {
+    _source: string
+): UpstreamAssetInfo | undefined {
     const packageRecord = manifest[packageName];
     if (!isRecord(packageRecord) || !isRecord(packageRecord[kind])) {
-        throw new Error(`Missing upstream ${kind} manifest entry: ${source}/${packageName}`);
+        return undefined;
     }
     const record = packageRecord[kind];
-    const name = requiredString(record.name, `upstream ${kind} name`);
-    const sha256 = requiredString(record.sha256, `upstream ${kind} sha256`).toLowerCase();
-    if (!/^[a-f0-9]{64}$/.test(sha256)) {
-        throw new Error(`Invalid upstream ${kind} SHA-256: ${source}/${packageName}`);
+    if (!isString(record.name) || !isString(record.sha256)) {
+        return undefined;
     }
-    return { name, sha256 };
+    const sha256 = record.sha256.toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(sha256)) {
+        return undefined;
+    }
+    return { name: record.name, sha256 };
 }
 
 function addWrappedCandidates(
     source: string,
     index: JsonValue,
-    sourceManifest: JsonObject,
+    sourceManifest: JsonObject | undefined,
     candidates: Candidate[]
 ): void {
     if (
@@ -173,9 +175,11 @@ function addWrappedCandidates(
 
         const metadata = versionFields(value);
         const add = (kind: ArtifactKind, downloadUrl: string): void => {
-            const upstream = sourceAssetRecord(sourceManifest, packageName, kind, source);
+            const upstream = sourceManifest
+                ? sourceAssetRecord(sourceManifest, packageName, kind, source)
+                : undefined;
             const urlName = basenameFromUrl(downloadUrl, `${source}/${packageName} ${kind}`);
-            if (upstream.name !== urlName) {
+            if (upstream && upstream.name !== urlName) {
                 throw new Error(
                     `Upstream ${kind} filename mismatch for ${source}/${packageName}: ${urlName} != ${upstream.name}`
                 );
@@ -185,9 +189,9 @@ function addWrappedCandidates(
                 packageName,
                 kind,
                 ...metadata,
-                upstreamName: upstream.name,
+                upstreamName: urlName,
                 downloadUrl,
-                upstreamSha256: upstream.sha256
+                upstreamSha256: upstream?.sha256
             });
         };
 
@@ -237,7 +241,8 @@ function addFlatCandidates(
 
 export async function discoverCandidates(
     data: Record<string, Record<string, ExtensionConfig>>,
-    fetcher: typeof fetch = fetch
+    fetcher: typeof fetch = fetch,
+    sourcesToDiscover?: Iterable<string>
 ): Promise<Candidate[]> {
     const configured = new Map<string, ExtensionConfig>();
     for (const [category, entries] of Object.entries(data)) {
@@ -259,8 +264,12 @@ export async function discoverCandidates(
     }
     if (configured.size !== SOURCE_KEYS.length) throw new Error('Unexpected source count');
 
+    const sourcesToScan = sourcesToDiscover
+        ? SOURCE_KEYS.filter((s) => new Set(sourcesToDiscover).has(s))
+        : SOURCE_KEYS;
+
     const candidates: Candidate[] = [];
-    for (const source of SOURCE_KEYS) {
+    for (const source of sourcesToScan) {
         const sourceConfig = configured.get(source)!;
         const spec = SOURCE_SPECS.get(source)!;
         const commit = requiredString(sourceConfig.commit, `${source} pinned commit`);
@@ -269,12 +278,15 @@ export async function discoverCandidates(
         const index = await fetchJson(fetcher, rawUrl(sourceConfig.source, commit, spec.indexFile));
 
         if (spec.layout === 'wrapped') {
-            const sourceManifestValue = await fetchJson(
-                fetcher,
-                rawUrl(sourceConfig.source, commit, 'release-assets.json')
-            );
-            if (!isRecord(sourceManifestValue)) {
-                throw new Error(`Invalid upstream release-assets.json for ${source}`);
+            let sourceManifestValue: JsonObject | undefined;
+            try {
+                const fetched = await fetchJson(
+                    fetcher,
+                    rawUrl(sourceConfig.source, commit, 'release-assets.json')
+                );
+                if (isRecord(fetched)) sourceManifestValue = fetched;
+            } catch {
+                // Upstream release-assets.json is an optional build artifact
             }
             addWrappedCandidates(source, index, sourceManifestValue, candidates);
         } else {
