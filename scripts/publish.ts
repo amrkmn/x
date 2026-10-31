@@ -28,6 +28,7 @@ import type {
     ReleaseInfo,
     ReleaseManifest
 } from './releases/types';
+import type { ExtensionConfig } from './types';
 import { parseExtensionsData } from './validation';
 
 export {

@@ -296,9 +296,9 @@ test('rejects retired Kohi-den and requires exactly the four retained sources', 
     );
 });
 
-test('batches no more than 999 binaries per release', () => {
+test('batches no more than 997 binaries per release', () => {
     const batches = batchArtifacts(Array.from({ length: 3144 }, (_, index) => index));
-    expect(batches.map((batch) => batch.length)).toEqual([999, 999, 999, 147]);
+    expect(batches.map((batch) => batch.length)).toEqual([997, 997, 997, 153]);
     expect(() => batchArtifacts([1], 0)).toThrow('Invalid batch size');
 });
 

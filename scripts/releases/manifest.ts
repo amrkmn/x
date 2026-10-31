@@ -13,7 +13,8 @@ import type {
 } from './types';
 
 export const MANIFEST_NAME = 'release-assets.json';
-export const MAX_BINARIES_PER_RELEASE = 999;
+// GitHub Releases hold at most 1000 assets: 997 binaries + 1 manifest + 2 source archives (zip, tar.gz).
+export const MAX_BINARIES_PER_RELEASE = 997;
 
 interface ReleaseDownloadPath {
     tag: string;

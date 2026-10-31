@@ -40,6 +40,9 @@ export const env = {
     },
     get GITHUB_ACTIONS(): string | undefined {
         return process.env.GITHUB_ACTIONS;
+    },
+    get GITHUB_EVENT_NAME(): string | undefined {
+        return process.env.GITHUB_EVENT_NAME;
     }
 };
 
