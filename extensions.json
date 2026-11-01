@@ -5,7 +5,7 @@
             "name": "Keiyoushi",
             "path": "/keiyoushi/index.pb",
             "category": "mihon",
-            "commit": "dd8098dca8592a3761b59f05c249c1d8f32753b0"
+            "commit": "ae7c1e000e22ce1673d710809de42119ef0b843f"
         },
         "yuzono/cursed": {
             "source": "https://github.com/yuzono/cursed-manga-repo@repo",
@@ -28,7 +28,7 @@
             "name": "Yuzono Anime",
             "path": "/yuzono/anime/index.pb",
             "category": "aniyomi",
-            "commit": "ca1f753d8183aed4f3e99de2d90a56d383fc11f5"
+            "commit": "34febf1508ba12a6dec91f40718882cde87b0b10"
         }
     }
 }
