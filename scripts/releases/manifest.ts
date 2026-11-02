@@ -13,8 +13,8 @@ import type {
 } from './types';
 
 export const MANIFEST_NAME = 'release-assets.json';
-// GitHub Releases hold at most 1000 assets: 997 binaries + 1 manifest + 2 source archives (zip, tar.gz).
-export const MAX_BINARIES_PER_RELEASE = 997;
+// Cap binaries below GitHub's 1000-asset limit to reserve slots for metadata and balanced batches.
+export const MAX_BINARIES_PER_RELEASE = 964;
 
 interface ReleaseDownloadPath {
     tag: string;
@@ -25,12 +25,76 @@ export function sha256(bytes: Uint8Array): string {
     return createHash('sha256').update(bytes).digest('hex');
 }
 
-export function batchArtifacts<T>(items: T[], limit = MAX_BINARIES_PER_RELEASE): T[][] {
+export function packageGroupKey(candidate: Pick<Candidate, 'source' | 'packageName'>): string {
+    return `${candidate.source}/${candidate.packageName}`;
+}
+
+export function batchArtifacts<T>(
+    items: T[],
+    limit = MAX_BINARIES_PER_RELEASE,
+    getGroupKey?: (item: T) => string
+): T[][] {
     if (!Number.isInteger(limit) || limit < 1) throw new Error(`Invalid batch size: ${limit}`);
-    const batches: T[][] = [];
-    for (let index = 0; index < items.length; index += limit) {
-        batches.push(items.slice(index, index + limit));
+    if (items.length === 0) return [];
+    if (items.length <= limit) return [[...items]];
+
+    interface Group {
+        key?: string;
+        items: T[];
     }
+    const groups: Group[] = [];
+    for (const item of items) {
+        const key = getGroupKey?.(item);
+        const last = groups[groups.length - 1];
+        if (last && key !== undefined && last.key === key) {
+            last.items.push(item);
+        } else {
+            groups.push({ key, items: [item] });
+        }
+    }
+
+    for (const group of groups) {
+        if (group.items.length > limit) {
+            throw new Error(`Group size exceeds batch limit: ${group.items.length} > ${limit}`);
+        }
+    }
+
+    const minBatches = Math.ceil(items.length / limit);
+    const batches: T[][] = [];
+    let currentBatch: T[] = [];
+    let remainingItemCount = items.length;
+
+    for (let index = 0; index < groups.length; index += 1) {
+        const group = groups[index];
+        const remainingBatches = Math.max(1, minBatches - batches.length);
+        const targetSize =
+            remainingBatches > 1 ? Math.ceil(remainingItemCount / remainingBatches) : limit;
+
+        const wouldBeLength = currentBatch.length + group.items.length;
+
+        if (currentBatch.length > 0) {
+            if (wouldBeLength > limit) {
+                batches.push(currentBatch);
+                remainingItemCount -= currentBatch.length;
+                currentBatch = [...group.items];
+                continue;
+            }
+
+            if (remainingBatches > 1 && currentBatch.length >= targetSize) {
+                batches.push(currentBatch);
+                remainingItemCount -= currentBatch.length;
+                currentBatch = [...group.items];
+                continue;
+            }
+        }
+
+        currentBatch.push(...group.items);
+    }
+
+    if (currentBatch.length > 0) {
+        batches.push(currentBatch);
+    }
+
     return batches;
 }
 

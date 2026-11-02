@@ -6,9 +6,12 @@ import { expect, test } from 'vitest';
 import {
     batchArtifacts,
     discoverCandidates,
+    formatPercent,
+    packageGroupKey,
     parseReleaseManifest,
     publishReleases,
-    releaseTag
+    releaseTag,
+    shouldLogProgress
 } from '../scripts/publish';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from '../scripts/publish';
 import { previousCompleteManifest } from '../scripts/releases/manifest';
@@ -296,10 +299,50 @@ test('rejects retired Kohi-den and requires exactly the four retained sources', 
     );
 });
 
-test('batches no more than 997 binaries per release', () => {
+test('batches no more than 964 binaries per release and balances evenly', () => {
     const batches = batchArtifacts(Array.from({ length: 3144 }, (_, index) => index));
-    expect(batches.map((batch) => batch.length)).toEqual([997, 997, 997, 153]);
+    expect(batches.map((batch) => batch.length)).toEqual([786, 786, 786, 786]);
     expect(() => batchArtifacts([1], 0)).toThrow('Invalid batch size');
+});
+
+test('preserves package atomicity across batches without splitting APK and JAR pairs', () => {
+    const items: Array<{ source: string; packageName: string; kind: 'apk' | 'jar' }> = [];
+    for (let index = 0; index < 1446; index += 1) {
+        items.push({ source: 'keiyoushi', packageName: `ext.${index}`, kind: 'apk' });
+        items.push({ source: 'keiyoushi', packageName: `ext.${index}`, kind: 'jar' });
+    }
+    const batches = batchArtifacts(items, 964, packageGroupKey);
+    expect(batches.map((batch) => batch.length)).toEqual([964, 964, 964]);
+    for (const batch of batches) {
+        const counts = new Map<string, number>();
+        for (const item of batch) {
+            counts.set(item.packageName, (counts.get(item.packageName) ?? 0) + 1);
+        }
+        for (const count of counts.values()) {
+            expect(count).toBe(2);
+        }
+    }
+});
+
+test('shouldLogProgress logs per 100 items for large sets and per 10% for medium sets', () => {
+    expect(shouldLogProgress(100, 2892)).toBe(true);
+    expect(shouldLogProgress(150, 2892)).toBe(false);
+    expect(shouldLogProgress(200, 2892)).toBe(true);
+    expect(shouldLogProgress(2892, 2892)).toBe(true);
+
+    expect(shouldLogProgress(96, 964)).toBe(true);
+    expect(shouldLogProgress(100, 964)).toBe(false);
+    expect(shouldLogProgress(192, 964)).toBe(true);
+    expect(shouldLogProgress(964, 964)).toBe(true);
+
+    expect(shouldLogProgress(1, 6)).toBe(false);
+    expect(shouldLogProgress(6, 6)).toBe(true);
+
+    expect(shouldLogProgress(0, 0)).toBe(false);
+
+    expect(formatPercent(50, 100)).toBe('50.0');
+    expect(formatPercent(1, 3)).toBe('33.3');
+    expect(formatPercent(0, 0)).toBe('100.0');
 });
 
 test('formats tags using v0.<commits>.<batch>', () => {
@@ -621,11 +664,9 @@ test('publishes only changed sources when changedSources is provided and carries
         commitCount: 1
     };
 
-    // First publish creates initial complete release
     await publishReleases(initialOptions);
     expect(client.releases).toHaveLength(1);
 
-    // Now update Kei bytes and its manifest sha256 so Kei has changed bytes
     const newBytes = bytes('updated-kei-apk-bytes');
     source.contents.set(apkUrls.keiyoushi, newBytes);
     const sourceManifestUrl = `https://raw.githubusercontent.com/keiyoushi/extensions/${commit}/release-assets.json`;
@@ -648,16 +689,13 @@ test('publishes only changed sources when changedSources is provided and carries
         changedSources: ['keiyoushi']
     });
 
-    // Only 1 binary changed (Kei apk)
     expect(second).toEqual({ binaries: 1, releases: 1 });
     expect(client.releases).toHaveLength(2);
 
-    // Verify that index.json was NOT fetched for cursed, secozzi, or anime
     expect(fetchedUrls.some((u) => u.includes('cursed-manga-repo'))).toBe(false);
     expect(fetchedUrls.some((u) => u.includes('Secozzi'))).toBe(false);
     expect(fetchedUrls.some((u) => u.includes('anime-repo'))).toBe(false);
 
-    // Verify that the new release manifest still has ALL sources
     const latestManifestAsset = client.releases[1].assets.find(
         (a) => a.name === 'release-assets.json'
     )!;

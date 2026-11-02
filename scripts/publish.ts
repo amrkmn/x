@@ -13,6 +13,8 @@ import {
     MANIFEST_NAME,
     manifestAsset,
     manifestRecord,
+    MAX_BINARIES_PER_RELEASE,
+    packageGroupKey,
     previousCompleteRelease,
     releaseUrl,
     serializeManifest,
@@ -34,6 +36,7 @@ import { parseExtensionsData } from './validation';
 export {
     batchArtifacts,
     MAX_BINARIES_PER_RELEASE,
+    packageGroupKey,
     parseReleaseManifest
 } from './releases/manifest';
 export { discoverCandidates } from './releases/sources';
@@ -152,6 +155,17 @@ async function runConcurrent<T, R>(
     return results;
 }
 
+export function shouldLogProgress(current: number, total: number): boolean {
+    if (total <= 0) return false;
+    if (current === total) return true;
+    const step = Math.min(100, Math.max(10, Math.floor(total / 10)));
+    return current % step === 0;
+}
+
+export function formatPercent(current: number, total: number): string {
+    return total > 0 ? ((current / total) * 100).toFixed(1) : '100.0';
+}
+
 export function releaseTag(commitCount: number, batchIndex: number): string {
     return `v0.${commitCount}.${batchIndex}`;
 }
@@ -192,9 +206,16 @@ async function stageBatch(
     if (release.draft) {
         console.info(`Uploading ${missing.length} assets to ${tag}`);
         const draft = release;
-        await runConcurrent(missing, uploadConcurrency, (name) =>
-            client.uploadAsset(draft, name, expected.get(name)!.path)
-        );
+        let uploaded = 0;
+        await runConcurrent(missing, uploadConcurrency, async (name) => {
+            await client.uploadAsset(draft, name, expected.get(name)!.path);
+            uploaded += 1;
+            if (shouldLogProgress(uploaded, missing.length)) {
+                console.info(
+                    `[${tag}] uploaded ${uploaded}/${missing.length} assets (${formatPercent(uploaded, missing.length)}%)`
+                );
+            }
+        });
         release = (await client.getRelease(tag)) ?? release;
         await verifyReleaseAssets(client, release, expected, false);
     }
@@ -246,7 +267,6 @@ export async function publishReleases(
 
     const current: ReleaseManifest = {};
 
-    // For any source whose commit didn't change, carry over previous manifest entries directly
     if (detectedChanged) {
         for (const extensions of Object.values(options.data)) {
             for (const key of Object.keys(extensions)) {
@@ -270,9 +290,10 @@ export async function publishReleases(
         const names = new Set<string>();
         let verified = 0;
         const progress = (index: number): void => {
-            if ((index + 1) % 100 === 0 || index + 1 === candidates.length) {
+            const count = index + 1;
+            if (shouldLogProgress(count, candidates.length)) {
                 console.info(
-                    `Checked ${index + 1}/${candidates.length} artifacts (${changed.length} new, ${verified} checksum-verified)`
+                    `Checked ${count}/${candidates.length} artifacts (${formatPercent(count, candidates.length)}%) (${changed.length} new, ${verified} checksum-verified)`
                 );
             }
         };
@@ -305,6 +326,10 @@ export async function publishReleases(
         }
 
         const concurrency = options.concurrency ?? 20;
+        if (toDownload.length > 0) {
+            console.info(`Downloading ${toDownload.length} changed artifacts`);
+        }
+        let downloadedCount = 0;
         const downloaded = await runConcurrent(
             toDownload,
             concurrency,
@@ -329,6 +354,12 @@ export async function publishReleases(
                 if (candidate.upstreamSha256 && candidate.upstreamSha256 !== hash) {
                     throw new Error(
                         `Upstream checksum mismatch: ${candidate.source}/${candidate.packageName}/${candidate.kind}`
+                    );
+                }
+                downloadedCount += 1;
+                if (shouldLogProgress(downloadedCount, toDownload.length)) {
+                    console.info(
+                        `Downloaded ${downloadedCount}/${toDownload.length} artifacts (${formatPercent(downloadedCount, toDownload.length)}%)`
                     );
                 }
 
@@ -361,7 +392,7 @@ export async function publishReleases(
         }
 
         changed.sort((left, right) => identity(left).localeCompare(identity(right)));
-        const batches = batchArtifacts(changed);
+        const batches = batchArtifacts(changed, MAX_BINARIES_PER_RELEASE, packageGroupKey);
 
         for (const [batchIndex, batch] of batches.entries()) {
             const tag = releaseTag(commitCount, batchIndex);
