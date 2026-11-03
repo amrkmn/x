@@ -164,9 +164,8 @@ export function shouldLogProgress(current: number, total: number): boolean {
 }
 
 export function formatPercent(current: number, total: number): string {
-    if (total <= 0 || current >= total) return '100.0';
-    const decile = Math.round(((current / total) * 100) / 10) * 10;
-    return `${decile}.0`;
+    if (total <= 0 || current >= total) return '100';
+    return String(Math.round((current / total) * 100));
 }
 
 export function releaseTag(commitCount: number, batchIndex: number): string {

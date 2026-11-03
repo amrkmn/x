@@ -343,11 +343,11 @@ test('shouldLogProgress logs per 10% (every decile) of the total items', () => {
 
     expect(shouldLogProgress(0, 0)).toBe(false);
 
-    expect(formatPercent(50, 100)).toBe('50.0');
-    expect(formatPercent(146, 727)).toBe('20.0');
-    expect(formatPercent(1, 3)).toBe('30.0');
-    expect(formatPercent(0, 0)).toBe('100.0');
-    expect(formatPercent(727, 727)).toBe('100.0');
+    expect(formatPercent(50, 100)).toBe('50');
+    expect(formatPercent(146, 727)).toBe('20');
+    expect(formatPercent(1, 3)).toBe('33');
+    expect(formatPercent(0, 0)).toBe('100');
+    expect(formatPercent(727, 727)).toBe('100');
 });
 
 test('formats tags using v0.<commits>.<batch>', () => {
