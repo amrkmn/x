@@ -324,18 +324,21 @@ test('preserves package atomicity across batches without splitting APK and JAR p
     }
 });
 
-test('shouldLogProgress logs per 100 items for large sets and per 10% for medium sets', () => {
-    expect(shouldLogProgress(100, 2892)).toBe(true);
-    expect(shouldLogProgress(150, 2892)).toBe(false);
-    expect(shouldLogProgress(200, 2892)).toBe(true);
+test('shouldLogProgress logs per 10% (every decile) of the total items', () => {
+    // 727 items: logs at 10%, 20%, ..., 100%
+    expect(shouldLogProgress(73, 727)).toBe(true); // 10.0%
+    expect(shouldLogProgress(72, 727)).toBe(false);
+    expect(shouldLogProgress(146, 727)).toBe(true); // 20.1%
+    expect(shouldLogProgress(727, 727)).toBe(true); // 100.0%
+
+    // 2892 items: logs at 10%, 20%, ..., 100%
+    expect(shouldLogProgress(290, 2892)).toBe(true); // 10.0%
+    expect(shouldLogProgress(100, 2892)).toBe(false);
+    expect(shouldLogProgress(579, 2892)).toBe(true); // 20.0%
     expect(shouldLogProgress(2892, 2892)).toBe(true);
 
-    expect(shouldLogProgress(96, 964)).toBe(true);
-    expect(shouldLogProgress(100, 964)).toBe(false);
-    expect(shouldLogProgress(192, 964)).toBe(true);
-    expect(shouldLogProgress(964, 964)).toBe(true);
-
-    expect(shouldLogProgress(1, 6)).toBe(false);
+    // 6 items
+    expect(shouldLogProgress(1, 6)).toBe(true);
     expect(shouldLogProgress(6, 6)).toBe(true);
 
     expect(shouldLogProgress(0, 0)).toBe(false);

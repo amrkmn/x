@@ -158,8 +158,9 @@ async function runConcurrent<T, R>(
 export function shouldLogProgress(current: number, total: number): boolean {
     if (total <= 0) return false;
     if (current === total) return true;
-    const step = Math.min(100, Math.max(10, Math.floor(total / 10)));
-    return current % step === 0;
+    const currentDecile = Math.floor((current * 10) / total);
+    const prevDecile = Math.floor(((current - 1) * 10) / total);
+    return currentDecile > prevDecile && currentDecile < 10;
 }
 
 export function formatPercent(current: number, total: number): string {

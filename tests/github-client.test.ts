@@ -69,7 +69,7 @@ test('gives up after bounded retries while rate limited', async () => {
     await expect(client.uploadAsset(release, 'org.example.apk', path)).rejects.toThrow(
         'GitHub API failed (429)'
     );
-    expect(calls).toBe(5);
+    expect(calls).toBe(8);
 });
 
 test('fails immediately on a non-retryable upload error', async () => {

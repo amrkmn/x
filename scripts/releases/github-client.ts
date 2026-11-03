@@ -5,7 +5,7 @@ import { config } from '../config';
 import { isString, requiredArray, requiredNumber, requiredObject, requiredString } from './json';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from './types';
 
-const UPLOAD_ATTEMPTS = 5;
+const UPLOAD_ATTEMPTS = 8;
 const RETRYABLE_UPLOAD_STATUSES = new Set([403, 429, 500, 502, 503, 504]);
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,7 +20,9 @@ function uploadRetryDelay(response: Response, attempt: number): number {
         const reset = Number(response.headers.get('x-ratelimit-reset'));
         if (Number.isFinite(reset) && reset > 0) return Math.max(reset * 1000 - Date.now(), 1000);
     }
-    return Math.min(1000 * 2 ** attempt, 60_000);
+    // For 403 secondary/abuse rate limits or 429, allow up to 120s backoff
+    const maxBackoff = response.status === 403 || response.status === 429 ? 120_000 : 60_000;
+    return Math.min(1000 * 2 ** attempt, maxBackoff);
 }
 
 export class GitHubReleaseClient implements ReleaseClient {
