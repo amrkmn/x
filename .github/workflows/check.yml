@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
     check-updates:
-        runs-on: avrea-ubuntu-latest
+        runs-on: ubuntu-latest
         permissions:
             contents: write
 
