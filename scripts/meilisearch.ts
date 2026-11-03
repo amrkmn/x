@@ -9,7 +9,7 @@ import { config } from './config';
 import { env } from './env';
 import { logger } from './log';
 
-export async function updateMeilisearch() {
+export async function updateMeilisearch(indexFilePath?: string) {
     const envConfig = {
         host: env.MEILISEARCH_HOST,
         apiKey: env.MEILISEARCH_MASTER_KEY
@@ -22,7 +22,8 @@ export async function updateMeilisearch() {
 
     logger.info('search', 'index update start');
     const STATIC_DIR = join(process.cwd(), 'static');
-    const searchIndexFile = join(STATIC_DIR, 'indexes.json');
+    const searchIndexFile =
+        indexFilePath || env.SEARCH_INDEX_FILE || join(STATIC_DIR, 'indexes.json');
 
     try {
         const client = new Meilisearch({ host: envConfig.host, apiKey: envConfig.apiKey });

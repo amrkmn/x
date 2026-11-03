@@ -24,10 +24,13 @@ export const env = {
         return process.env.RELEASE_MANIFEST_FILE;
     },
     get MEILISEARCH_HOST(): string | undefined {
-        return process.env.MEILISEARCH_HOST;
+        return process.env.MEILISEARCH_HOST || process.env.PUBLIC_MEILISEARCH_HOST;
     },
     get MEILISEARCH_MASTER_KEY(): string | undefined {
         return process.env.MEILISEARCH_MASTER_KEY;
+    },
+    get SEARCH_INDEX_FILE(): string | undefined {
+        return process.env.SEARCH_INDEX_FILE;
     },
     get NO_COLOR(): string | undefined {
         return process.env.NO_COLOR;

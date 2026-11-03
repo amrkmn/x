@@ -2,12 +2,12 @@
 import ExtensionCategory from '$lib/components/ExtensionCategory.svelte';
 import MirrorSelector from '$lib/components/MirrorSelector.svelte';
 import { loadAppData } from '$lib/data';
-import { withSiteUrl } from '$lib/site';
+import { siteUrl, withSiteUrl } from '$lib/site';
 import Base from '../layouts/Base.astro';
 
 const data = loadAppData();
 const { extensions, domains } = data;
-const initialDomain = domains[0] ?? '';
+const initialDomain = domains.includes(siteUrl) ? siteUrl : (domains[0] ?? '');
 ---
 
 <Base

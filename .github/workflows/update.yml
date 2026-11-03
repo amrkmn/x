@@ -29,6 +29,18 @@ jobs:
     build:
         runs-on: ubuntu-latest
         if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.head_repository.full_name == github.repository) }}
+        strategy:
+            matrix:
+                include:
+                    - target: cloudflare
+                      site_url: https://x.noz.one
+                      analytics_domain: x.noz.one
+                    - target: netlify
+                      site_url: https://x.ujol.dev
+                      analytics_domain: x.ujol.dev
+                    - target: grebedoc
+                      site_url: https://x.amar.kim
+                      analytics_domain: x.amar.kim
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,21 +64,14 @@ jobs:
                   RELEASE_MANIFEST_FILE: /tmp/manifest/release-assets.json
                   PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
                   PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
-                  PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
-                  PUBLIC_ANALYTICS_DOMAIN: ${{ secrets.PUBLIC_ANALYTICS_DOMAIN }}
+                  PUBLIC_SITE_URL: ${{ matrix.site_url }}
+                  PUBLIC_ANALYTICS_DOMAIN: ${{ matrix.analytics_domain }}
 
             - name: Upload dist
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
-                  name: dist
+                  name: dist-${{ matrix.target }}
                   path: dist/
-                  retention-days: 1
-
-            - name: Upload release manifest
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: release-manifest
-                  path: /tmp/manifest/release-assets.json
                   retention-days: 1
 
     deploy:
@@ -86,7 +91,7 @@ jobs:
             - name: Download dist
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
-                  name: dist
+                  name: dist-${{ matrix.target }}
                   path: dist
 
             - name: Setup pnpm
@@ -138,17 +143,15 @@ jobs:
                   runtime: node@24
                   cache: true
 
-            - name: Download release manifest
+            - name: Download dist for search index
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
-                  name: release-manifest
-                  path: /tmp/manifest
+                  name: dist-cloudflare
+                  path: dist
 
             - name: Update search index
               run: pnpm run search:update
               env:
+                  SEARCH_INDEX_FILE: dist/indexes.json
                   MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}
                   MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
-                  # Same manifest prepare-dist used, so the pushed index always
-                  # carries release URLs even if the build step output drifted.
-                  RELEASE_MANIFEST_FILE: /tmp/manifest/release-assets.json

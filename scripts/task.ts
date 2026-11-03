@@ -174,13 +174,15 @@ const commandHandlers = {
     },
     search: async () => {
         logger.info('search', 'index update mode="only"');
-        // Rebuild the index with release URLs when a manifest is available so a
-        // manifest-less local build can never silently push upstream URLs live.
-        const manifest = await loadReleaseManifest({});
-        if (manifest) {
-            await generateDataJson(undefined, { manifest });
-        } else {
-            logger.warn('search', 'index update without manifest reason="no_manifest"');
+        // Rebuild the index with release URLs when a manifest is available and
+        // no prebuilt SEARCH_INDEX_FILE is provided.
+        if (!process.env.SEARCH_INDEX_FILE) {
+            const manifest = await loadReleaseManifest({});
+            if (manifest) {
+                await generateDataJson(undefined, { manifest });
+            } else {
+                logger.warn('search', 'index update without manifest reason="no_manifest"');
+            }
         }
         await updateMeilisearch();
     },
