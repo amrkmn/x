@@ -71,7 +71,7 @@ jobs:
 
     deploy:
         needs: build
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         strategy:
             fail-fast: false
             matrix:
@@ -125,7 +125,7 @@ jobs:
     search-index:
         needs: [build, deploy]
         if: ${{ !cancelled() && needs.build.result == 'success' }}
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
