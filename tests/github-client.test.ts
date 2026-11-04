@@ -86,3 +86,68 @@ test('fails immediately on a non-retryable upload error', async () => {
     );
     expect(calls).toBe(1);
 });
+
+test('retries rate-limited deleteAsset until it succeeds', async () => {
+    const statuses = [403, 204];
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+        calls.push(String(input));
+        const status = statuses.shift() ?? 204;
+        if (status === 204) return new Response(null, { status });
+        return new Response('API rate limit exceeded', {
+            status,
+            headers: { 'retry-after': '0' }
+        });
+    };
+    const client = new GitHubReleaseClient('token', 'owner', 'repo', fetcher);
+
+    await client.deleteAsset(12345);
+
+    const expectedUrl = 'https://api.github.com/repos/owner/repo/releases/assets/12345';
+    expect(calls).toEqual([expectedUrl, expectedUrl]);
+});
+
+test('retries rate-limited deleteRelease until it succeeds', async () => {
+    const statuses = [429, 204];
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+        calls.push(String(input));
+        const status = statuses.shift() ?? 204;
+        if (status === 204) return new Response(null, { status });
+        return new Response('Too many requests', {
+            status,
+            headers: { 'retry-after': '0' }
+        });
+    };
+    const client = new GitHubReleaseClient('token', 'owner', 'repo', fetcher);
+
+    await client.deleteRelease(999);
+
+    const expectedUrl = 'https://api.github.com/repos/owner/repo/releases/999';
+    expect(calls).toEqual([expectedUrl, expectedUrl]);
+});
+
+test('pauses subsequent requests when rate limited across client', async () => {
+    const resetTimeSec = Math.floor(Date.now() / 1000) + 1;
+    let callCount = 0;
+    const timestamps: number[] = [];
+    const fetcher: typeof fetch = async () => {
+        callCount += 1;
+        timestamps.push(Date.now());
+        if (callCount === 1) {
+            return new Response('rate limit', {
+                status: 403,
+                headers: {
+                    'x-ratelimit-remaining': '0',
+                    'x-ratelimit-reset': String(resetTimeSec)
+                }
+            });
+        }
+        return new Response(null, { status: 204 });
+    };
+    const client = new GitHubReleaseClient('token', 'owner', 'repo', fetcher);
+
+    await client.deleteAsset(1);
+    expect(callCount).toBe(2);
+    expect(timestamps[1]! - timestamps[0]!).toBeGreaterThanOrEqual(900);
+});

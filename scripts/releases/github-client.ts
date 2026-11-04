@@ -5,12 +5,44 @@ import { config } from '../config';
 import { isString, requiredArray, requiredNumber, requiredObject, requiredString } from './json';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from './types';
 
-const UPLOAD_ATTEMPTS = 8;
-const RETRYABLE_UPLOAD_STATUSES = new Set([403, 429, 500, 502, 503, 504]);
+const DEFAULT_MAX_ATTEMPTS = 8;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-function uploadRetryDelay(response: Response, attempt: number): number {
+async function isRetryable(response: Response): Promise<boolean> {
+    const status = response.status;
+    if (status === 429 || (status >= 500 && status <= 504)) {
+        return true;
+    }
+    if (status === 403) {
+        if (response.headers.get('retry-after') !== null) return true;
+        if (response.headers.get('x-ratelimit-remaining') === '0') return true;
+        const remaining = response.headers.get('x-ratelimit-remaining');
+        if (remaining !== null && Number(remaining) > 0) {
+            return false;
+        }
+        try {
+            const body = await response.clone().text();
+            const lower = body.toLowerCase();
+            if (
+                lower.includes('rate limit') ||
+                lower.includes('secondary rate limit') ||
+                lower.includes('abuse')
+            ) {
+                return true;
+            }
+            if (lower.includes('bad credentials') || lower.includes('not accessible')) {
+                return false;
+            }
+        } catch {
+            // Ignore clone/read failure
+        }
+        return true;
+    }
+    return false;
+}
+
+function calculateRetryDelay(response: Response, attempt: number): number {
     const retryAfter = response.headers.get('retry-after');
     if (retryAfter !== null) {
         const seconds = Number(retryAfter);
@@ -18,7 +50,10 @@ function uploadRetryDelay(response: Response, attempt: number): number {
     }
     if (response.headers.get('x-ratelimit-remaining') === '0') {
         const reset = Number(response.headers.get('x-ratelimit-reset'));
-        if (Number.isFinite(reset) && reset > 0) return Math.max(reset * 1000 - Date.now(), 1000);
+        if (Number.isFinite(reset) && reset > 0) {
+            const delay = reset * 1000 - Date.now() + 1000;
+            return Math.max(delay, 1000);
+        }
     }
     // For 403 secondary/abuse rate limits or 429, allow up to 120s backoff
     const maxBackoff = response.status === 403 || response.status === 429 ? 120_000 : 60_000;
@@ -26,23 +61,70 @@ function uploadRetryDelay(response: Response, attempt: number): number {
 }
 
 export class GitHubReleaseClient implements ReleaseClient {
+    private rateLimitedUntil = 0;
+
     constructor(
         private readonly token: string,
         private readonly owner: string,
         private readonly repo: string,
-        private readonly fetcher: typeof fetch = fetch
+        private readonly fetcher: typeof fetch = fetch,
+        private readonly maxAttempts: number = DEFAULT_MAX_ATTEMPTS
     ) {}
 
     private api(path: string): string {
         return `https://api.github.com/repos/${this.owner}/${this.repo}${path}`;
     }
 
-    private async request(url: string, init: RequestInit = {}): Promise<Response> {
+    private updateRateLimit(response: Response, delayMs = 0): void {
+        if (delayMs > 0) {
+            this.rateLimitedUntil = Math.max(this.rateLimitedUntil, Date.now() + delayMs);
+            return;
+        }
+        if (response.headers.get('x-ratelimit-remaining') === '0') {
+            const reset = Number(response.headers.get('x-ratelimit-reset'));
+            if (Number.isFinite(reset) && reset > 0) {
+                const delay = reset * 1000 - Date.now() + 1000;
+                if (delay > 0) {
+                    this.rateLimitedUntil = Math.max(this.rateLimitedUntil, Date.now() + delay);
+                }
+            }
+        }
+    }
+
+    private async request(url: string, init: RequestInit = {}, label?: string): Promise<Response> {
         const headers = new Headers(init.headers);
         if (!headers.has('Accept')) headers.set('Accept', 'application/vnd.github+json');
         headers.set('Authorization', `Bearer ${this.token}`);
         headers.set('X-GitHub-Api-Version', '2022-11-28');
-        return this.fetcher(url, { ...init, headers });
+
+        const method = init.method ?? 'GET';
+        const operation = label ?? `${method} ${url}`;
+
+        for (let attempt = 1; ; attempt += 1) {
+            if (this.rateLimitedUntil > Date.now()) {
+                const waitMs = this.rateLimitedUntil - Date.now();
+                console.warn(
+                    `Rate limit active across client. Pausing ${Math.ceil(waitMs / 1000)}s before next request (${operation})...`
+                );
+                await sleep(waitMs);
+            }
+
+            const response = await this.fetcher(url, { ...init, headers });
+
+            const retryable = await isRetryable(response);
+            if (!retryable || attempt >= this.maxAttempts) {
+                this.updateRateLimit(response);
+                return response;
+            }
+
+            const delay = calculateRetryDelay(response, attempt);
+            this.updateRateLimit(response, delay);
+
+            console.warn(
+                `Retrying ${operation} in ${delay}ms (attempt ${attempt}/${this.maxAttempts}, status ${response.status})`
+            );
+            await sleep(delay);
+        }
     }
 
     private async json(response: Response): Promise<JsonValue> {
@@ -155,21 +237,16 @@ export class GitHubReleaseClient implements ReleaseClient {
         const bytes = await readFile(path);
         const body = new ArrayBuffer(bytes.byteLength);
         new Uint8Array(body).set(bytes);
-        for (let attempt = 1; ; attempt += 1) {
-            const response = await this.request(url.toString(), {
+        const response = await this.request(
+            url.toString(),
+            {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/octet-stream' },
                 body
-            });
-            if (!RETRYABLE_UPLOAD_STATUSES.has(response.status) || attempt >= UPLOAD_ATTEMPTS) {
-                await this.json(response);
-                return;
-            }
-            await response.text();
-            const delay = uploadRetryDelay(response, attempt);
-            console.warn(`Retrying upload of ${name} in ${delay}ms (status ${response.status})`);
-            await sleep(delay);
-        }
+            },
+            `upload of ${name}`
+        );
+        await this.json(response);
     }
 
     async ensureTagRef(tag: string, sha: string): Promise<void> {
