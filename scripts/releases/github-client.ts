@@ -180,7 +180,11 @@ export class GitHubReleaseClient implements ReleaseClient {
 
             if (resetMs > 0) {
                 const waitMs = resetMs - Date.now();
-                const delayMs = Math.max(waitMs + 1000, 1000);
+                // Match Keiyoushi's rate limit strategy:
+                // sleep for the whole duration until reset plus 10 seconds safety buffer (base delay 60s)
+                const bufferMs = waitMs > 5000 ? 10_000 : 1000;
+                const baseDelayMs = waitMs > 5000 ? 60_000 : 1000;
+                const delayMs = Math.max(waitMs + bufferMs, baseDelayMs);
                 return {
                     retryable: true,
                     isPrimaryRateLimit: true,
@@ -189,8 +193,7 @@ export class GitHubReleaseClient implements ReleaseClient {
                 };
             }
 
-            const delayMs =
-                Math.min(5000 * 2 ** attempt, 180_000) + Math.floor(Math.random() * 1000);
+            const delayMs = Math.max(Math.min(60_000 * 2 ** (attempt - 1), 300_000), 60_000);
             return {
                 retryable: true,
                 isPrimaryRateLimit: true,
@@ -199,8 +202,8 @@ export class GitHubReleaseClient implements ReleaseClient {
             };
         }
 
-        const maxBackoff = status === 403 || status === 429 ? 120_000 : 60_000;
-        const delayMs = Math.min(1000 * 2 ** attempt, maxBackoff);
+        // Secondary / abuse rate limits: match Keiyoushi's base delay of 60s doubling per attempt
+        const delayMs = Math.min(60_000 * 2 ** (attempt - 1), 240_000);
         return {
             retryable: true,
             isPrimaryRateLimit: false,
