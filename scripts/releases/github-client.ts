@@ -2,66 +2,31 @@ import { readFile } from 'node:fs/promises';
 
 import type { JsonValue } from '../../src/lib/validation';
 import { config } from '../config';
-import { isString, requiredArray, requiredNumber, requiredObject, requiredString } from './json';
+import {
+    isRecord,
+    isString,
+    requiredArray,
+    requiredNumber,
+    requiredObject,
+    requiredString
+} from './json';
 import type { ReleaseAssetInfo, ReleaseClient, ReleaseInfo } from './types';
 
 const DEFAULT_MAX_ATTEMPTS = 8;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function isRetryable(response: Response): Promise<boolean> {
-    const status = response.status;
-    if (status === 429 || (status >= 500 && status <= 504)) {
-        return true;
-    }
-    if (status === 403) {
-        if (response.headers.get('retry-after') !== null) return true;
-        if (response.headers.get('x-ratelimit-remaining') === '0') return true;
-        const remaining = response.headers.get('x-ratelimit-remaining');
-        if (remaining !== null && Number(remaining) > 0) {
-            return false;
-        }
-        try {
-            const body = await response.clone().text();
-            const lower = body.toLowerCase();
-            if (
-                lower.includes('rate limit') ||
-                lower.includes('secondary rate limit') ||
-                lower.includes('abuse')
-            ) {
-                return true;
-            }
-            if (lower.includes('bad credentials') || lower.includes('not accessible')) {
-                return false;
-            }
-        } catch {
-            // Ignore clone/read failure
-        }
-        return true;
-    }
-    return false;
-}
-
-function calculateRetryDelay(response: Response, attempt: number): number {
-    const retryAfter = response.headers.get('retry-after');
-    if (retryAfter !== null) {
-        const seconds = Number(retryAfter);
-        if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
-    }
-    if (response.headers.get('x-ratelimit-remaining') === '0') {
-        const reset = Number(response.headers.get('x-ratelimit-reset'));
-        if (Number.isFinite(reset) && reset > 0) {
-            const delay = reset * 1000 - Date.now() + 1000;
-            return Math.max(delay, 1000);
-        }
-    }
-    // For 403 secondary/abuse rate limits or 429, allow up to 120s backoff
-    const maxBackoff = response.status === 403 || response.status === 429 ? 120_000 : 60_000;
-    return Math.min(1000 * 2 ** attempt, maxBackoff);
+interface RetryDecision {
+    retryable: boolean;
+    isPrimaryRateLimit: boolean;
+    delayMs: number;
+    reason?: string;
 }
 
 export class GitHubReleaseClient implements ReleaseClient {
     private rateLimitedUntil = 0;
+    private lastKnownResetMs = 0;
+    private rateLimitFetchPromise: Promise<number | null> | null = null;
 
     constructor(
         private readonly token: string,
@@ -75,20 +40,173 @@ export class GitHubReleaseClient implements ReleaseClient {
         return `https://api.github.com/repos/${this.owner}/${this.repo}${path}`;
     }
 
-    private updateRateLimit(response: Response, delayMs = 0): void {
-        if (delayMs > 0) {
-            this.rateLimitedUntil = Math.max(this.rateLimitedUntil, Date.now() + delayMs);
-            return;
+    private inspectHeaders(response: Response): void {
+        const resetHeader = response.headers.get('x-ratelimit-reset');
+        if (resetHeader !== null) {
+            const sec = Number(resetHeader);
+            if (Number.isFinite(sec) && sec > 0) {
+                this.lastKnownResetMs = sec * 1000;
+            }
         }
-        if (response.headers.get('x-ratelimit-remaining') === '0') {
-            const reset = Number(response.headers.get('x-ratelimit-reset'));
-            if (Number.isFinite(reset) && reset > 0) {
-                const delay = reset * 1000 - Date.now() + 1000;
+        const remainingHeader = response.headers.get('x-ratelimit-remaining');
+        if (remainingHeader !== null) {
+            const remaining = Number(remainingHeader);
+            if (Number.isFinite(remaining) && remaining === 0 && this.lastKnownResetMs > 0) {
+                const delay = this.lastKnownResetMs - Date.now() + 1000;
                 if (delay > 0) {
                     this.rateLimitedUntil = Math.max(this.rateLimitedUntil, Date.now() + delay);
                 }
             }
         }
+    }
+
+    private async fetchRateLimitReset(): Promise<number | null> {
+        if (this.rateLimitFetchPromise) return this.rateLimitFetchPromise;
+        this.rateLimitFetchPromise = (async () => {
+            try {
+                const response = await this.fetcher('https://api.github.com/rate_limit', {
+                    headers: {
+                        Accept: 'application/vnd.github+json',
+                        Authorization: `Bearer ${this.token}`,
+                        'X-GitHub-Api-Version': '2022-11-28'
+                    }
+                });
+                if (!response.ok) return null;
+                const text = await response.text();
+                // SAFETY: JSON.parse of a successful GitHub API response yields a parsed JSON tree.
+                const body = JSON.parse(text) as JsonValue;
+                if (!isRecord(body)) return null;
+                let resetValue: JsonValue | undefined;
+                if (isRecord(body.resources)) {
+                    const resources = body.resources;
+                    if (isRecord(resources.core)) {
+                        resetValue = resources.core.reset;
+                    }
+                }
+                if (resetValue === undefined && isRecord(body.rate)) {
+                    resetValue = body.rate.reset;
+                }
+                if (Number.isFinite(resetValue)) {
+                    const sec = Number(resetValue);
+                    if (sec > 0) return sec * 1000;
+                }
+                return null;
+            } catch {
+                return null;
+            } finally {
+                this.rateLimitFetchPromise = null;
+            }
+        })();
+        return this.rateLimitFetchPromise;
+    }
+
+    private async evaluateRetry(response: Response, attempt: number): Promise<RetryDecision> {
+        const status = response.status;
+        if (response.ok) {
+            return { retryable: false, isPrimaryRateLimit: false, delayMs: 0 };
+        }
+
+        if (status >= 500 && status <= 504) {
+            const delayMs = Math.min(1000 * 2 ** attempt, 60_000) + Math.floor(Math.random() * 500);
+            return {
+                retryable: true,
+                isPrimaryRateLimit: false,
+                delayMs,
+                reason: `HTTP ${status}`
+            };
+        }
+
+        if (status !== 403 && status !== 429) {
+            return { retryable: false, isPrimaryRateLimit: false, delayMs: 0 };
+        }
+
+        const retryAfter = response.headers.get('retry-after');
+        if (retryAfter !== null) {
+            const sec = Number(retryAfter);
+            if (Number.isFinite(sec) && sec >= 0) {
+                const delayMs = sec * 1000 + (sec > 0 ? 1000 : 0);
+                return {
+                    retryable: true,
+                    isPrimaryRateLimit: false,
+                    delayMs,
+                    reason: `retry-after ${sec}s`
+                };
+            }
+        }
+
+        let bodyText = '';
+        try {
+            bodyText = await response.clone().text();
+        } catch {
+            // Ignore clone failure
+        }
+        const lower = bodyText.toLowerCase();
+
+        if (
+            lower.includes('bad credentials') ||
+            lower.includes('not accessible') ||
+            lower.includes('must have admin rights')
+        ) {
+            return { retryable: false, isPrimaryRateLimit: false, delayMs: 0 };
+        }
+
+        const remaining = response.headers.get('x-ratelimit-remaining');
+        const isPrimary =
+            remaining === '0' ||
+            lower.includes('api rate limit exceeded') ||
+            lower.includes('rate limit exceeded');
+
+        if (isPrimary) {
+            let resetMs = 0;
+            const resetHeader = response.headers.get('x-ratelimit-reset');
+            if (resetHeader !== null) {
+                const sec = Number(resetHeader);
+                if (Number.isFinite(sec) && sec > 0) {
+                    resetMs = sec * 1000;
+                }
+            }
+
+            if (resetMs <= Date.now()) {
+                if (this.lastKnownResetMs > Date.now()) {
+                    resetMs = this.lastKnownResetMs;
+                } else {
+                    const fetched = await this.fetchRateLimitReset();
+                    if (fetched && fetched > 0) {
+                        resetMs = fetched;
+                        this.lastKnownResetMs = fetched;
+                    }
+                }
+            }
+
+            if (resetMs > 0) {
+                const waitMs = resetMs - Date.now();
+                const delayMs = Math.max(waitMs + 1000, 1000);
+                return {
+                    retryable: true,
+                    isPrimaryRateLimit: true,
+                    delayMs,
+                    reason: `primary rate limit resets in ${Math.ceil(delayMs / 1000)}s`
+                };
+            }
+
+            const delayMs =
+                Math.min(5000 * 2 ** attempt, 180_000) + Math.floor(Math.random() * 1000);
+            return {
+                retryable: true,
+                isPrimaryRateLimit: true,
+                delayMs,
+                reason: 'primary rate limit (backoff)'
+            };
+        }
+
+        const maxBackoff = status === 403 || status === 429 ? 120_000 : 60_000;
+        const delayMs = Math.min(1000 * 2 ** attempt, maxBackoff);
+        return {
+            retryable: true,
+            isPrimaryRateLimit: false,
+            delayMs,
+            reason: status === 429 ? 'HTTP 429' : 'secondary rate limit'
+        };
     }
 
     private async request(url: string, init: RequestInit = {}, label?: string): Promise<Response> {
@@ -100,28 +218,62 @@ export class GitHubReleaseClient implements ReleaseClient {
         const method = init.method ?? 'GET';
         const operation = label ?? `${method} ${url}`;
 
+        let primaryRateLimitWaits = 0;
+        const maxPrimaryRateLimitWaits = 5;
+
         for (let attempt = 1; ; attempt += 1) {
             if (this.rateLimitedUntil > Date.now()) {
                 const waitMs = this.rateLimitedUntil - Date.now();
-                console.warn(
-                    `Rate limit active across client. Pausing ${Math.ceil(waitMs / 1000)}s before next request (${operation})...`
-                );
-                await sleep(waitMs);
+                if (waitMs > 50) {
+                    const jitter = Math.floor(Math.random() * 500);
+                    const totalWait = waitMs + jitter;
+                    console.warn(
+                        `Rate limit active across client. Pausing ${Math.ceil(totalWait / 1000)}s before next request (${operation})...`
+                    );
+                    await sleep(totalWait);
+                }
             }
 
-            const response = await this.fetcher(url, { ...init, headers });
+            let response: Response;
+            try {
+                response = await this.fetcher(url, { ...init, headers });
+            } catch (networkError) {
+                if (attempt >= this.maxAttempts) {
+                    throw networkError;
+                }
+                const delay = Math.min(1000 * 2 ** attempt, 30_000);
+                console.warn(
+                    `Network error for ${operation}: ${networkError instanceof Error ? networkError.message : String(networkError)}. Retrying in ${delay}ms (attempt ${attempt}/${this.maxAttempts})...`
+                );
+                await sleep(delay);
+                continue;
+            }
 
-            const retryable = await isRetryable(response);
-            if (!retryable || attempt >= this.maxAttempts) {
-                this.updateRateLimit(response);
+            this.inspectHeaders(response);
+
+            const decision = await this.evaluateRetry(response, attempt);
+            if (!decision.retryable) {
                 return response;
             }
 
-            const delay = calculateRetryDelay(response, attempt);
-            this.updateRateLimit(response, delay);
+            if (decision.isPrimaryRateLimit) {
+                primaryRateLimitWaits += 1;
+                if (primaryRateLimitWaits > maxPrimaryRateLimitWaits) {
+                    console.error(
+                        `Exceeded maximum primary rate limit window waits (${maxPrimaryRateLimitWaits}) for ${operation}`
+                    );
+                    return response;
+                }
+                attempt -= 1;
+            } else if (attempt >= this.maxAttempts) {
+                return response;
+            }
+
+            const delay = decision.delayMs;
+            this.rateLimitedUntil = Math.max(this.rateLimitedUntil, Date.now() + delay);
 
             console.warn(
-                `Retrying ${operation} in ${delay}ms (attempt ${attempt}/${this.maxAttempts}, status ${response.status})`
+                `Retrying ${operation} in ${delay}ms (${decision.isPrimaryRateLimit ? `rate-limit wait ${primaryRateLimitWaits}/${maxPrimaryRateLimitWaits}` : `attempt ${attempt}/${this.maxAttempts}`}, status ${response.status}${decision.reason ? `: ${decision.reason}` : ''})`
             );
             await sleep(delay);
         }
@@ -246,6 +398,19 @@ export class GitHubReleaseClient implements ReleaseClient {
             },
             `upload of ${name}`
         );
+        if (response.status === 422) {
+            try {
+                const text = await response.clone().text();
+                if (text.includes('already_exists')) {
+                    console.warn(
+                        `Asset ${name} already exists in ${release.tag}, skipping upload.`
+                    );
+                    return;
+                }
+            } catch {
+                // Ignore clone/read failure
+            }
+        }
         await this.json(response);
     }
 

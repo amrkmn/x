@@ -151,3 +151,76 @@ test('pauses subsequent requests when rate limited across client', async () => {
     expect(callCount).toBe(2);
     expect(timestamps[1]! - timestamps[0]!).toBeGreaterThanOrEqual(900);
 });
+
+test('queries /rate_limit when uploads.github.com returns 403 without reset headers', async () => {
+    const path = await assetPath();
+    const resetTimeSec = Math.floor(Date.now() / 1000) + 1;
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+        const url = String(input);
+        calls.push(url);
+        if (url === 'https://api.github.com/rate_limit') {
+            return new Response(
+                JSON.stringify({
+                    resources: {
+                        core: {
+                            limit: 5000,
+                            used: 5000,
+                            remaining: 0,
+                            reset: resetTimeSec
+                        }
+                    }
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+        if (calls.filter((c) => c.includes('uploads.example')).length === 1) {
+            // uploads.github.com returns 403 without x-ratelimit headers
+            return new Response(
+                JSON.stringify({
+                    message:
+                        'API rate limit exceeded for user ID 85985879. If you reach out to GitHub Support for help, please include the request ID...',
+                    documentation_url: 'https://docs.github.com/en/rest'
+                }),
+                {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+        return Response.json({ id: 1, name: 'org.example.apk' }, { status: 201 });
+    };
+    const client = new GitHubReleaseClient('token', 'owner', 'repo', fetcher);
+
+    await client.uploadAsset(release, 'org.example.apk', path);
+
+    const uploadUrl =
+        'https://uploads.example/repos/owner/repo/releases/1/assets?name=org.example.apk';
+    expect(calls).toEqual([uploadUrl, 'https://api.github.com/rate_limit', uploadUrl]);
+});
+
+test('skips upload gracefully if asset already exists on retry (422 already_exists)', async () => {
+    const path = await assetPath();
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+        calls.push(String(input));
+        return new Response(
+            JSON.stringify({
+                message: 'Validation Failed',
+                errors: [{ resource: 'ReleaseAsset', code: 'already_exists', field: 'name' }]
+            }),
+            {
+                status: 422,
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+    };
+    const client = new GitHubReleaseClient('token', 'owner', 'repo', fetcher);
+
+    await client.uploadAsset(release, 'org.example.apk', path);
+
+    expect(calls.length).toBe(1);
+});
