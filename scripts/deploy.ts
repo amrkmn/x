@@ -34,21 +34,11 @@ export async function deployGrebedoc(target: BuildTarget): Promise<void> {
         params: { [constants.ZSTD_c_compressionLevel]: 3 }
     });
 
-    // 3. Upload directly via native fetch
-    const response = await fetch('https://grebedoc.dev/', {
-        method: 'PUT',
-        headers: {
-            Host: 'x.amar.kim',
-            Authorization: `Pages ${password}`,
-            'Content-Type': 'application/x-tar+zstd'
-        },
-        body: compressed
-    });
-
-    if (!response.ok) {
-        const body = await response.text().catch(() => '');
-        throw new Error(`Grebedoc deployment failed (HTTP ${response.status}): ${body}`);
-    }
+    // 3. Upload directly via curl (curl preserves custom Host header)
+    const host = new URL(target.siteUrl).host;
+    await $`curl -fSL https://grebedoc.dev/ -X PUT -H ${`Host: ${host}`} -H ${`Authorization: Pages ${password}`} -H "Content-Type: application/x-tar+zstd" --data-binary @-`.stdin(
+        compressed
+    );
 
     logger.info('deploy', 'grebedoc deploy complete');
 }
