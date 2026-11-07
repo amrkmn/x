@@ -28,6 +28,8 @@
         "data:generate": "nub scripts/task.ts data",
         "search:update": "nub scripts/task.ts search",
         "prepare:dist": "nub scripts/task.ts prepare-dist",
+        "build:all": "nub scripts/task.ts build-all",
+        "deploy:all": "nub scripts/task.ts deploy-all",
         "test": "vitest run",
         "prepare": "nub scripts/setup-hooks.ts",
         "setup-hooks": "nub scripts/setup-hooks.ts"

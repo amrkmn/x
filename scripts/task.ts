@@ -8,6 +8,7 @@ import './env';
 
 import $ from 'dax';
 
+import { deployAll } from './deploy';
 import {
     applyCommitUpdates,
     fetchMissingIcons,
@@ -30,6 +31,7 @@ import { logger } from './log';
 import { updateMeilisearch } from './meilisearch';
 import { runPublisher } from './publish';
 import { runCleanup } from './releases/cleanup';
+import { BUILD_TARGETS, type BuildTarget } from './targets';
 
 export type TaskCommand =
     | 'check'
@@ -37,6 +39,8 @@ export type TaskCommand =
     | 'data'
     | 'search'
     | 'prepare-dist'
+    | 'build-all'
+    | 'deploy-all'
     | 'local'
     | 'publish'
     | 'cleanup';
@@ -48,6 +52,8 @@ function isTaskCommand(command: string | undefined): command is TaskCommand {
         command === 'data' ||
         command === 'search' ||
         command === 'prepare-dist' ||
+        command === 'build-all' ||
+        command === 'deploy-all' ||
         command === 'local' ||
         command === 'publish' ||
         command === 'cleanup'
@@ -168,6 +174,47 @@ async function fetchManifest(): Promise<string | undefined> {
     }
 }
 
+async function buildTarget(
+    target: BuildTarget,
+    data: Awaited<ReturnType<typeof loadExtensionsData>>,
+    manifest: Awaited<ReturnType<typeof loadReleaseManifest>>
+): Promise<void> {
+    logger.info('build', `building target=${target.name} outDir=${target.outDir}`);
+    process.env.PUBLIC_SITE_URL = target.siteUrl;
+    process.env.PUBLIC_ANALYTICS_DOMAIN = target.analyticsDomain;
+
+    await overlayReleaseManifest(data, STATIC_DIR, { manifest });
+    await generateRedirects(data, STATIC_DIR, { manifest });
+    await generateDataJson();
+
+    await $`nubx astro build --outDir ${target.outDir}`;
+
+    const binaries = await findBinaryArtifacts(target.outDir);
+    if (binaries.length > 0) {
+        throw new Error(
+            `${target.outDir} contains ${binaries.length} binary artifact(s): ${binaries.slice(0, 5).join(', ')}`
+        );
+    }
+}
+
+async function buildAll(): Promise<void> {
+    await updateExtensions('static');
+    const data = await loadExtensionsData();
+    const manifest = await loadReleaseManifest({});
+
+    for (const target of BUILD_TARGETS) {
+        await buildTarget(target, data, manifest);
+    }
+}
+
+function parseDeployMessage(args: string[]): string | undefined {
+    const index = args.indexOf('--message');
+    if (index !== -1 && index + 1 < args.length) {
+        return args[index + 1];
+    }
+    return undefined;
+}
+
 const commandHandlers = {
     data: async () => {
         await generateDataJson();
@@ -200,6 +247,13 @@ const commandHandlers = {
             );
         }
     },
+    'build-all': async () => {
+        await buildAll();
+    },
+    'deploy-all': async (args?: string[]) => {
+        const message = parseDeployMessage(args || process.argv.slice(2));
+        await deployAll({ message });
+    },
     local: async () => {
         const manifestPath = await fetchManifest();
         if (manifestPath) process.env.RELEASE_MANIFEST_FILE = manifestPath;
@@ -215,7 +269,7 @@ const commandHandlers = {
     cleanup: async () => {
         await runCleanup();
     }
-} satisfies Record<Exclude<TaskCommand, 'check' | 'static'>, () => Promise<void>>;
+} satisfies Record<Exclude<TaskCommand, 'check' | 'static'>, (args?: string[]) => Promise<void>>;
 
 export async function runTask(args = process.argv.slice(2)): Promise<void> {
     const command = parseTask(args);
@@ -225,7 +279,7 @@ export async function runTask(args = process.argv.slice(2)): Promise<void> {
         return;
     }
 
-    await commandHandlers[command]();
+    await commandHandlers[command](args);
 }
 
 if (import.meta.main) {
