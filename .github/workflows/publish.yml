@@ -27,13 +27,13 @@ jobs:
                   ref: ${{ github.sha }}
                   fetch-depth: 0
 
-            - name: Setup pnpm
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+            - name: Setup nub
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              run: nub ci
 
             - name: Publish immutable releases
-              run: pnpm run publish:releases
+              run: nub run publish:releases
               env:
                   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

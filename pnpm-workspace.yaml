@@ -1,4 +1,0 @@
-autoInstallPeers: false
-allowBuilds:
-    esbuild: true
-    workerd: true

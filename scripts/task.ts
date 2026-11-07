@@ -192,7 +192,7 @@ const commandHandlers = {
         const manifest = await loadReleaseManifest({});
         await overlayReleaseManifest(data, STATIC_DIR, { manifest });
         await generateRedirects(data, STATIC_DIR, { manifest });
-        await $`pnpm run build`;
+        await $`nub run build`;
         const binaries = await findBinaryArtifacts('dist');
         if (binaries.length > 0) {
             throw new Error(

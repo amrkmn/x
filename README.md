@@ -27,15 +27,15 @@ An extension repository aggregator that syncs from multiple upstream sources. It
 Requires Node.js 24 LTS.
 
 ```bash
-pnpm install
-pnpm run dev            # Start dev server
-pnpm run update:check   # Check upstream repos and update extensions.json
-pnpm run update:static  # Populate static/ from upstream repos
-pnpm run update:local   # Local full refresh: static + data + search push
-pnpm run search:update  # Push static/indexes.json to Meilisearch
-pnpm run build          # Generate data.json and build dist/
-pnpm run check          # Type-check
-pnpm run lint           # Run Oxlint
+nub install
+nub run dev            # Start dev server
+nub run update:check   # Check upstream repos and update extensions.json
+nub run update:static  # Populate static/ from upstream repos
+nub run update:local   # Local full refresh: static + data + search push
+nub run search:update  # Push static/indexes.json to Meilisearch
+nub run build          # Generate data.json and build dist/
+nub run check          # Type-check
+nub run lint           # Run Oxlint
 ```
 
 ## Hosting

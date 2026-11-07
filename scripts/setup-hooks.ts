@@ -4,14 +4,14 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
-pnpm run format:check
+nub run format:check
 if [ $? -ne 0 ]; then
     echo ""
-    echo "Formatting check failed. Run 'pnpm run format' to fix formatting issues."
+    echo "Formatting check failed. Run 'nub run format' to fix formatting issues."
     exit 1
 fi
 
-pnpm run lint
+nub run lint
 if [ $? -ne 0 ]; then
     echo ""
     echo "Lint check failed."
@@ -48,8 +48,8 @@ async function setupHooks() {
     await chmod(hookPath, 0o755);
 
     console.log(`Git pre-commit hook installed at ${hookPath}`);
-    console.log('  Runs "pnpm run format:check" and "pnpm run lint" before each commit');
-    console.log('  If formatting issues are found, run "pnpm run format" to fix them');
+    console.log('  Runs "nub run format:check" and "nub run lint" before each commit');
+    console.log('  If formatting issues are found, run "nub run format" to fix them');
 }
 
 await setupHooks();

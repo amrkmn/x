@@ -47,11 +47,11 @@ jobs:
               with:
                   ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-            - name: Setup pnpm
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+            - name: Setup nub
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              run: nub ci
 
             - name: Fetch latest release manifest
               run: |
@@ -59,7 +59,7 @@ jobs:
                   curl -fSL -o /tmp/manifest/release-assets.json "https://github.com/${{ github.repository }}/releases/latest/download/release-assets.json"
 
             - name: Prepare dist
-              run: pnpm run prepare:dist
+              run: nub run prepare:dist
               env:
                   RELEASE_MANIFEST_FILE: /tmp/manifest/release-assets.json
                   PUBLIC_MEILISEARCH_HOST: ${{ secrets.PUBLIC_MEILISEARCH_HOST }}
@@ -94,23 +94,24 @@ jobs:
                   name: dist-${{ matrix.target }}
                   path: dist
 
-            - name: Setup pnpm
+            - name: Setup nub
               if: matrix.target == 'cloudflare' || matrix.target == 'netlify'
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              if: matrix.target == 'cloudflare' || matrix.target == 'netlify'
+              run: nub ci
 
             - name: Deploy to Cloudflare Workers
               if: matrix.target == 'cloudflare'
-              run: pnpm wrangler deploy --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
+              run: nubx wrangler deploy --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
             - name: Deploy to Netlify
               if: matrix.target == 'netlify'
-              run: pnpx --package=netlify-cli@27.14.2 netlify deploy --prod --dir dist --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
+              run: nubx netlify deploy --prod --dir dist --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
               env:
                   NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
                   NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
@@ -137,11 +138,11 @@ jobs:
               with:
                   ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-            - name: Setup pnpm
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+            - name: Setup nub
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              run: nub ci
 
             - name: Download dist for search index
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -150,7 +151,7 @@ jobs:
                   path: dist
 
             - name: Update search index
-              run: pnpm run search:update
+              run: nub run search:update
               env:
                   SEARCH_INDEX_FILE: dist/indexes.json
                   MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}

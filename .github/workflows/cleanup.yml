@@ -21,13 +21,13 @@ jobs:
               with:
                   ref: ${{ github.sha }}
 
-            - name: Setup pnpm
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+            - name: Setup nub
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              run: nub ci
 
             - name: Clean up unreferenced release assets
-              run: pnpm run cleanup:releases
+              run: nub run cleanup:releases
               env:
                   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

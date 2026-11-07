@@ -22,19 +22,19 @@ jobs:
               with:
                   token: ${{ secrets.GH_TOKEN }}
 
-            - name: Setup pnpm
-              uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
-              with:
-                  runtime: node@24
-                  cache: true
+            - name: Setup nub
+              uses: nubjs/setup-nub@c7b970ec04655a2f0a111cd436cc182a3b660e7a # v0.6.0
+
+            - name: Install dependencies
+              run: nub ci
 
             - name: Check extension updates
               id: update
-              run: pnpm run update:check
+              run: nub run update:check
 
             - name: Format extensions.json
               if: steps.update.outputs.updated == 'true'
-              run: pnpm run format
+              run: nub run format
 
             - name: Commit and push changes
               if: steps.update.outputs.updated == 'true'
