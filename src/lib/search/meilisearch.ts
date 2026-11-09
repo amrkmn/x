@@ -1,19 +1,12 @@
 import type { SearchIndexEntry } from '$lib/types';
 
+import type { SearchFilters } from './types.js';
+
+export type { SearchFilters };
+
 export interface MeilisearchConfig {
     host: string;
     apiKey?: string;
-}
-
-export interface SearchFilters {
-    query?: string;
-    source?: string;
-    category?: string;
-    lang?: string;
-    nsfw?: boolean;
-    page?: number;
-    limit?: number;
-    sort?: string;
 }
 
 export interface MeilisearchHit extends SearchIndexEntry {

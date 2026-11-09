@@ -1,13 +1,6 @@
 import type { JsonValue } from '../src/lib/validation';
-import { isRecord, isString } from './releases/json';
+import { asString, isRecord, isString } from '../src/lib/validation';
 import type { ExtensionConfig } from './types';
-
-function asString(value: JsonValue | undefined, path: string): string {
-    if (!isString(value) || value.length === 0) {
-        throw new Error(`Invalid ${path}: expected non-empty string`);
-    }
-    return value;
-}
 
 export function parseExtensionConfig(
     value: JsonValue | undefined,

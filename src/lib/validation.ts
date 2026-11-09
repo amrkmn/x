@@ -6,15 +6,20 @@ export interface JsonObject {
     [key: string]: JsonValue;
 }
 
-function isRecord(value: JsonValue): value is JsonObject {
-    return value !== null && Object.getPrototypeOf(value) === Object.prototype;
+export function isRecord(value: JsonValue | undefined): value is JsonObject {
+    return (
+        value !== undefined &&
+        value !== null &&
+        !Array.isArray(value) &&
+        Object.getPrototypeOf(value) === Object.prototype
+    );
 }
 
-function isString(value: JsonValue): value is string {
-    return value !== null && value !== undefined && String(value) === value;
+export function isString(value: JsonValue | undefined): value is string {
+    return value !== undefined && value !== null && String(value) === value;
 }
 
-function asString(value: JsonValue, path: string): string {
+export function asString(value: JsonValue | undefined, path: string): string {
     if (!isString(value) || value.length === 0) {
         throw new Error(`Invalid ${path}: expected non-empty string`);
     }

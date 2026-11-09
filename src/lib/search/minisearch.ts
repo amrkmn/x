@@ -1,7 +1,6 @@
 import MiniSearch from 'minisearch';
 
-import type { SearchFilters } from './meilisearch.js';
-import type { EnrichedExtension } from './types.js';
+import type { EnrichedExtension, SearchFilters } from './types.js';
 
 let miniSearch: MiniSearch | null = null;
 let allExtensions: EnrichedExtension[] = [];

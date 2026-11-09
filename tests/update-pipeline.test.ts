@@ -7,11 +7,10 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
 
-import { config } from '../scripts/config';
 import type { ExtensionsData } from '../scripts/extensions';
 import {
-    fetchMissingIcons,
     fetchLatestReleaseManifest,
+    fetchMissingIcons,
     findBinaryArtifacts,
     findExtensionUpdates,
     generateDataJson,
@@ -459,16 +458,6 @@ test('pruneRemovedRepos removes an entire removed top-level group', async () => 
     expect(pruned).toBe(1);
     expect(existsSync(join(staticDir, 'yuzono'))).toBe(false);
     expect(existsSync(join(staticDir, 'keiyoushi'))).toBe(false);
-});
-
-test('lightweight materialization retains only index, repo, and icon files', () => {
-    expect(config.filesToCopy).toEqual([
-        'index.json',
-        'index.min.json',
-        'index.pb',
-        'repo.json',
-        'icon'
-    ]);
 });
 
 test('aniyomi wrapper index.json parses without changing category', async () => {

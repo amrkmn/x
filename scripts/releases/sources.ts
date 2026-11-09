@@ -1,3 +1,4 @@
+import { parseSourceUrl } from '../../src/lib/search/utils';
 import type { JsonObject, JsonValue } from '../../src/lib/validation';
 import type { ExtensionConfig } from '../types';
 import { isRecord, isString, optionalUrl, requiredString } from './json';
@@ -62,8 +63,7 @@ const SOURCE_SPECS = new Map<string, SourceSpec>([
 ]);
 
 function sourceRepo(source: string): GitHubRepo {
-    const separator = source.lastIndexOf('@');
-    const repositoryUrl = separator > 0 ? source.slice(0, separator) : source;
+    const repositoryUrl = parseSourceUrl(source).url;
     const url = new URL(repositoryUrl);
     const parts = url.pathname.split('/').filter(Boolean);
     if (url.hostname !== 'github.com' || parts.length !== 2) {

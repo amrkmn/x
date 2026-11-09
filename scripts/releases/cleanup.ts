@@ -24,7 +24,7 @@ export function getReferencedUrls(manifest: ReleaseManifest): Set<string> {
     return urls;
 }
 
-export async function deleteAssetsPool(
+async function deleteAssetsPool(
     assets: ReleaseAssetInfo[],
     client: ReleaseClient,
     concurrency = 5,

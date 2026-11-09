@@ -1,17 +1,7 @@
 import type { JsonObject, JsonValue } from '../../src/lib/validation';
+import { isRecord, isString } from '../../src/lib/validation';
 
-export function isRecord(value: JsonValue | undefined): value is JsonObject {
-    return (
-        value !== undefined &&
-        value !== null &&
-        !Array.isArray(value) &&
-        Object.getPrototypeOf(value) === Object.prototype
-    );
-}
-
-export function isString(value: JsonValue | undefined): value is string {
-    return value !== undefined && value !== null && String(value) === value;
-}
+export { isRecord, isString };
 
 export function requiredObject(value: JsonValue | undefined, label: string): JsonObject {
     if (!isRecord(value)) throw new Error(`Invalid ${label}: expected object`);

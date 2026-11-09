@@ -15,15 +15,8 @@
     } from '$lib/search/minisearch.js';
     import type { EnrichedExtension } from '$lib/search/types.js';
     import { findSourceByFormattedName, formatSourceName } from '$lib/search/utils.js';
-    import type { AppData } from '$lib/types.js';
     import { parseSearchIndex } from '$lib/validation.js';
     import { onMount } from 'svelte';
-
-    interface Props {
-        data: AppData;
-    }
-
-    const { data: _data }: Props = $props();
 
     let initializing = $state(true);
     let searching = $state(false);
@@ -341,42 +334,44 @@
         );
     });
 
-    onMount(async () => {
+    onMount(() => {
         const handlePopState = () => readUrlParams();
         window.addEventListener('popstate', handlePopState);
         readUrlParams();
 
-        try {
-            const meiliConfig = {
-                host: import.meta.env.PUBLIC_MEILISEARCH_HOST || '',
-                apiKey: import.meta.env.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY
-            };
+        (async () => {
+            try {
+                const meiliConfig = {
+                    host: import.meta.env.PUBLIC_MEILISEARCH_HOST || '',
+                    apiKey: import.meta.env.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY
+                };
 
-            if (meiliConfig.host) {
-                initMeilisearch(meiliConfig);
-                meilisearchEnabled = true;
+                if (meiliConfig.host) {
+                    initMeilisearch(meiliConfig);
+                    meilisearchEnabled = true;
+                }
+            } catch (e) {
+                console.error('Failed to initialize Meilisearch:', e);
             }
-        } catch (e) {
-            console.error('Failed to initialize Meilisearch:', e);
-        }
 
-        try {
-            if (meilisearchEnabled) {
-                applyFilterOptions(await getFilterOptions());
-                readUrlParams();
-            } else {
-                await ensureMinisearchReady();
-            }
-        } catch (e) {
-            console.error('Failed to initialize search:', e);
+            try {
+                if (meilisearchEnabled) {
+                    applyFilterOptions(await getFilterOptions());
+                    readUrlParams();
+                } else {
+                    await ensureMinisearchReady();
+                }
+            } catch (e) {
+                console.error('Failed to initialize search:', e);
 
-            if (!meilisearchEnabled) {
-                error = 'Search is unavailable. Please try again later.';
+                if (!meilisearchEnabled) {
+                    error = 'Search is unavailable. Please try again later.';
+                }
+            } finally {
+                searchReady = meilisearchEnabled || minisearchReady;
+                initializing = false;
             }
-        } finally {
-            searchReady = meilisearchEnabled || minisearchReady;
-            initializing = false;
-        }
+        })();
 
         return () => {
             window.removeEventListener('popstate', handlePopState);

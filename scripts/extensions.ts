@@ -4,7 +4,9 @@ import { join } from 'node:path';
 
 import $ from 'dax';
 
-import { formatSourceName } from '../src/lib/search/utils';
+import { formatSourceName, parseSourceUrl, type ParsedSource } from '../src/lib/search/utils';
+export type { ParsedSource };
+export { parseSourceUrl };
 import type { SearchIndexEntry } from '../src/lib/types';
 import type { JsonObject, JsonValue } from '../src/lib/validation';
 import { parseAppData, parseExtension, parseSearchIndexEntry } from '../src/lib/validation';
@@ -126,16 +128,23 @@ async function rewriteMirroredIndexFiles(dest: string, key: string): Promise<boo
             }
         }
         if (indexChanged) await writeFile(join(dest, 'index.json'), JSON.stringify(idx));
-    } catch {}
+    } catch (error) {
+        logger.warn('extensions', `failed to rewrite mirrored index.json in ${dest}: ${error}`);
+    }
 
-    try {
-        const repo: JsonObject = JSON.parse(await readFile(join(dest, 'repo.json'), 'utf8'));
-        const mirroredIndex = `${url}/index.pb`;
-        if (repo.index_v2 !== mirroredIndex) {
-            repo.index_v2 = mirroredIndex;
-            await writeFile(join(dest, 'repo.json'), JSON.stringify(repo, null, 2));
+    const repoFile = join(dest, 'repo.json');
+    if (existsSync(repoFile)) {
+        try {
+            const repo: JsonObject = JSON.parse(await readFile(repoFile, 'utf8'));
+            const mirroredIndex = `${url}/index.pb`;
+            if (repo.index_v2 !== mirroredIndex) {
+                repo.index_v2 = mirroredIndex;
+                await writeFile(repoFile, JSON.stringify(repo, null, 2));
+            }
+        } catch (error) {
+            logger.warn('extensions', `failed to rewrite mirrored repo.json in ${dest}: ${error}`);
         }
-    } catch {}
+    }
 
     return staleMirror;
 }
@@ -460,19 +469,6 @@ export async function generateDataJson(
     logger.info('data', `data generate complete commit=${commit.substring(0, 7)}`);
 }
 
-export interface ParsedSource {
-    url: string;
-    branch?: string;
-}
-
-export function parseSourceUrl(source: string): ParsedSource {
-    const idx = source.lastIndexOf('@');
-    if (idx === -1) return { url: source };
-    const url = source.slice(0, idx);
-    const branch = source.slice(idx + 1);
-    return branch ? { url, branch } : { url };
-}
-
 export async function getRemoteHead(source: string): Promise<string> {
     const { url, branch } = parseSourceUrl(source);
     const ref = branch ? `refs/heads/${branch}` : 'HEAD';
@@ -482,6 +478,7 @@ export async function getRemoteHead(source: string): Promise<string> {
 
 async function loadSyncedCommits(dataFile = DATA_FILE): Promise<Map<string, string>> {
     const synced = new Map<string, string>();
+    if (!existsSync(dataFile)) return synced;
 
     try {
         const data = parseAppData(JSON.parse(await readFile(dataFile, 'utf8')));
@@ -490,8 +487,8 @@ async function loadSyncedCommits(dataFile = DATA_FILE): Promise<Map<string, stri
             .forEach((entry) => {
                 if (entry.path && entry.commit) synced.set(entry.path, entry.commit);
             });
-    } catch {
-        // Ignore missing data.json before first materialization.
+    } catch (error) {
+        logger.warn('extensions', `failed to parse synced commits from ${dataFile}: ${error}`);
     }
 
     return synced;
@@ -780,14 +777,17 @@ export async function refreshFlatAnimeIndexPb(
                 entries = candidate;
                 break;
             }
-        } catch {}
+        } catch (error) {
+            logger.warn('extensions', `failed to parse candidate anime index ${file}: ${error}`);
+        }
     }
     if (!entries) return false;
 
     let repoJson: JsonObject;
     try {
         repoJson = JSON.parse(await readFile(repoFile, 'utf8'));
-    } catch {
+    } catch (error) {
+        logger.warn('extensions', `failed to parse repo.json in ${dir}: ${error}`);
         return false;
     }
     const meta = isRecord(repoJson.meta) ? repoJson.meta : undefined;
