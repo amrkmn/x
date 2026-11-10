@@ -54,12 +54,13 @@ jobs:
                   PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY: ${{ secrets.PUBLIC_MEILISEARCH_DEFAULT_SEARCH_KEY }}
 
             - name: Deploy to Cloudflare, Netlify, Grebedoc & update search index
-              run: nub run deploy:all -- --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}"
+              run: nub run deploy:all -- --message "deploy ${{ github.event.workflow_run.head_sha || github.sha }}" --grebedoc-retries 5
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
                   NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
                   GIT_PAGES_PASSWORD: ${{ secrets.GIT_PAGES_PASSWORD }}
+                  GREBEDOC_RETRIES: 5
                   MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}
                   MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}

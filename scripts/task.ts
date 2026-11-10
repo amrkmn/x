@@ -215,6 +215,17 @@ function parseDeployMessage(args: string[]): string | undefined {
     return undefined;
 }
 
+function parseGrebedocRetries(args: string[]): number | undefined {
+    const index = args.indexOf('--grebedoc-retries');
+    if (index !== -1 && index + 1 < args.length) {
+        const val = Number.parseInt(args[index + 1], 10);
+        if (!Number.isNaN(val) && val >= 0) {
+            return val;
+        }
+    }
+    return undefined;
+}
+
 const commandHandlers = {
     data: async () => {
         await generateDataJson();
@@ -251,8 +262,10 @@ const commandHandlers = {
         await buildAll();
     },
     'deploy-all': async (args?: string[]) => {
-        const message = parseDeployMessage(args || process.argv.slice(2));
-        await deployAll({ message });
+        const rawArgs = args || process.argv.slice(2);
+        const message = parseDeployMessage(rawArgs);
+        const grebedocRetries = parseGrebedocRetries(rawArgs);
+        await deployAll({ message, grebedocRetries });
     },
     local: async () => {
         const manifestPath = await fetchManifest();

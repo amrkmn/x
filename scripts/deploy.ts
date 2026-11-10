@@ -18,13 +18,37 @@ export async function deployNetlify(target: BuildTarget, message: string): Promi
     logger.info('deploy', 'netlify deploy complete');
 }
 
-export async function deployGrebedoc(target: BuildTarget): Promise<void> {
+export interface DeployGrebedocOptions {
+    retries?: number;
+    retryDelay?: number;
+    apiUrl?: string;
+}
+
+export async function deployGrebedoc(
+    target: BuildTarget,
+    options: DeployGrebedocOptions = {}
+): Promise<void> {
     const password = process.env.GIT_PAGES_PASSWORD;
     if (!password) {
         throw new Error('GIT_PAGES_PASSWORD environment variable is not set');
     }
 
-    logger.info('deploy', `grebedoc deploy start outDir=${target.outDir}`);
+    const retries =
+        options.retries ??
+        (process.env.GREBEDOC_RETRIES ? Number.parseInt(process.env.GREBEDOC_RETRIES, 10) : 3);
+    const retryDelay =
+        options.retryDelay ??
+        (process.env.GREBEDOC_RETRY_DELAY
+            ? Number.parseInt(process.env.GREBEDOC_RETRY_DELAY, 10)
+            : 5);
+
+    const safeRetries = Number.isFinite(retries) && retries >= 0 ? retries : 3;
+    const safeDelay = Number.isFinite(retryDelay) && retryDelay >= 0 ? retryDelay : 5;
+
+    logger.info(
+        'deploy',
+        `grebedoc deploy start outDir=${target.outDir} retries=${safeRetries} retryDelay=${safeDelay}s`
+    );
 
     // 1. Create tar archive bytes via dax
     const tarBytes = await $`tar -cf - -C ${target.outDir} .`.bytes();
@@ -36,14 +60,21 @@ export async function deployGrebedoc(target: BuildTarget): Promise<void> {
 
     // 3. Upload directly via curl (curl preserves custom Host header)
     const host = new URL(target.siteUrl).host;
-    await $`curl -fSL https://grebedoc.dev/ -X PUT -H ${`Host: ${host}`} -H ${`Authorization: Pages ${password}`} -H "Content-Type: application/x-tar+zstd" --data-binary @-`.stdin(
+    const apiUrl = options.apiUrl || process.env.GREBEDOC_API_URL || 'https://grebedoc.dev/';
+    await $`curl -fSL ${apiUrl} -X PUT -H ${`Host: ${host}`} -H ${`Authorization: Pages ${password}`} -H "Content-Type: application/x-tar+zstd" --retry ${safeRetries} --retry-delay ${safeDelay} --retry-all-errors --data-binary @-`.stdin(
         compressed
     );
 
     logger.info('deploy', 'grebedoc deploy complete');
 }
 
-export async function deployAll(options: { message?: string } = {}): Promise<void> {
+export interface DeployAllOptions {
+    message?: string;
+    grebedocRetries?: number;
+    grebedocRetryDelay?: number;
+}
+
+export async function deployAll(options: DeployAllOptions = {}): Promise<void> {
     const message = options.message || process.env.DEPLOY_MESSAGE || 'deploy';
 
     const cloudflareTarget = BUILD_TARGETS.find((t) => t.name === 'cloudflare');
@@ -65,7 +96,11 @@ export async function deployAll(options: { message?: string } = {}): Promise<voi
         },
         {
             name: 'grebedoc',
-            run: () => deployGrebedoc(grebedocTarget)
+            run: () =>
+                deployGrebedoc(grebedocTarget, {
+                    retries: options.grebedocRetries,
+                    retryDelay: options.grebedocRetryDelay
+                })
         },
         {
             name: 'search-index',
