@@ -5,7 +5,7 @@
             "name": "Keiyoushi",
             "path": "/keiyoushi/index.pb",
             "category": "mihon",
-            "commit": "439ff493dd6a6520e87fc0437985cf1ab529347a"
+            "commit": "5bf72bba33d15eed48a494e43482152614ea1853"
         },
         "yuzono/cursed": {
             "source": "https://github.com/yuzono/cursed-manga-repo@repo",
